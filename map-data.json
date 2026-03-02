@@ -69,5 +69,18 @@
       "path270",
       "path179"
     ]
+  },
+  {
+    "name": "諸島の集い",
+    "color": "hsl(353 70% 55%)",
+    "provinces": [
+      "path333",
+      "path349",
+      "path345",
+      "path329",
+      "path309",
+      "path319",
+      "path336"
+    ]
   }
 ]
