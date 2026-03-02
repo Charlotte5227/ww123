@@ -1960,6 +1960,14 @@
         if (p) p.style.fill = country.color;
       }
 
+      // ★プロビが0になったら国を抹消
+     if (country.ids.size === 0) {
+       deleteCountry(activeCountryId);
+       // 選択状態は消しておく
+       selectedIds.clear();
+       return;
+    }
+
       // ★ここが超重要
       if (p) p.classList.remove("selected");
     }
@@ -2047,6 +2055,27 @@
     refreshCountrySelect();
     updateStatus();
    }
+
+  function deleteCountry(countryId) {
+    const c = countries.get(countryId);
+    if (!c) return;
+
+    // ラベル削除
+    const svg = getSvgRoot();
+    const label = svg.getElementById(c.labelId);
+    if (label) label.remove();
+
+  // 国を削除
+  countries.delete(countryId);
+
+    // UI更新
+    refreshCountrySelect();
+    if (activeCountryId === countryId) {
+      activeCountryId = "";
+      document.getElementById("countrySelect").value = "";
+    }
+    updateStatus();
+  }
 
   // --- ファイル読み込み ---
   async function readJsonFile(file) {
@@ -2169,3 +2198,4 @@ async function getFileSha(owner, repo, path, token) {
 
 </body>
 </html>
+
