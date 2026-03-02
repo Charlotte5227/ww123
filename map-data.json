@@ -1,1 +1,109 @@
-[]
+[
+  {
+    "name": "テスト王国",
+    "color": "hsl(328 70% 55%)",
+    "provinces": [
+      "path275",
+      "path279",
+      "path260",
+      "path263",
+      "path278",
+      "path285",
+      "path274",
+      "path252",
+      "path253",
+      "path235",
+      "path239",
+      "path262",
+      "path276"
+    ]
+  },
+  {
+    "name": "諸島連合",
+    "color": "hsl(36 70% 55%)",
+    "provinces": [
+      "path321",
+      "path343",
+      "path352",
+      "path336",
+      "path319",
+      "path350",
+      "path341",
+      "path322",
+      "path307"
+    ]
+  },
+  {
+    "name": "ラーティリネリア",
+    "color": "hsl(88 70% 55%)",
+    "provinces": [
+      "path184",
+      "path182",
+      "path130",
+      "path152",
+      "path162",
+      "path116",
+      "path194",
+      "path186",
+      "path160",
+      "path207",
+      "path200",
+      "path193",
+      "path170",
+      "path191",
+      "path183",
+      "path157",
+      "path122"
+    ]
+  },
+  {
+    "name": "ウェッテネリンシェリタ",
+    "color": "hsl(252 70% 55%)",
+    "provinces": [
+      "path215",
+      "path198",
+      "path217",
+      "path226",
+      "path240",
+      "path233",
+      "path243",
+      "path238",
+      "path224",
+      "path208",
+      "path197",
+      "path199",
+      "path218",
+      "path225",
+      "path258"
+    ]
+  },
+  {
+    "name": "ワルネリネルスク",
+    "color": "hsl(29 70% 55%)",
+    "provinces": [
+      "path98",
+      "path90",
+      "path89",
+      "path75",
+      "path60",
+      "path25",
+      "path26",
+      "path53",
+      "path54",
+      "path27",
+      "path28",
+      "path29",
+      "path63",
+      "path62",
+      "path109",
+      "path78",
+      "path1",
+      "path83",
+      "path69",
+      "path112",
+      "path106",
+      "path51",
+      "path2"
+    ]
+  }
+]
