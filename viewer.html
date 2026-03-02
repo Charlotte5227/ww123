@@ -1,7 +1,41 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>閲覧サイト</title>
+
+<style>
+body { margin:0; font-family:sans-serif; }
+
+svg { width:100%; height:auto; display:block; }
+
+.prov {
+  fill:#ffffff;
+  stroke:#000;
+  stroke-width:1;
+}
+
+.label {
+  font-size:18px;
+  font-weight:800;
+  fill:#ffffff;
+  stroke:#000000;
+  stroke-width:6px;
+  paint-order:stroke fill;
+  pointer-events:none;
+}
+
+.labels-hidden .label {
+  display:none;
+}
+</style>
+</head>
+
 <body>
 
-<button id="toggleLabels">国名表示切替</button>
+<button id="toggleBtn">国名表示切替</button>
 
+<!-- ★ここに管理サイトと同じSVGを直貼り -->
 <svg
    version="1.1"
    id="svg1"
@@ -1649,29 +1683,57 @@
 </svg>
 
 <script>
+
+// ラベル表示切替
+document.getElementById("toggleBtn").onclick = () => {
+  document.body.classList.toggle("labels-hidden");
+};
+
 fetch("map-data.json")
-  .then(res => res.json())
-  .then(data => {
+.then(res => res.json())
+.then(data => {
 
-    const svg = document.querySelector("svg");
+  const svg = document.querySelector("svg");
 
-    data.forEach(country => {
+  data.forEach(country => {
 
-      // 塗る
-      country.provinces.forEach(id => {
-        const p = svg.getElementById(id);
-        if (p) p.style.fill = country.color;
-      });
-
-      // ラベル作成
-      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      text.setAttribute("class", "label");
-      text.setAttribute("x", 500);
-      text.setAttribute("y", 300);
-      text.textContent = country.name;
-      svg.appendChild(text);
+    // ===== プロビ塗る =====
+    country.provinces.forEach(id => {
+      const p = svg.getElementById(id);
+      if (p) p.style.fill = country.color;
     });
+
+    // ===== ラベル位置計算（重ならないように） =====
+    let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+
+    country.provinces.forEach(id=>{
+      const p = svg.getElementById(id);
+      if(!p) return;
+      const bb = p.getBBox();
+      minX = Math.min(minX, bb.x);
+      minY = Math.min(minY, bb.y);
+      maxX = Math.max(maxX, bb.x + bb.width);
+      maxY = Math.max(maxY, bb.y + bb.height);
+    });
+
+    const cx = (minX+maxX)/2;
+    const cy = (minY+maxY)/2;
+
+    // ===== ラベル生成 =====
+    const text = document.createElementNS("http://www.w3.org/2000/svg","text");
+    text.setAttribute("class","label");
+    text.setAttribute("x",cx);
+    text.setAttribute("y",cy);
+    text.setAttribute("text-anchor","middle");
+    text.setAttribute("dominant-baseline","middle");
+    text.textContent = country.name;
+
+    svg.appendChild(text);
+
   });
+
+});
 </script>
 
 </body>
+</html>
