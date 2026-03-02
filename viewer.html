@@ -1683,57 +1683,93 @@ svg { width:100%; height:auto; display:block; }
 </svg>
 
 <script>
+const HALF_DAY_MS = 12 * 60 * 60 * 1000;
 
-// ラベル表示切替
-document.getElementById("toggleBtn").onclick = () => {
-  document.body.classList.toggle("labels-hidden");
-};
+// 12時間単位で変わるクエリを付与（キャッシュ回避）
+function cacheBustUrl(path) {
+  const slot = Math.floor(Date.now() / HALF_DAY_MS);
+  return `${path}?v=${slot}`;
+}
 
-fetch("map-data.json")
-.then(res => res.json())
-.then(data => {
+function clearLabels(svg) {
+  svg.querySelectorAll(".label").forEach(el => el.remove());
+}
 
+function resetProvinces(svg) {
+  svg.querySelectorAll(".prov").forEach(p => { p.style.fill = "#ffffff"; });
+}
+
+function computeBBoxCenter(svg, provinceIds) {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let any = false;
+
+  for (const id of provinceIds) {
+    const p = svg.getElementById(id);
+    if (!p) continue;
+    const bb = p.getBBox();
+    minX = Math.min(minX, bb.x);
+    minY = Math.min(minY, bb.y);
+    maxX = Math.max(maxX, bb.x + bb.width);
+    maxY = Math.max(maxY, bb.y + bb.height);
+    any = true;
+  }
+
+  if (!any) return { cx: 0, cy: 0 };
+  return { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 };
+}
+
+function addLabel(svg, name, x, y) {
+  const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  text.setAttribute("class", "label");
+  text.setAttribute("x", String(x));
+  text.setAttribute("y", String(y));
+  text.setAttribute("text-anchor", "middle");
+  text.setAttribute("dominant-baseline", "middle");
+  text.textContent = name;
+  svg.appendChild(text);
+}
+
+async function loadAndRender() {
   const svg = document.querySelector("svg");
+  if (!svg) throw new Error("SVGが見つかりません（viewer.htmlにSVGを直貼りしているか確認）");
 
-  data.forEach(country => {
+  const res = await fetch(cacheBustUrl("map-data.json"), { cache: "no-store" });
+  if (!res.ok) throw new Error(`map-data.json 取得失敗: ${res.status}`);
 
-    // ===== プロビ塗る =====
-    country.provinces.forEach(id => {
+  const data = await res.json();
+  if (!Array.isArray(data)) throw new Error("map-data.json の形式が配列ではありません");
+
+  // 描画リセット
+  clearLabels(svg);
+  resetProvinces(svg);
+
+  // 描画
+  for (const country of data) {
+    if (!country || !country.name || !country.color || !Array.isArray(country.provinces)) continue;
+
+    // 塗る
+    for (const id of country.provinces) {
       const p = svg.getElementById(id);
       if (p) p.style.fill = country.color;
-    });
+    }
 
-    // ===== ラベル位置計算（重ならないように） =====
-    let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+    // ラベル（BBox中心）
+    const { cx, cy } = computeBBoxCenter(svg, country.provinces);
+    addLabel(svg, country.name, cx, cy);
+  }
+}
 
-    country.provinces.forEach(id=>{
-      const p = svg.getElementById(id);
-      if(!p) return;
-      const bb = p.getBBox();
-      minX = Math.min(minX, bb.x);
-      minY = Math.min(minY, bb.y);
-      maxX = Math.max(maxX, bb.x + bb.width);
-      maxY = Math.max(maxY, bb.y + bb.height);
-    });
+// 初回
+loadAndRender().catch(console.error);
 
-    const cx = (minX+maxX)/2;
-    const cy = (minY+maxY)/2;
+// 12時間ごとに更新（ページ開きっぱなし対応）
+setInterval(() => {
+  loadAndRender().catch(console.error);
+}, HALF_DAY_MS);
 
-    // ===== ラベル生成 =====
-    const text = document.createElementNS("http://www.w3.org/2000/svg","text");
-    text.setAttribute("class","label");
-    text.setAttribute("x",cx);
-    text.setAttribute("y",cy);
-    text.setAttribute("text-anchor","middle");
-    text.setAttribute("dominant-baseline","middle");
-    text.textContent = country.name;
-
-    svg.appendChild(text);
-
-  });
-
-});
+// 国名表示/非表示（ボタンやチェックボックスで body の class を切り替える方式が一番安定）
 </script>
 
 </body>
 </html>
+
