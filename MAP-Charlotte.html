@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Map Painter</title>
+  <title>Map Painter (Admin)</title>
   <style>
     body { margin: 0; font-family: sans-serif; }
     svg { width: 100%; height: auto; display: block; }
@@ -13,18 +13,24 @@
 
     #ui { padding: 12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     #nameInput { padding: 6px 8px; min-width: 220px; }
+
+    /* 選択中プロビの視認（薄赤） */
     .prov.selected { fill: #ff00003f !important; opacity: 0.9; }
+
     .label {
       font-size: 18px;
       font-weight: 800;
-      fill: #fff;                 /* 文字色：白 */
-      stroke: #000;               /* 縁：黒 */
-      stroke-width: 6px;          /* 縁の太さ（好みで4〜8） */
-      paint-order: stroke fill;   /* 縁→塗りの順 */
+      fill: #fff;
+      stroke: #000;
+      stroke-width: 6px;
+      paint-order: stroke fill;
       user-select: none;
-      pointer-events: none;       /* クリック邪魔しない */
+      pointer-events: none;
     }
     .labels-hidden .label { display: none; }
+
+    #ghToken { min-width: 240px; padding: 6px 8px; }
+    #publishStatus { margin-left: 6px; }
   </style>
 </head>
 <body>
@@ -38,9 +44,10 @@
 
   <button id="createCountryBtn">新規作成</button>
   <button id="applyToCountryBtn">選択プロビを国に反映（追加/削除）</button>
+
+  <button id="reloadBtn">最新版を読み込み</button>
   <button id="exportBtn">データを書き出す</button>
-  <input type="file" id="importFile" accept="application/json" />
-  <button id="importBtn">map-data.json を読み込む</button>
+
   <input id="ghToken" type="password" placeholder="GitHub token（fine-grained PAT）">
   <button id="publishBtn">公開（map-data.jsonをGitHubへ反映）</button>
   <span id="publishStatus"></span>
@@ -1709,31 +1716,28 @@
   const usedColors = new Set();
   let activeCountryId = "";      // 今編集している国
 
-  function randColor() {
-    // 最大360色（HSLの色相）
-    const maxAttempts = 500;
+  function getSvgRoot() {
+    return document.querySelector("svg");
+  }
 
+  function randColor() {
+    const maxAttempts = 500;
     for (let i = 0; i < maxAttempts; i++) {
       const h = Math.floor(Math.random() * 360);
       const color = `hsl(${h} 70% 55%)`;
-
       if (!usedColors.has(color)) {
         usedColors.add(color);
         return color;
       }
     }
-
-    // 万が一360色使い切った場合
-    const fallback = `hsl(${Math.floor(Math.random()*360)} 60% 50%)`;
-    return fallback;
+    return `hsl(${Math.floor(Math.random()*360)} 60% 50%)`;
   }
 
   function getProvinceBaseColor(id) {
-  // どの国にも所属していなければ白
-   for (const c of countries.values()) {
-    if (c.ids.has(id)) return c.color;
-  }
-   return "#ffffff";
+    for (const c of countries.values()) {
+      if (c.ids.has(id)) return c.color;
+    }
+    return "#ffffff";
   }
 
   function restoreProvinceColor(id) {
@@ -1741,10 +1745,6 @@
     const p = svg.getElementById(id);
     if (!p) return;
     p.style.fill = getProvinceBaseColor(id);
-  }
-
-  function getSvgRoot() {
-    return document.querySelector("svg");
   }
 
   function updateStatus() {
@@ -1804,16 +1804,6 @@
     return id;
   }
 
-  function moveLabelToCountryCenter(country) {
-    const svg = getSvgRoot();
-    const label = svg.getElementById(country.labelId);
-    if (!label) return;
-
-    const { cx, cy } = computeGroupCenter(country.ids);
-    label.setAttribute("x", String(cx));
-    label.setAttribute("y", String(cy));
-  }
-
   // --- 反映（塗る） ---
   function repaintCountry(country) {
     const svg = getSvgRoot();
@@ -1828,9 +1818,7 @@
     const sel = document.getElementById("countrySelect");
     const current = sel.value;
 
-    // いったん全消し
     sel.innerHTML = `<option value="">（国を選択）</option>`;
-
     for (const [cid, c] of countries.entries()) {
       const opt = document.createElement("option");
       opt.value = cid;
@@ -1838,7 +1826,6 @@
       sel.appendChild(opt);
     }
 
-    // 可能なら元の選択を維持
     if (current && countries.has(current)) sel.value = current;
     else if (activeCountryId && countries.has(activeCountryId)) sel.value = activeCountryId;
   }
@@ -1848,7 +1835,10 @@
     const svg = getSvgRoot();
     for (const id of selectedIds) {
       const el = svg.getElementById(id);
-      if (el) el.classList.remove(SELECT_CLASS);
+      if (el) {
+        el.classList.remove(SELECT_CLASS);
+        restoreProvinceColor(id);
+      }
     }
     selectedIds.clear();
     updateStatus();
@@ -1858,17 +1848,15 @@
   document.addEventListener("click", (e) => {
     const el = e.target;
     if (!el.classList || !el.classList.contains("prov")) return;
-  
+
     const id = el.id;
     if (!id) return;
-  
+
     if (selectedIds.has(id)) {
-      // 解除：元の色に戻す
       selectedIds.delete(id);
       el.classList.remove(SELECT_CLASS);
       restoreProvinceColor(id);
     } else {
-      // 選択：灰で見せる（CSSが効く）
       selectedIds.add(id);
       el.classList.add(SELECT_CLASS);
     }
@@ -1888,16 +1876,10 @@
 
   // === 新規作成（国名＋選択プロビ） ===
   document.getElementById("createCountryBtn").addEventListener("click", () => {
-    if (selectedIds.size === 0) {
-      alert("まずプロビを選択してください。");
-      return;
-    }
+    if (selectedIds.size === 0) return alert("まずプロビを選択してください。");
 
     const name = document.getElementById("nameInput").value.trim();
-    if (!name) {
-      alert("国名を入力してください。");
-      return;
-    }
+    if (!name) return alert("国名を入力してください。");
 
     const cid = `c-${Date.now()}-${Math.floor(Math.random()*1e6)}`;
     const color = randColor();
@@ -1909,37 +1891,50 @@
     const country = { name, color, ids, labelId };
     countries.set(cid, country);
 
-    // 選択プロビを国色で塗る
+    // 選択プロビを国色で塗る＆選択表示を消す
     for (const id of selectedIds) {
       const p = getSvgRoot().getElementById(id);
       if (p) {
-        p.classList.remove("selected");   // ← ここが重要
-        p.style.fill = country.color;     // ← 国色で上書き
+        p.classList.remove(SELECT_CLASS);
+        p.style.fill = country.color;
       }
     }
 
-    // 入力リセット
     document.getElementById("nameInput").value = "";
 
-    // 国は未選択状態に戻す
+    // 国は未選択状態に戻す（連続作成用）
     activeCountryId = "";
     refreshCountrySelect();
     document.getElementById("countrySelect").value = "";
 
-    // 選択状態クリア（Setだけ消す）
     selectedIds.clear();
-
     updateStatus();
   });
 
+  function deleteCountry(countryId) {
+    const c = countries.get(countryId);
+    if (!c) return;
+
+    const svg = getSvgRoot();
+    const label = svg.getElementById(c.labelId);
+    if (label) label.remove();
+
+    countries.delete(countryId);
+
+    refreshCountrySelect();
+    if (activeCountryId === countryId) {
+      activeCountryId = "";
+      document.getElementById("countrySelect").value = "";
+    }
+    updateStatus();
+  }
+
   // === 既存の国に「追加/削除」を反映 ===
   document.getElementById("applyToCountryBtn").addEventListener("click", () => {
-
     if (!activeCountryId || !countries.has(activeCountryId)) {
       alert("まず編集する国を選択してください。");
       return;
     }
-
     if (selectedIds.size === 0) {
       alert("追加/削除したいプロビを選択してください。");
       return;
@@ -1949,53 +1944,41 @@
 
     for (const id of selectedIds) {
       const p = getSvgRoot().getElementById(id);
-  
+
       if (country.ids.has(id)) {
-        // 削除
         country.ids.delete(id);
         if (p) p.style.fill = "#ffffff";
-     } else {
-        // 追加
-       country.ids.add(id);
+      } else {
+        country.ids.add(id);
         if (p) p.style.fill = country.color;
       }
 
-      // ★プロビが0になったら国を抹消
-     if (country.ids.size === 0) {
-       deleteCountry(activeCountryId);
-       // 選択状態は消しておく
-       selectedIds.clear();
-       return;
+      if (p) p.classList.remove(SELECT_CLASS);
     }
 
-      // ★ここが超重要
-      if (p) p.classList.remove("selected");
-    }
-
-    // 選択状態クリア
     selectedIds.clear();
-  
+
+    // ★プロビが0になったら国を抹消（ループ後に判定）
+    if (country.ids.size === 0) {
+      deleteCountry(activeCountryId);
+      return;
+    }
+
     updateStatus();
   });
 
-  // 初期化
-  refreshCountrySelect();
-  updateStatus();
-
+  // === JSONを書き出し（ローカル保存用） ===
   document.getElementById("exportBtn").addEventListener("click", () => {
-
     const exportData = [];
-
-    for (const [cid, c] of countries.entries()) {
+    for (const [, c] of countries.entries()) {
       exportData.push({
         name: c.name,
         color: c.color,
-        provinces: Array.from(c.ids)
+        provinces: Array.from(c.ids),
       });
     }
 
     const json = JSON.stringify(exportData, null, 2);
-
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
 
@@ -2003,106 +1986,75 @@
     a.href = url;
     a.download = "map-data.json";
     a.click();
-   
     URL.revokeObjectURL(url);
   });
 
+  // === GitHubからの自動復元（どの端末でも最新版） ===
   function resetAllToWhite() {
     const svg = getSvgRoot();
-    const provs = svg.querySelectorAll(".prov");
-    provs.forEach(p => {
-       p.classList.remove("selected");
-       p.style.fill = "#ffffff";
-      });
-
-    // ラベル全削除
+    svg.querySelectorAll(".prov").forEach(p => {
+      p.classList.remove(SELECT_CLASS);
+      p.style.fill = "#ffffff";
+    });
     const layer = svg.querySelector("#labels-layer");
     if (layer) layer.remove();
-   }
+  }
 
   function importData(jsonArray) {
-  // 1) 初期化
     countries.clear();
     usedColors.clear();
     selectedIds.clear();
     activeCountryId = "";
 
-    // 2) いったん地図を白に戻す＆ラベル消す
     resetAllToWhite();
 
-    // 3) JSONから国を復元
     jsonArray.forEach(item => {
       if (!item || !item.name || !item.color || !Array.isArray(item.provinces)) return;
 
       const cid = `c-${Date.now()}-${Math.floor(Math.random()*1e6)}`;
       const ids = new Set(item.provinces);
 
-      // 色を「使用済み」に登録（重複防止のため）
       usedColors.add(item.color);
 
-      // ラベル位置：閲覧側と同じ（BBox中心）
       const { cx, cy } = computeGroupCenter(ids);
       const labelId = addLabel(item.name, cx, cy);
 
       const country = { name: item.name, color: item.color, ids, labelId };
       countries.set(cid, country);
 
-      // 塗る
       repaintCountry(country);
     });
 
-    // 4) UI更新
     refreshCountrySelect();
-    updateStatus();
-   }
-
-  function deleteCountry(countryId) {
-    const c = countries.get(countryId);
-    if (!c) return;
-
-    // ラベル削除
-    const svg = getSvgRoot();
-    const label = svg.getElementById(c.labelId);
-    if (label) label.remove();
-
-  // 国を削除
-  countries.delete(countryId);
-
-    // UI更新
-    refreshCountrySelect();
-    if (activeCountryId === countryId) {
-      activeCountryId = "";
-      document.getElementById("countrySelect").value = "";
-    }
     updateStatus();
   }
 
-  // --- ファイル読み込み ---
-  async function readJsonFile(file) {
-    const text = await file.text();
-    const data = JSON.parse(text);
-    if (!Array.isArray(data)) throw new Error("JSONの形式が想定と違います（配列ではありません）");
-    return data;
-  }
+  async function autoLoadLatest() {
+    const res = await fetch(`map-data.json?ts=${Date.now()}`, { cache: "no-store" });
 
-  document.getElementById("importBtn").addEventListener("click", async () => {
-    const input = document.getElementById("importFile");
-    if (!input.files || input.files.length === 0) {
-      alert("map-data.json を選択してください。");
+    if (res.status === 404) {
+      console.log("map-data.json がまだ無いので自動読み込みをスキップ");
       return;
     }
+    if (!res.ok) throw new Error(`自動読み込み失敗: ${res.status}`);
 
+    const data = await res.json();
+    if (!Array.isArray(data)) throw new Error("map-data.json の形式が配列ではありません");
+
+    importData(data);
+  }
+
+  document.getElementById("reloadBtn").addEventListener("click", async () => {
     try {
-      const data = await readJsonFile(input.files[0]);
-      importData(data);
-      alert("読み込み完了！");
+      await autoLoadLatest();
+      alert("最新版を読み込みました");
     } catch (e) {
-      console.error(e);
-      alert("読み込みに失敗しました： " + e.message);
+      alert(e.message);
     }
   });
 
-  const GH_OWNER = "charlotte_5227";
+  // === GitHubへ公開（map-data.json上書き） ===
+  const GH_OWNER = "Charlotte5227";
   const GH_REPO  = "ww123";
   const GH_PATH  = "map-data.json";
 
@@ -2119,11 +2071,10 @@
   }
 
   function toBase64Utf8(str) {
-    // UTF-8文字を安全にbase64化
     return btoa(unescape(encodeURIComponent(str)));
   }
 
-async function getFileSha(owner, repo, path, token) {
+  async function getFileSha(owner, repo, path, token) {
     const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
     const res = await fetch(url, {
       headers: {
@@ -2133,19 +2084,13 @@ async function getFileSha(owner, repo, path, token) {
       },
     });
 
-    if (res.status === 404) return null; // 新規作成扱い
-    if (!res.ok) {
-      const t = await res.text();
-      throw new Error(`SHA取得失敗: ${res.status}\n${t}`);
-  }
-
-    const json = await res.json();
-    return json.sha;
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`SHA取得失敗: ${res.status}\n${await res.text()}`);
+    return (await res.json()).sha;
   }
 
   async function putFile(owner, repo, path, token, contentText, shaOrNull) {
     const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-
     const body = {
       message: `Update ${path}`,
       content: toBase64Utf8(contentText),
@@ -2163,30 +2108,19 @@ async function getFileSha(owner, repo, path, token) {
       body: JSON.stringify(body),
     });
 
-    if (!res.ok) {
-      const t = await res.text();
-      throw new Error(`PUT失敗: ${res.status}\n${t}`);
-    }
-   }
+    if (!res.ok) throw new Error(`PUT失敗: ${res.status}\n${await res.text()}`);
+  }
 
   document.getElementById("publishBtn").addEventListener("click", async () => {
     const token = document.getElementById("ghToken").value.trim();
     const status = document.getElementById("publishStatus");
-
-    if (!token) {
-      alert("GitHub token を入力してください。");
-      return;
-    }
+    if (!token) return alert("GitHub token を入力してください。");
 
     status.textContent = "公開中…";
-
     try {
-      const data = buildExportArrayFromCountries();
-      const jsonText = JSON.stringify(data, null, 2);
-
+      const jsonText = JSON.stringify(buildExportArrayFromCountries(), null, 2);
       const sha = await getFileSha(GH_OWNER, GH_REPO, GH_PATH, token);
       await putFile(GH_OWNER, GH_REPO, GH_PATH, token, jsonText, sha);
-
       status.textContent = "公開OK（viewerは最大12時間で反映）";
     } catch (e) {
       console.error(e);
@@ -2194,8 +2128,16 @@ async function getFileSha(owner, repo, path, token) {
       alert(e.message);
     }
   });
+
+  // === 初期化 ===
+  refreshCountrySelect();
+  updateStatus();
+
+  // 起動時に最新版を自動読み込み
+  window.addEventListener("DOMContentLoaded", () => {
+    autoLoadLatest().catch(e => console.warn(e));
+  });
 </script>
 
 </body>
 </html>
-
