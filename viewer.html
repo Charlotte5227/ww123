@@ -1768,8 +1768,30 @@ setInterval(() => {
 }, HALF_DAY_MS);
 
 // 国名表示/非表示（ボタンやチェックボックスで body の class を切り替える方式が一番安定）
+  // === 国名表示/非表示 ===
+
+// 状態（初期は表示）
+let labelsVisible = true;
+
+// 反映関数：ラベルの表示状態をDOMに適用
+function applyLabelVisibility() {
+  document.body.classList.toggle("labels-hidden", !labelsVisible);
+}
+
+// ボタンにクリックイベントを付与
+const toggleBtn = document.getElementById("toggleBtn");
+if (toggleBtn) {
+  toggleBtn.addEventListener("click", () => {
+    labelsVisible = !labelsVisible;
+    applyLabelVisibility();
+  });
+}
+
+// 初期反映（最初から非表示にしたいなら labelsVisible=false にしておく）
+applyLabelVisibility();
 </script>
 
 </body>
 </html>
+
 
