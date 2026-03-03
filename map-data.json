@@ -98,5 +98,44 @@
       "path109",
       "path78"
     ]
+  },
+  {
+    "name": "亢進半影国",
+    "color": "hsl(183 70% 55%)",
+    "provinces": [
+      "path105",
+      "path107",
+      "path133",
+      "path132",
+      "path120",
+      "path95",
+      "path70",
+      "path55",
+      "path167",
+      "path175",
+      "path148",
+      "path149",
+      "path173",
+      "path118",
+      "path99",
+      "path67",
+      "path35",
+      "path39",
+      "path5",
+      "path6",
+      "path7",
+      "path34",
+      "path45",
+      "path111",
+      "path77",
+      "path135",
+      "path131",
+      "path110",
+      "path100",
+      "path102",
+      "path61",
+      "path46",
+      "path4"
+    ]
   }
 ]
