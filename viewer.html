@@ -1791,7 +1791,8 @@ svg { position: relative; z-index: 0; }
   }, HALF_DAY_MS);
 
   // 国名表示/非表示（ボタンやチェックボックスで body の class を切り替える方式が一番安定）
-    // 状態（初期は表示）let labelsVisible = true;
+    // 状態（初期は表示）
+  let labelsVisible = true;
 
   function applyLabelVisibility() {
     document.body.classList.toggle("labels-hidden", !labelsVisible);
@@ -1811,6 +1812,7 @@ svg { position: relative; z-index: 0; }
 
 </body>
 </html>
+
 
 
 
