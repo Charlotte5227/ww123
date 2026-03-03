@@ -30,6 +30,26 @@ svg { width:100%; height:auto; display:block; }
 }
 #ui { position: sticky; top: 0; z-index: 9999; background: white; }
 svg { position: relative; z-index: 0; }
+
+#toggleBtn {
+  font-size: 18px;          /* 文字を大きく */
+  padding: 12px 20px;       /* 押しやすい余白 */
+  border-radius: 10px;      /* 角を丸く */
+  border: none;
+  background: #222;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 180px;         /* 横幅確保 */
+}
+
+#toggleBtn:active {
+  transform: scale(0.97);   /* 押した感 */
+}
+
+#toggleBtn:hover {
+  background: #444;
+  }
 </style>
 </head>
 
@@ -1770,17 +1790,13 @@ svg { position: relative; z-index: 0; }
   }, HALF_DAY_MS);
 
   // 国名表示/非表示（ボタンやチェックボックスで body の class を切り替える方式が一番安定）
-    // === 国名表示/非表示 ===
+    // 状態（初期は表示）let labelsVisible = true;
 
-  // 状態（初期は表示）
-  let labelsVisible = true;
-
-  // 反映関数：ラベルの表示状態をDOMに適用
   function applyLabelVisibility() {
     document.body.classList.toggle("labels-hidden", !labelsVisible);
+    toggleBtn.textContent = labelsVisible ? "国名を非表示" : "国名を表示";
   }
 
-  // ボタンにクリックイベントを付与
   const toggleBtn = document.getElementById("toggleBtn");
   if (toggleBtn) {
     toggleBtn.addEventListener("click", () => {
@@ -1789,12 +1805,12 @@ svg { position: relative; z-index: 0; }
     });
   }
 
-  // 初期反映（最初から非表示にしたいなら labelsVisible=false にしておく）
   applyLabelVisibility();
 </script>
 
 </body>
 </html>
+
 
 
 
