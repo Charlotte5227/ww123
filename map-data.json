@@ -1,22 +1,26 @@
 [
   {
-    "name": "テスト帝国",
-    "color": "hsl(4 70% 55%)",
-    "provinces": []
+    "name": "神聖フェヴァロ゚ツォトニア人民国",
+    "color": "#2ef1ff",
+    "provinces": [
+      "path162",
+      "path122",
+      "path152",
+      "path116",
+      "path157",
+      "path115"
+    ]
   },
   {
-    "name": "テスト王国",
-    "color": "hsl(245 70% 55%)",
-    "provinces": []
-  },
-  {
-    "name": "エツティリア諸島群",
-    "color": "hsl(246 70% 55%)",
-    "provinces": []
-  },
-  {
-    "name": "ゲッティラント・ローデリア",
-    "color": "hsl(6 70% 55%)",
-    "provinces": []
+    "name": "氷国",
+    "color": "#2e3cff",
+    "provinces": [
+      "path11",
+      "path10",
+      "path9",
+      "path50",
+      "path71",
+      "path56"
+    ]
   }
 ]
