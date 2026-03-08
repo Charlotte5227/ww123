@@ -32,6 +32,7 @@
 <div id="ui">
   <input id="nameInput" placeholder="国名（例：ブラジル）" />
 
+  <input type="color" id="colorInput" value="#ff4444" title="国の色" style="cursor: pointer;" />
   <select id="countrySelect">
     <option value="">（国を選択）</option>
   </select>
@@ -1900,7 +1901,7 @@
     }
 
     const cid = `c-${Date.now()}-${Math.floor(Math.random()*1e6)}`;
-    const color = randColor();
+    const color = document.getElementById("colorInput").value;
     const ids = new Set(selectedIds);
 
     const { cx, cy } = computeGroupCenter(ids);
@@ -1962,6 +1963,23 @@
 
       // ★ここが超重要
       if (p) p.classList.remove("selected");
+    }
+
+    if (country.ids.size === 0) {
+      // 画面上の国名ラベルを削除
+      const labelEl = getSvgRoot().getElementById(country.labelId);
+      if (labelEl) labelEl.remove();
+
+      // 国データと使用済み色を削除
+      countries.delete(activeCountryId);
+      usedColors.delete(country.color);
+
+      // 編集対象の国を未選択状態に戻し、セレクトボックスを更新
+      activeCountryId = "";
+      refreshCountrySelect();
+    } else {
+      // プロビが残っている場合は、領土の増減に合わせてラベルを中央へ再配置
+      moveLabelToCountryCenter(country);
     }
 
     // 選択状態クリア
@@ -2205,3 +2223,4 @@ async function getFileSha(owner, repo, path, token) {
 
 </body>
 </html>
+
