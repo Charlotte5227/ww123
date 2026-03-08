@@ -34,5 +34,27 @@
       "path341",
       "path347"
     ]
+  },
+  {
+    "name": "ポップ帝国",
+    "color": "#ffff00",
+    "provinces": [
+      "path317",
+      "path325",
+      "path310",
+      "path323",
+      "path324",
+      "path315"
+    ]
+  },
+  {
+    "name": "Embest･Lesk･Diano",
+    "color": "#ff00ff",
+    "provinces": [
+      "path393",
+      "path386",
+      "path379",
+      "path389"
+    ]
   }
 ]
