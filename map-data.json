@@ -56,5 +56,17 @@
       "path379",
       "path389"
     ]
+  },
+  {
+    "name": "ネルフィー国",
+    "color": "#9578ff",
+    "provinces": [
+      "path290",
+      "path284",
+      "path295",
+      "path287",
+      "path286",
+      "path289"
+    ]
   }
 ]
