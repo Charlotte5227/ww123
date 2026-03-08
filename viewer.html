@@ -5,14 +5,15 @@
 <title>閲覧サイト</title>
 
 <style>
-body { margin:0; font-family:sans-serif; }
+body { margin:0; font-family:sans-serif; background: #f0f2f5; }
 
-svg { width:100%; height:auto; display:block; }
+svg { width:100%; height:auto; display:block; background: #fff; }
 
 .prov {
   fill:#ffffff;
-  stroke:#000;
+  stroke:#111;
   stroke-width:1;
+  transition: fill 0.5s ease; /* 色の変化を滑らかに */
 }
 
 .label {
@@ -23,6 +24,7 @@ svg { width:100%; height:auto; display:block; }
   stroke-width:6px;
   paint-order:stroke fill;
   pointer-events:none;
+  user-select: none;
 }
 
 .labels-hidden .label {
@@ -30,35 +32,39 @@ svg { width:100%; height:auto; display:block; }
 }
   
 #toggleBtn {
-  font-size: 18px;          /* 文字を大きく */
-  padding: 12px 20px;       /* 押しやすい余白 */
-  border-radius: 10px;      /* 角を丸く */
+  position: fixed; /* 常に画面右上に配置 */
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  font-size: 16px;
+  padding: 12px 24px;
+  border-radius: 30px;
   border: none;
   background: #222;
   color: white;
   font-weight: 600;
   cursor: pointer;
-  min-width: 180px;         /* 横幅確保 */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-#toggleBtn:active {
-  transform: scale(0.97);   /* 押した感 */
+#toggleBtn:hover { background: #444; }
+
+#statusIndicator {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  font-size: 10px;
+  color: #888;
+  z-index: 10000;
 }
-
-#toggleBtn:hover {
-  background: #444;
-  }
-
-#ui { position: sticky; top: 0; z-index: 9999; background: white; }
-svg { position: relative; z-index: 0; }
 </style>
 </head>
 
 <body>
 
-<button id="toggleBtn">国名表示切替</button>
+<button id="toggleBtn">国名を非表示</button>
+<div id="statusIndicator">データ同期中...</div>
 
-<!-- ★ここに管理サイトと同じSVGを直貼り -->
 <svg
    version="1.1"
    id="svg1"
@@ -1706,22 +1712,27 @@ svg { position: relative; z-index: 0; }
 </svg>
 
 <script>
-  const HALF_DAY_MS = 12 * 60 * 60 * 1000;
+  // === 設定 ===
+  const REFRESH_INTERVAL_MS = 30000; // 30秒ごとに更新チェック
+  let lastDataHash = "";            // データの変更確認用
+  let labelsVisible = true;
 
-  // 12時間単位で変わるクエリを付与（キャッシュ回避）
-  function cacheBustUrl(path) {
-    const slot = Math.floor(Date.now() / HALF_DAY_MS);
-    return `${path}?v=${slot}`;
-  }
-
-  function clearLabels(svg) {
-    svg.querySelectorAll(".label").forEach(el => el.remove());
+  // --- ラベル専用レイヤーの確保（常に最前面にするため） ---
+  function ensureLabelsLayer(svg) {
+    let layer = svg.querySelector("#labels-layer");
+    if (!layer) {
+      layer = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      layer.setAttribute("id", "labels-layer");
+      svg.appendChild(layer);
+    }
+    return layer;
   }
 
   function resetProvinces(svg) {
     svg.querySelectorAll(".prov").forEach(p => { p.style.fill = "#ffffff"; });
   }
 
+  // --- 管理サイトと同一の座標計算 ---
   function computeBBoxCenter(svg, provinceIds) {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     let any = false;
@@ -1741,7 +1752,7 @@ svg { position: relative; z-index: 0; }
     return { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 };
   }
 
-  function addLabel(svg, name, x, y) {
+  function addLabel(layer, name, x, y) {
     const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
     text.setAttribute("class", "label");
     text.setAttribute("x", String(x));
@@ -1749,75 +1760,68 @@ svg { position: relative; z-index: 0; }
     text.setAttribute("text-anchor", "middle");
     text.setAttribute("dominant-baseline", "middle");
     text.textContent = name;
-    svg.appendChild(text);
+    layer.appendChild(text);
   }
 
   async function loadAndRender() {
     const svg = document.querySelector("svg");
-    if (!svg) throw new Error("SVGが見つかりません（viewer.htmlにSVGを直貼りしているか確認）");
+    if (!svg) return;
 
-    const res = await fetch(cacheBustUrl("map-data.json"), { cache: "no-store" });
-    if (!res.ok) throw new Error(`map-data.json 取得失敗: ${res.status}`);
+    try {
+      // 強制的に最新を取得するためのクエリ（Date.now）
+      const url = `map-data.json?t=${Date.now()}`;
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error("Fetch failed");
 
-    const data = await res.json();
-    if (!Array.isArray(data)) throw new Error("map-data.json の形式が配列ではありません");
+      const jsonText = await res.text();
+      
+      // データに変更がなければ再描画しない（チカつき防止）
+      if (jsonText === lastDataHash) return;
+      lastDataHash = jsonText;
+      
+      const data = JSON.parse(jsonText);
+      const layer = ensureLabelsLayer(svg);
+      
+      // 描画リセット
+      layer.innerHTML = "";
+      resetProvinces(svg);
 
-    // 描画リセット
-    clearLabels(svg);
-    resetProvinces(svg);
+      // 反映
+      for (const country of data) {
+        if (!country.provinces || country.provinces.length === 0) continue;
 
-  // 描画
-    for (const country of data) {
-      if (!country || !country.name || !country.color || !Array.isArray(country.provinces)) continue;
- 
-      // 塗る
-      for (const id of country.provinces) {
-        const p = svg.getElementById(id);
-        if (p) p.style.fill = country.color;
+        // 塗る
+        for (const id of country.provinces) {
+          const p = svg.getElementById(id);
+          if (p) p.style.fill = country.color;
+        }
+
+        // ラベル配置（管理サイトとロジックを完全同期）
+        const { cx, cy } = computeBBoxCenter(svg, country.provinces);
+        addLabel(layer, country.name, cx, cy);
       }
-
-      // ラベル（BBox中心）
-      const { cx, cy } = computeBBoxCenter(svg, country.provinces);
-      addLabel(svg, country.name, cx, cy);
+      
+      document.getElementById("statusIndicator").textContent = "最終更新: " + new Date().toLocaleTimeString();
+    } catch (e) {
+      console.error("更新エラー:", e);
+      document.getElementById("statusIndicator").textContent = "同期エラー発生中";
     }
   }
 
-  // 初回
-  loadAndRender().catch(console.error);
+  // === 初期化とループ開始 ===
+  loadAndRender();
+  setInterval(loadAndRender, REFRESH_INTERVAL_MS);
 
-  // 12時間ごとに更新（ページ開きっぱなし対応）
-  setInterval(() => {
-    loadAndRender().catch(console.error);
-  }, HALF_DAY_MS);
-
-  // === 国名表示/非表示 ===
-  let labelsVisible = true;
-
+  // === UI操作 ===
   const toggleBtn = document.getElementById("toggleBtn");
-  if (!toggleBtn) {
-   console.warn("#toggleBtn が見つかりません");
-  } else {
-    function applyLabelVisibility() {
-      document.body.classList.toggle("labels-hidden", !labelsVisible);
-      toggleBtn.textContent = labelsVisible ? "国名を非表示" : "国名を表示";
-    }
-
+  if (toggleBtn) {
     toggleBtn.addEventListener("click", () => {
       labelsVisible = !labelsVisible;
-      applyLabelVisibility();
+      document.body.classList.toggle("labels-hidden", !labelsVisible);
+      toggleBtn.textContent = labelsVisible ? "国名を非表示" : "国名を表示";
     });
-
-    // 初期反映
-    applyLabelVisibility();
   }
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
-
