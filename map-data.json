@@ -22,5 +22,17 @@
       "path71",
       "path56"
     ]
+  },
+  {
+    "name": "グリフ・ザ・クエス",
+    "color": "#7eff75",
+    "provinces": [
+      "path307",
+      "path322",
+      "path316",
+      "path321",
+      "path341",
+      "path347"
+    ]
   }
 ]
