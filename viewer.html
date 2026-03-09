@@ -16,14 +16,15 @@ svg { width:100%; height:auto; display:block; background: #fff; }
 }
 
 .label {
-  font-size:18px;
-  font-weight:800;
-  fill:#ffffff;
-  stroke:#000000;
-  stroke-width:6px;
-  paint-order:stroke fill;
-  pointer-events:none;
-  user-select: none;
+      font-size: 18px;
+      font-weight: 800;
+      fill: #fff;                /* 文字色：白 */
+      stroke: #000;             /* 縁：黒 */
+      stroke-width: 6px;        /* 縁の太さ（好みで4〜8） */
+      paint-order: stroke fill; /* 縁→塗りの順 */
+      user-select: none;
+      pointer-events: auto;     /* クリックやドラッグを受ける */
+      cursor: move;             /* ドラッグ可能に見せる */
 }
 
 .labels-hidden .label { display:none; }
@@ -1838,6 +1839,7 @@ svg { width:100%; height:auto; display:block; background: #fff; }
 
 </body>
 </html>
+
 
 
 
