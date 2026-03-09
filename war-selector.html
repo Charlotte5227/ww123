@@ -84,8 +84,23 @@ svg { width:100%; height:auto; display:block; background: #fff; }
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
-  <defs
-     id="defs1" />
+<defs>
+
+  <pattern id="warStripe"
+           patternUnits="userSpaceOnUse"
+           width="8"
+           height="8"
+           patternTransform="rotate(45)">
+
+    <line x1="0" y1="0" x2="0" y2="8"
+          stroke="red"
+          stroke-width="4"/>
+
+  </pattern>
+
+</defs>
+
+  
   <g
      id="g1">
     <image
@@ -1719,25 +1734,6 @@ svg { width:100%; height:auto; display:block; background: #fff; }
        d="m 25,1052.871 c 0,-0.621 -1.125,-4.2478 -2.5,-8.0596 -2.981321,-8.2649 -3.043898,-10.0167 -0.553758,-15.5015 l 1.902318,-4.1901 -8.106755,-4.8599 c -5.9354829,-3.5583 -8.8613872,-4.7492 -10.9242803,-4.4464 L 2,1016.227 V 1035.1135 1054 h 11.5 c 7.876084,0 11.5,-0.3558 11.5,-1.129 z"
        id="path1" />
   </g>
-
-　<defs>
-
-  <pattern id="warStripe"
-  patternUnits="userSpaceOnUse"
-  width="8"
-  height="8"
-  patternTransform="rotate(45)">
-
-  <rect width="8" height="8" fill="transparent"/>
-
-  <line x1="0" y1="0" x2="0" y2="8"
-  stroke="red"
-  stroke-width="4"/>
-
-  </pattern>
-
-  </defs>
-  
 </svg>
   
 <div id="statusIndicator">データ同期中...</div>
