@@ -1743,94 +1743,97 @@ svg { width:100%; height:auto; display:block; background: #fff; }
 <div id="statusIndicator">データ同期中...</div>
   
 <script>
-  // === 設定 ===
-  const REFRESH_INTERVAL_MS = 30000; 
-  let lastDataHash = "";
-  let labelsVisible = true;
-  let zoomLevel = 1;
-  const ZOOM_STEP = 0.2;
-  let viewBox = { x:0, y:0, w:1800, h:1056 };
+// === 設定 ===
+const REFRESH_INTERVAL_MS = 30000; 
+let lastDataHash = "";
+let labelsVisible = true;
 
-  let isDragging = false;
-  let startX = 0;
-  let startY = 0;
+let viewBox = { x:0, y:0, w:1800, h:1056 };
 
-  function ensureLabelsLayer(svg) {
-    let layer = svg.querySelector("#labels-layer");
-    if (!layer) {
-      layer = document.createElementNS("http://www.w3.org/2000/svg", "g");
-      layer.setAttribute("id", "labels-layer");
-      svg.appendChild(layer);
-    }
-    return layer;
+let isDragging = false;
+let dragMoved = false;
+let startX = 0;
+let startY = 0;
+
+const selectedProvinces = new Set();
+
+const svg = document.getElementById("mapSvg");
+
+function ensureLabelsLayer(svg) {
+  let layer = svg.querySelector("#labels-layer");
+  if (!layer) {
+    layer = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    layer.setAttribute("id", "labels-layer");
+    svg.appendChild(layer);
+  }
+  return layer;
+}
+
+function resetProvinces(svg) {
+  svg.querySelectorAll(".prov").forEach(p => {
+    p.style.fill = "#ffffff";
+    p.classList.remove("prov-war");
+  });
+}
+
+function updateViewBox(){
+  svg.setAttribute(
+    "viewBox",
+    `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`
+  );
+}
+
+function zoom(factor){
+
+  const cx = viewBox.x + viewBox.w/2;
+  const cy = viewBox.y + viewBox.h/2;
+
+  const newW = viewBox.w * factor;
+  const newH = viewBox.h * factor;
+
+  if(newW < 300 || newW > 5000) return;
+
+  viewBox.w = newW;
+  viewBox.h = newH;
+
+  viewBox.x = cx - viewBox.w/2;
+  viewBox.y = cy - viewBox.h/2;
+
+  updateViewBox();
+}
+
+function zoomIn(){ zoom(0.8); }
+function zoomOut(){ zoom(1.25); }
+
+
+// フォールバック用座標
+function computeBBoxCenter(svg, provinceIds) {
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let any = false;
+
+  for (const id of provinceIds) {
+
+    const p = svg.getElementById(id);
+    if (!p) continue;
+
+    const bb = p.getBBox();
+
+    minX = Math.min(minX, bb.x);
+    minY = Math.min(minY, bb.y);
+    maxX = Math.max(maxX, bb.x + bb.width);
+    maxY = Math.max(maxY, bb.y + bb.height);
+
+    any = true;
   }
 
-  function resetProvinces(svg) {
-    svg.querySelectorAll(".prov").forEach(p => { p.style.fill = "#ffffff"; });
-  }
+  return any
+    ? { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 }
+    : { cx: 0, cy: 0 };
+}
 
-  function applyZoom() {
-    const svg = document.getElementById("mapSvg");
 
-    const baseWidth = 1800;
-    const baseHeight = 1056;
-
-    const width = baseWidth * zoomLevel;
-    const height = baseHeight * zoomLevel;
-
-    svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
-  }
-
-  function zoom(factor){
-
-    const cx = viewBox.x + viewBox.w/2;
-    const cy = viewBox.y + viewBox.h/2;
-
-    const newW = viewBox.w * factor;
-    const newH = viewBox.h * factor;
-
-    if(newW < 300 || newW > 5000) return;
-
-    viewBox.w = newW;
-    viewBox.h = newH;
-
-    viewBox.x = cx - viewBox.w/2;
-    viewBox.y = cy - viewBox.h/2;
-
-    updateViewBox();
-  }
-
-  function zoomIn(){
-    zoom(0.8);
-  }
-
-  function zoomOut(){
-    zoom(1.25);
-  }
-
-  function updateViewBox(){
-    const svg = document.getElementById("mapSvg");
-    svg.setAttribute(
-      "viewBox",
-      `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`
-    );
-  }
-
-  // フォールバック用の座標計算（x, yがない古いデータ用）
-  function computeBBoxCenter(svg, provinceIds) {
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    let any = false;
-    for (const id of provinceIds) {
-      const p = svg.getElementById(id);
-      if (!p) continue;
-      const bb = p.getBBox();
-      minX = Math.min(minX, bb.x); minY = Math.min(minY, bb.y);
-      maxX = Math.max(maxX, bb.x + bb.width); maxY = Math.max(maxY, bb.y + bb.height);
-      any = true;
-    }
-    return any ? { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 } : { cx: 0, cy: 0 };
-  }
-  // 管理サイトと共通の描画ロジック（tspanによる改行対応）
+// ラベル描画
 function addLabel(layer, textValue, x, y){
 
   const svgNS = "http://www.w3.org/2000/svg";
@@ -1870,74 +1873,194 @@ function addLabel(layer, textValue, x, y){
   layer.appendChild(text);
 }
 
-  async function loadAndRender() {
-    const svg = document.getElementById("mapSvg");
-    if (!svg) return;
 
-    try {
-      const url = `map-data.json?t=${Date.now()}`;
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) throw new Error("Fetch failed");
+// 地図ロード
+async function loadAndRender() {
 
-      const jsonText = await res.text();
-      if (jsonText === lastDataHash) return;
-      lastDataHash = jsonText;
-      
-      const data = JSON.parse(jsonText);
-      const layer = ensureLabelsLayer(svg);
-      
-      layer.innerHTML = "";
-      resetProvinces(svg);
+  try {
 
-      for (const country of data) {
-  if (!country.provinces || country.provinces.length === 0) continue;
+    const url = `map-data.json?t=${Date.now()}`;
+    const res = await fetch(url,{cache:"no-store"});
 
-  for (const id of country.provinces) {
-    const p = svg.getElementById(id);
-    if (p) p.style.fill = country.color;
-  }
+    if (!res.ok) throw new Error("Fetch failed");
 
-  let lx, ly;
+    const jsonText = await res.text();
 
-  if (country.labelX !== undefined && country.labelY !== undefined) {
-    lx = Number(country.labelX);
-    ly = Number(country.labelY);
-  } else {
-    const center = computeBBoxCenter(svg, country.provinces);
-    lx = center.cx;
-    ly = center.cy;
-  }
+    if (jsonText === lastDataHash) return;
 
-  addLabel(layer, country.labelText || country.name, lx, ly);
- }
-      
-      document.getElementById("statusIndicator").textContent = "最終更新: " + new Date().toLocaleTimeString();
-    } catch (e) {
-      console.error("更新エラー:", e);
-      document.getElementById("statusIndicator").textContent = "同期エラー発生中";
+    lastDataHash = jsonText;
+
+    const data = JSON.parse(jsonText);
+
+    const layer = ensureLabelsLayer(svg);
+
+    layer.innerHTML = "";
+
+    resetProvinces(svg);
+
+    for (const country of data) {
+
+      if (!country.provinces || country.provinces.length === 0) continue;
+
+      for (const id of country.provinces) {
+
+        const p = svg.getElementById(id);
+
+        if (p) p.style.fill = country.color;
+
+      }
+
+      let lx, ly;
+
+      if (country.labelX !== undefined && country.labelY !== undefined) {
+
+        lx = Number(country.labelX);
+        ly = Number(country.labelY);
+
+      } else {
+
+        const center = computeBBoxCenter(svg,country.provinces);
+
+        lx = center.cx;
+        ly = center.cy;
+      }
+
+      addLabel(layer,country.labelText || country.name,lx,ly);
+
     }
+
+    document.getElementById("statusIndicator").textContent =
+      "最終更新: " + new Date().toLocaleTimeString();
+
+  } catch(e) {
+
+    console.error("更新エラー:",e);
+
+    document.getElementById("statusIndicator").textContent =
+      "同期エラー発生中";
+  }
+}
+
+loadAndRender();
+setInterval(loadAndRender,REFRESH_INTERVAL_MS);
+
+
+// ラベル表示切替
+const toggleBtn = document.getElementById("toggleBtn");
+
+toggleBtn.addEventListener("click",()=>{
+
+  labelsVisible = !labelsVisible;
+
+  document.body.classList.toggle("labels-hidden",!labelsVisible);
+
+  toggleBtn.textContent =
+    labelsVisible ? "国名を非表示" : "国名を表示";
+});
+
+
+// プロビクリック
+svg.addEventListener("click",(e)=>{
+
+  if(dragMoved) return;
+
+  const p = e.target;
+
+  if(!p.classList.contains("prov")) return;
+
+  const id = p.id;
+
+  const fill = getComputedStyle(p).fill;
+
+  if(fill !== "rgb(255, 255, 255)") return;
+
+  if(selectedProvinces.has(id)){
+
+    selectedProvinces.delete(id);
+
+    p.classList.remove("prov-war");
+
+  }else{
+
+    selectedProvinces.add(id);
+
+    p.classList.add("prov-war");
+
   }
 
-  loadAndRender();
-  setInterval(loadAndRender, REFRESH_INTERVAL_MS);
+});
 
-  const toggleBtn = document.getElementById("toggleBtn");
-  if (toggleBtn) {
-    toggleBtn.addEventListener("click", () => {
-      labelsVisible = !labelsVisible;
-      document.body.classList.toggle("labels-hidden", !labelsVisible);
-      toggleBtn.textContent = labelsVisible ? "国名を非表示" : "国名を表示";
-    });
-  }
 
+// ドラッグ
+svg.addEventListener("mousedown",(e)=>{
+
+  isDragging = true;
+  dragMoved = false;
+
+  startX = e.clientX;
+  startY = e.clientY;
+});
+
+window.addEventListener("mousemove",(e)=>{
+
+  if(!isDragging) return;
+
+  dragMoved = true;
+
+  const dx = e.clientX - startX;
+  const dy = e.clientY - startY;
+
+  startX = e.clientX;
+  startY = e.clientY;
+
+  const scaleX = viewBox.w / svg.clientWidth;
+  const scaleY = viewBox.h / svg.clientHeight;
+
+  viewBox.x -= dx * scaleX;
+  viewBox.y -= dy * scaleY;
+
+  updateViewBox();
+});
+
+window.addEventListener("mouseup",()=>{
+
+  isDragging = false;
+
+});
+
+
+// ホイールズーム
+svg.addEventListener("wheel",(e)=>{
+
+  e.preventDefault();
+
+  const rect = svg.getBoundingClientRect();
+
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+
+  const svgX = viewBox.x + (mouseX/svg.clientWidth)*viewBox.w;
+  const svgY = viewBox.y + (mouseY/svg.clientHeight)*viewBox.h;
+
+  const zoomFactor = e.deltaY < 0 ? 0.9 : 1.1;
+
+  viewBox.w *= zoomFactor;
+  viewBox.h *= zoomFactor;
+
+  viewBox.x = svgX - (mouseX/svg.clientWidth)*viewBox.w;
+  viewBox.y = svgY - (mouseY/svg.clientHeight)*viewBox.h;
+
+  updateViewBox();
+});
+
+
+// 画像保存
 function saveWarImage(){
 
   if(selectedProvinces.size === 0){
     alert("プロビを選択してください");
     return;
   }
-
-  const svg = document.getElementById("mapSvg");
 
   let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
 
@@ -1965,8 +2088,7 @@ function saveWarImage(){
 
   const clone = svg.cloneNode(true);
 
-  clone.setAttribute("viewBox",
-  `${minX} ${minY} ${width} ${height}`);
+  clone.setAttribute("viewBox",`${minX} ${minY} ${width} ${height}`);
 
   const serializer = new XMLSerializer();
   const svgString = serializer.serializeToString(clone);
@@ -1989,110 +2111,13 @@ function saveWarImage(){
     const a = document.createElement("a");
     a.download="war-target.png";
     a.href=canvas.toDataURL();
-    a.click();
 
+    a.click();
   };
 
   img.src=url;
-
 }
-
-const svg = document.getElementById("mapSvg");
-
-svg.addEventListener("mousedown", e => {
-
-  isDragging = true;
-
-  startX = e.clientX;
-  startY = e.clientY;
-
-});
-
-const selectedProvinces = new Set();
-
-document.querySelectorAll(".prov").forEach(p => {
-
-  p.addEventListener("click",()=>{
-
-    const id = p.id;
-
-    const currentFill = getComputedStyle(p).fill;
-
-    // 白プロビのみ選択可能
-    if(currentFill !== "rgb(255, 255, 255)") return;
-
-    if(selectedProvinces.has(id)){
-
-      selectedProvinces.delete(id);
-      p.classList.remove("prov-war");
-
-    }else{
-
-      selectedProvinces.add(id);
-      p.classList.add("prov-war");
-
-    }
-
-  });
-
-});
-
-window.addEventListener("mousemove", e => {
-
-  if(!isDragging) return;
-
-  const dx = e.clientX - startX;
-  const dy = e.clientY - startY;
-
-  startX = e.clientX;
-  startY = e.clientY;
-
-  const scaleX = viewBox.w / svg.clientWidth;
-  const scaleY = viewBox.h / svg.clientHeight;
-
-  viewBox.x -= dx * scaleX;
-  viewBox.y -= dy * scaleY;
-
-  updateViewBox();
-
-});
-
-window.addEventListener("mouseup", () => {
-  isDragging = false;
-});
-
-svg.addEventListener("wheel", function(e){
-
-  e.preventDefault();
-
-  const rect = svg.getBoundingClientRect();
-
-  const mouseX = e.clientX - rect.left;
-  const mouseY = e.clientY - rect.top;
-
-  const svgX = viewBox.x + (mouseX / svg.clientWidth) * viewBox.w;
-  const svgY = viewBox.y + (mouseY / svg.clientHeight) * viewBox.h;
-
-  const zoomFactor = e.deltaY < 0 ? 0.9 : 1.1;
-
-  viewBox.w *= zoomFactor;
-  viewBox.h *= zoomFactor;
-
-  viewBox.x = svgX - (mouseX / svg.clientWidth) * viewBox.w;
-  viewBox.y = svgY - (mouseY / svg.clientHeight) * viewBox.h;
-
-  updateViewBox();
-
-});
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
