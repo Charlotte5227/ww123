@@ -9,7 +9,11 @@
       "path50",
       "path71",
       "path56"
-    ]
+    ],
+    "labelText": "氷国",
+    "labelX": "242.43138885498047",
+    "labelY": "1020.5844421386719",
+    "lockCenter": false
   },
   {
     "name": "グリフ・ザ・クエス",
@@ -21,7 +25,11 @@
       "path321",
       "path341",
       "path347"
-    ]
+    ],
+    "labelText": "グリフ・ザ・クエス",
+    "labelX": "1270.7344360351562",
+    "labelY": "532.1234130859375",
+    "lockCenter": false
   },
   {
     "name": "ポップ帝国",
@@ -33,7 +41,11 @@
       "path323",
       "path324",
       "path315"
-    ]
+    ],
+    "labelText": "ポップ帝国",
+    "labelX": "1539.0552368164062",
+    "labelY": "553.6823883056641",
+    "lockCenter": false
   },
   {
     "name": "Embest･Lesk･Diano",
@@ -43,7 +55,11 @@
       "path386",
       "path379",
       "path389"
-    ]
+    ],
+    "labelText": "Embest･Lesk･Diano",
+    "labelX": "1272.9652099609375",
+    "labelY": "234.10025787353516",
+    "lockCenter": false
   },
   {
     "name": "ネルフィー国",
@@ -55,7 +71,11 @@
       "path287",
       "path286",
       "path289"
-    ]
+    ],
+    "labelText": "ネルフィー国",
+    "labelX": "631.6815185546875",
+    "labelY": "672.1986999511719",
+    "lockCenter": false
   },
   {
     "name": "フェヴァロ゚ツォトニア人民国",
@@ -67,7 +87,11 @@
       "path152",
       "path116",
       "path115"
-    ]
+    ],
+    "labelText": "フェヴァロ゚ツォトニア人民国",
+    "labelX": "1193.6712036132812",
+    "labelY": "930.6578674316406",
+    "lockCenter": false
   },
   {
     "name": "オルシ・サンディカリズム地方連盟",
@@ -79,7 +103,11 @@
       "path147",
       "path137",
       "path166"
-    ]
+    ],
+    "labelText": "オルシ・サンディ\nカリズム地方連盟",
+    "labelX": "1722.0910034179688",
+    "labelY": "902.1222839355469",
+    "lockCenter": false
   },
   {
     "name": "革命的レヴォス社会主義共和国連邦",
@@ -90,7 +118,11 @@
       "path175",
       "path181",
       "path176"
-    ]
+    ],
+    "labelText": "革命的レヴォス\n社会主義共和国連邦",
+    "labelX": "204.07437133789062",
+    "labelY": "894.984375",
+    "lockCenter": false
   },
   {
     "name": "大魔導国セレスティア",
@@ -102,6 +134,10 @@
       "path198",
       "path215",
       "path233"
-    ]
+    ],
+    "labelText": "大魔導国セレスティア",
+    "labelX": "1490.5761108398438",
+    "labelY": "792.753173828125",
+    "lockCenter": false
   }
 ]
