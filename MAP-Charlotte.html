@@ -14,32 +14,23 @@
     #ui { padding: 12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     #nameInput { padding: 6px 8px; min-width: 220px; }
     .prov.selected { fill: #ff00003f !important; opacity: 0.9; }
-    /* CSSの .label 部分を以下に差し替え */
-    .label {
-      font-size: 18px;
-      font-weight: 800;
-      fill: #fff;
-      stroke: #000;
-      stroke-width: 6px;
-      paint-order: stroke fill;
-      user-select: none;
-      cursor: move;         /* カーソルを移動用に */
-      pointer-events: auto; /* ラベルを掴めるように変更 */
-    }
-
-    /* #nameInput を textarea 用のスタイルに調整 */
-    #nameInput { 
-      padding: 6px 8px; 
-      min-width: 220px; 
-      height: 50px;         /* 高さを出す */
-      vertical-align: middle;
-    }
+    .label {
+      font-size: 18px;
+      font-weight: 800;
+      fill: #fff;                 /* 文字色：白 */
+      stroke: #000;               /* 縁：黒 */
+      stroke-width: 6px;          /* 縁の太さ（好みで4〜8） */
+      paint-order: stroke fill;   /* 縁→塗りの順 */
+      user-select: none;
+      pointer-events: none;       /* クリック邪魔しない */
+    }
+    .labels-hidden .label { display: none; }
   </style>
 </head>
 <body>
 
 <div id="ui">
-  <textarea id="nameInput" placeholder="国名（Enterで改行可）"></textarea>
+  <input id="nameInput" placeholder="国名（例：ブラジル）" />
 
   <input type="color" id="colorInput" value="#ff4444" title="国の色" style="cursor: pointer;" />
   <select id="countrySelect">
@@ -1719,10 +1710,6 @@
   const usedColors = new Set();
   let activeCountryId = "";      // 今編集している国
 
-  let isDragging = false;
-  let dragTarget = null;
-  let dragOffset = { x: 0, y: 0 };
-
   function randColor() {
     // 最大360色（HSLの色相）
     const maxAttempts = 500;
@@ -1801,87 +1788,32 @@
     return { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 };
   }
 
-// --- ラベル内容更新（改行対応） ---
-  function updateLabelContent(textEl, name, x, y) {
-    textEl.innerHTML = ''; // クリア
-    textEl.setAttribute("x", String(x));
-    textEl.setAttribute("y", String(y));
-    
-    const lines = name.split('\n');
-    lines.forEach((line, i) => {
-      const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      tspan.setAttribute("x", String(x));
-      tspan.setAttribute("dy", i === 0 ? "0" : "1.2em");
-      tspan.textContent = line;
-      textEl.appendChild(tspan);
-    });
-  }
+  function addLabel(name, x, y) {
+    const layer = ensureLabelsLayer();
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
 
-  // --- ラベル追加（引数にcidを追加） ---
-  function addLabel(name, x, y, cid) {
-    const layer = ensureLabelsLayer();
-    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    const id = `label-${Date.now()}-${Math.floor(Math.random()*1e6)}`;
+    text.setAttribute("id", id);
+    text.setAttribute("class", "label");
+    text.setAttribute("x", String(x));
+    text.setAttribute("y", String(y));
+    text.setAttribute("text-anchor", "middle");
+    text.setAttribute("dominant-baseline", "middle");
+    text.textContent = name;
 
-    const id = `label-${Date.now()}-${Math.floor(Math.random()*1e6)}`;
-    text.setAttribute("id", id);
-    text.setAttribute("class", "label");
-    text.setAttribute("text-anchor", "middle");
-    text.setAttribute("dominant-baseline", "middle");
-    text.dataset.cid = cid; // どの国か紐付け
+    layer.appendChild(text);
+    return id;
+  }
 
-    updateLabelContent(text, name, x, y);
-    layer.appendChild(text);
-    return id;
-  }
+  function moveLabelToCountryCenter(country) {
+    const svg = getSvgRoot();
+    const label = svg.getElementById(country.labelId);
+    if (!label) return;
 
-  function moveLabelToCountryCenter(country) {
-    const svg = getSvgRoot();
-    const label = svg.getElementById(country.labelId);
-    if (!label) return;
-
-    const { cx, cy } = computeGroupCenter(country.ids);
-    // 座標を更新し、中身（tspan）も再描画
-    country.x = cx;
-    country.y = cy;
-    updateLabelContent(label, country.name, cx, cy);
-  }
-
-  function getMousePos(e) {
-    const svg = getSvgRoot();
-    const p = svg.createSVGPoint();
-    p.x = e.clientX; p.y = e.clientY;
-    return p.matrixTransform(svg.getScreenCTM().inverse());
-  }
-
-  const svgEl = document.querySelector("svg");
-  svgEl.addEventListener("mousedown", (e) => {
-    const label = e.target.closest(".label");
-    if (label) {
-      isDragging = true;
-      dragTarget = label;
-      const pt = getMousePos(e);
-      dragOffset.x = pt.x - parseFloat(label.getAttribute("x"));
-      dragOffset.y = pt.y - parseFloat(label.getAttribute("y"));
-      e.stopPropagation();
-    }
-  });
-
-  document.addEventListener("mousemove", (e) => {
-    if (!isDragging || !dragTarget) return;
-    const pt = getMousePos(e);
-    const nx = pt.x - dragOffset.x;
-    const ny = pt.y - dragOffset.y;
-    dragTarget.setAttribute("x", nx);
-    dragTarget.setAttribute("y", ny);
-    dragTarget.querySelectorAll("tspan").forEach(t => t.setAttribute("x", nx));
-    const cid = dragTarget.dataset.cid;
-    if (countries.has(cid)) {
-      const c = countries.get(cid);
-      c.x = nx; c.y = ny;
-    }
-  });
-
-  document.addEventListener("mouseup", () => { isDragging = false; dragTarget = null; });
+    const { cx, cy } = computeGroupCenter(country.ids);
+    label.setAttribute("x", String(cx));
+    label.setAttribute("y", String(cy));
+  }
 
   // --- 反映（塗る） ---
   function repaintCountry(country) {
@@ -1972,12 +1904,11 @@
     const color = document.getElementById("colorInput").value;
     const ids = new Set(selectedIds);
 
-    const { cx, cy } = computeGroupCenter(ids);
-    const labelId = addLabel(name, cx, cy, cid); // 第4引数にcidを追加
+    const { cx, cy } = computeGroupCenter(ids);
+    const labelId = addLabel(name, cx, cy);
 
-    // 座標(x, y)を保持するように変更
-    const country = { name, color, ids, labelId, x: cx, y: cy };
-    countries.set(cid, country);
+    const country = { name, color, ids, labelId };
+    countries.set(cid, country);
 
     // 選択プロビを国色で塗る
     for (const id of selectedIds) {
@@ -2110,24 +2041,25 @@
     resetAllToWhite();
 
     // 3) JSONから国を復元
-    jsonArray.forEach(item => {
-      if (!item || !item.name || !item.color || !Array.isArray(item.provinces)) return;
+    jsonArray.forEach(item => {
+      if (!item || !item.name || !item.color || !Array.isArray(item.provinces)) return;
 
-      const cid = `c-${Date.now()}-${Math.floor(Math.random()*1e6)}`;
-      const ids = new Set(item.provinces);
-      usedColors.add(item.color);
+      const cid = `c-${Date.now()}-${Math.floor(Math.random()*1e6)}`;
+      const ids = new Set(item.provinces);
 
-      // --- 修正箇所：保存された座標があれば優先 ---
-      const lx = (item.x !== undefined) ? item.x : computeGroupCenter(ids).cx;
-      const ly = (item.y !== undefined) ? item.y : computeGroupCenter(ids).cy;
+      // 色を「使用済み」に登録（重複防止のため）
+      usedColors.add(item.color);
 
-      const labelId = addLabel(item.name, lx, ly, cid);
-      const country = { name: item.name, color: item.color, ids, labelId, x: lx, y: ly };
-      // --- 修正箇所終わり ---
+      // ラベル位置：閲覧側と同じ（BBox中心）
+      const { cx, cy } = computeGroupCenter(ids);
+      const labelId = addLabel(item.name, cx, cy);
 
-      countries.set(cid, country);
-      repaintCountry(country);
-    });
+      const country = { name: item.name, color: item.color, ids, labelId };
+      countries.set(cid, country);
+
+      // 塗る
+      repaintCountry(country);
+    });
 
     // 4) UI更新
     refreshCountrySelect();
@@ -2163,19 +2095,17 @@
   const GH_REPO  = "ww123";
   const GH_PATH  = "map-data.json";
 
-function buildExportArrayFromCountries() {
-    const out = [];
-    for (const [cid, c] of countries.entries()) {
-      out.push({
-        name: c.name,
-        color: c.color,
-        provinces: Array.from(c.ids),
-        x: c.x, // 追加
-        y: c.y  // 追加
-      });
-    }
-    return out;
-  }
+  function buildExportArrayFromCountries() {
+    const out = [];
+    for (const [, c] of countries.entries()) {
+      out.push({
+        name: c.name,
+        color: c.color,
+        provinces: Array.from(c.ids),
+      });
+    }
+    return out;
+  }
 
   function toBase64Utf8(str) {
     // UTF-8文字を安全にbase64化
