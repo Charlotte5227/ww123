@@ -1,52 +1,66 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Map Painter (Enhanced Labels)</title>
-  <style>
-    body { margin: 0; font-family: sans-serif; }
-    svg { width: 100%; height: auto; display: block; background: #fafafa; }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Map Painter</title>
+  <style>
+    body { margin: 0; font-family: sans-serif; }
+    svg { width: 100%; height: auto; display: block; }
 
-    .prov { fill: #ffffff; stroke: #111; stroke-width: 1; cursor: pointer; }
-    .prov:hover { opacity: 0.85; }
-    .prov.selected { fill: #ff00003f !important; opacity: 0.9; }
+    .prov { fill: #ffffff; stroke: #111; stroke-width: 1; cursor: pointer; }
+    .prov:hover { opacity: 0.85; }
 
-    #ui { padding: 12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; background: #eee; border-bottom: 1px solid #ccc; }
-    /* 改行入力のためtextareaに変更 */
-    #nameInput { padding: 6px 8px; min-width: 220px; height: 40px; vertical-align: middle; }
-    
+    #ui { padding: 12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    #nameInput { padding: 6px 8px; min-width: 220px; }
+    .prov.selected { fill: #ff00003f !important; opacity: 0.9; }
+    /* CSSの .label 部分を以下に差し替え */
     .label {
-      font-size: 18px; font-weight: 800; fill: #fff; stroke: #000;
-      stroke-width: 6px; paint-order: stroke fill; user-select: none;
-      cursor: move; pointer-events: auto; /* ラベルを触れるようにする */
+      font-size: 18px;
+      font-weight: 800;
+      fill: #fff;
+      stroke: #000;
+      stroke-width: 6px;
+      paint-order: stroke fill;
+      user-select: none;
+      cursor: move;         /* カーソルを移動用に */
+      pointer-events: auto; /* ラベルを掴めるように変更 */
     }
-    .labels-hidden .label { display: none; }
-    #status { font-size: 14px; }
-  </style>
+
+    /* #nameInput を textarea 用のスタイルに調整 */
+    #nameInput { 
+      padding: 6px 8px; 
+      min-width: 220px; 
+      height: 50px;         /* 高さを出す */
+      vertical-align: middle;
+    }
+  </style>
 </head>
 <body>
 
 <div id="ui">
-  <textarea id="nameInput" placeholder="国名（改行可）"></textarea>
-  <input type="color" id="colorInput" value="#ff4444" title="国の色" style="cursor: pointer;" />
-  <select id="countrySelect">
-    <option value="">（国を選択）</option>
-  </select>
+  <textarea id="nameInput" placeholder="国名（Enterで改行可）"></textarea>
 
-  <button id="createCountryBtn">新規作成</button>
-  <button id="applyToCountryBtn">領土反映(追加/削除)</button>
-  <button id="updateLabelBtn" title="名前の変更をラベルに反映">名前更新</button>
-  <button id="exportBtn">データ書き出し</button>
-  <input type="file" id="importFile" accept="application/json" style="display:none;" />
-  <button onclick="document.getElementById('importFile').click()">読み込み</button>
-  
-  <input id="ghToken" type="password" placeholder="GitHub token">
-  <button id="publishBtn">公開（GitHubへ）</button>
-  
-  <label><input type="checkbox" id="toggleLabels" checked /> 国名表示</label>
-  <span id="status"></span>
-  <span id="publishStatus"></span>
+  <input type="color" id="colorInput" value="#ff4444" title="国の色" style="cursor: pointer;" />
+  <select id="countrySelect">
+    <option value="">（国を選択）</option>
+  </select>
+
+  <button id="createCountryBtn">新規作成</button>
+  <button id="applyToCountryBtn">選択プロビを国に反映（追加/削除）</button>
+  <button id="exportBtn">データを書き出す</button>
+  <input type="file" id="importFile" accept="application/json" />
+  <button id="importBtn">map-data.json を読み込む</button>
+  <input id="ghToken" type="password" placeholder="GitHub token（fine-grained PAT）">
+  <button id="publishBtn">公開（map-data.jsonをGitHubへ反映）</button>
+  <span id="publishStatus"></span>
+
+  <label>
+    <input type="checkbox" id="toggleLabels" checked />
+    国名を表示
+  </label>
+
+  <span id="status"></span>
 </div>
 
 <svg
@@ -1696,70 +1710,151 @@
 </svg>
 
 <script>
-  // === 基本設定 ===
-  const SELECT_CLASS = "selected";
-  const GH_OWNER = "Charlotte5227";
-  const GH_REPO  = "ww123";
-  const GH_PATH  = "map-data.json";
+  // === 設定 ===
+  const SELECT_CLASS = "selected";
 
-  // === 状態管理 ===
-  const selectedIds = new Set();
-  const countries = new Map(); // key: cid, value: {name, color, ids:Set, labelId, x, y}
-  let activeCountryId = "";
+  // === 状態 ===
+  const selectedIds = new Set(); // クリックで選択しているプロビ
+  const countries = new Map();   // key: countryId, value: {name, color, ids:Set, labelId}
+  const usedColors = new Set();
+  let activeCountryId = "";      // 今編集している国
+
   let isDragging = false;
   let dragTarget = null;
   let dragOffset = { x: 0, y: 0 };
 
-  const svg = document.getElementById("mapSvg");
+  function randColor() {
+    // 最大360色（HSLの色相）
+    const maxAttempts = 500;
 
-  // === SVG座標計算 ===
+    for (let i = 0; i < maxAttempts; i++) {
+      const h = Math.floor(Math.random() * 360);
+      const color = `hsl(${h} 70% 55%)`;
+
+      if (!usedColors.has(color)) {
+        usedColors.add(color);
+        return color;
+      }
+    }
+
+    // 万が一360色使い切った場合
+    const fallback = `hsl(${Math.floor(Math.random()*360)} 60% 50%)`;
+    return fallback;
+  }
+
+  function getProvinceBaseColor(id) {
+  // どの国にも所属していなければ白
+   for (const c of countries.values()) {
+    if (c.ids.has(id)) return c.color;
+  }
+   return "#ffffff";
+  }
+
+  function restoreProvinceColor(id) {
+    const svg = getSvgRoot();
+    const p = svg.getElementById(id);
+    if (!p) return;
+    p.style.fill = getProvinceBaseColor(id);
+  }
+
+  function getSvgRoot() {
+    return document.querySelector("svg");
+  }
+
+  function updateStatus() {
+    const status = document.getElementById("status");
+    const c = activeCountryId ? countries.get(activeCountryId) : null;
+    status.textContent =
+      `選択中: ${selectedIds.size} / 国数: ${countries.size}` +
+      (c ? ` / 編集中: ${c.name}` : "");
+  }
+
+  // --- ラベル置き場 ---
+  function ensureLabelsLayer() {
+    const svg = getSvgRoot();
+    let g = svg.querySelector("#labels-layer");
+    if (!g) {
+      g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("id", "labels-layer");
+      svg.appendChild(g);
+    }
+    return g;
+  }
+
+  function computeGroupCenter(idSet) {
+    const svg = getSvgRoot();
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let any = false;
+
+    for (const id of idSet) {
+      const el = svg.getElementById(id);
+      if (!el) continue;
+      const bb = el.getBBox();
+      minX = Math.min(minX, bb.x);
+      minY = Math.min(minY, bb.y);
+      maxX = Math.max(maxX, bb.x + bb.width);
+      maxY = Math.max(maxY, bb.y + bb.height);
+      any = true;
+    }
+
+    if (!any) return { cx: 0, cy: 0 };
+    return { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 };
+  }
+
+// --- ラベル内容更新（改行対応） ---
+  function updateLabelContent(textEl, name, x, y) {
+    textEl.innerHTML = ''; // クリア
+    textEl.setAttribute("x", String(x));
+    textEl.setAttribute("y", String(y));
+    
+    const lines = name.split('\n');
+    lines.forEach((line, i) => {
+      const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      tspan.setAttribute("x", String(x));
+      tspan.setAttribute("dy", i === 0 ? "0" : "1.2em");
+      tspan.textContent = line;
+      textEl.appendChild(tspan);
+    });
+  }
+
+  // --- ラベル追加（引数にcidを追加） ---
+  function addLabel(name, x, y, cid) {
+    const layer = ensureLabelsLayer();
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+
+    const id = `label-${Date.now()}-${Math.floor(Math.random()*1e6)}`;
+    text.setAttribute("id", id);
+    text.setAttribute("class", "label");
+    text.setAttribute("text-anchor", "middle");
+    text.setAttribute("dominant-baseline", "middle");
+    text.dataset.cid = cid; // どの国か紐付け
+
+    updateLabelContent(text, name, x, y);
+    layer.appendChild(text);
+    return id;
+  }
+
+  function moveLabelToCountryCenter(country) {
+    const svg = getSvgRoot();
+    const label = svg.getElementById(country.labelId);
+    if (!label) return;
+
+    const { cx, cy } = computeGroupCenter(country.ids);
+    // 座標を更新し、中身（tspan）も再描画
+    country.x = cx;
+    country.y = cy;
+    updateLabelContent(label, country.name, cx, cy);
+  }
+
   function getMousePos(e) {
+    const svg = getSvgRoot();
     const p = svg.createSVGPoint();
     p.x = e.clientX; p.y = e.clientY;
     return p.matrixTransform(svg.getScreenCTM().inverse());
   }
 
-  // === ラベル生成・更新ロジック ===
-  function updateLabelText(labelEl, name, x, y) {
-    labelEl.innerHTML = '';
-    labelEl.setAttribute("x", x);
-    labelEl.setAttribute("y", y);
-    const lines = name.split('\n');
-    lines.forEach((line, i) => {
-      const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      tspan.setAttribute("x", x);
-      tspan.setAttribute("dy", i === 0 ? "0" : "1.2em");
-      tspan.textContent = line;
-      labelEl.appendChild(tspan);
-    });
-  }
-
-  function addLabel(name, x, y, cid) {
-    const layer = ensureLabelsLayer();
-    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    const lid = `label-${Date.now()}-${Math.floor(Math.random()*1e6)}`;
-    text.setAttribute("id", lid);
-    text.setAttribute("class", "label");
-    text.setAttribute("text-anchor", "middle");
-    text.setAttribute("dominant-baseline", "middle");
-    text.dataset.cid = cid;
-    updateLabelText(text, name, x, y);
-    layer.appendChild(text);
-    return lid;
-  }
-
-  function ensureLabelsLayer() {
-    let g = svg.querySelector("#labels-layer");
-    if (!g) {
-      g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-      g.setAttribute("id", "labels-layer");
-      svg.appendChild(g);
-    }
-    return g;
-  }
-
-  // === ドラッグ移動イベント ===
-  svg.addEventListener("mousedown", (e) => {
+  const svgEl = document.querySelector("svg");
+  svgEl.addEventListener("mousedown", (e) => {
     const label = e.target.closest(".label");
     if (label) {
       isDragging = true;
@@ -1767,7 +1862,7 @@
       const pt = getMousePos(e);
       dragOffset.x = pt.x - parseFloat(label.getAttribute("x"));
       dragOffset.y = pt.y - parseFloat(label.getAttribute("y"));
-      e.preventDefault();
+      e.stopPropagation();
     }
   });
 
@@ -1779,7 +1874,6 @@
     dragTarget.setAttribute("x", nx);
     dragTarget.setAttribute("y", ny);
     dragTarget.querySelectorAll("tspan").forEach(t => t.setAttribute("x", nx));
-    
     const cid = dragTarget.dataset.cid;
     if (countries.has(cid)) {
       const c = countries.get(cid);
@@ -1789,197 +1883,413 @@
 
   document.addEventListener("mouseup", () => { isDragging = false; dragTarget = null; });
 
-  // === 既存機能の統合（新規作成・領土反映など） ===
+  // --- 反映（塗る） ---
+  function repaintCountry(country) {
+    const svg = getSvgRoot();
+    for (const id of country.ids) {
+      const p = svg.getElementById(id);
+      if (p) p.style.fill = country.color;
+    }
+  }
 
-  function computeGroupCenter(idSet) {
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    let any = false;
-    for (const id of idSet) {
-      const el = document.getElementById(id);
-      if (!el) continue;
-      const bb = el.getBBox();
-      minX = Math.min(minX, bb.x); minY = Math.min(minY, bb.y);
-      maxX = Math.max(maxX, bb.x + bb.width); maxY = Math.max(maxY, bb.y + bb.height);
-      any = true;
-    }
-    return any ? { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 } : { cx: 0, cy: 0 };
-  }
+  // --- UI: 国一覧 ---
+  function refreshCountrySelect() {
+    const sel = document.getElementById("countrySelect");
+    const current = sel.value;
 
-  svg.addEventListener("click", (e) => {
-    if (isDragging) return;
-    const el = e.target;
-    if (!el.classList.contains("prov")) return;
-    const id = el.id;
-    if (selectedIds.has(id)) {
-      selectedIds.delete(id);
-      el.classList.remove(SELECT_CLASS);
-      let baseColor = "#ffffff";
-      for (const c of countries.values()) if (c.ids.has(id)) baseColor = c.color;
-      el.style.fill = baseColor;
-    } else {
-      selectedIds.add(id);
-      el.classList.add(SELECT_CLASS);
-    }
-    updateStatus();
-  });
+    // いったん全消し
+    sel.innerHTML = `<option value="">（国を選択）</option>`;
 
-  document.getElementById("createCountryBtn").addEventListener("click", () => {
-    const name = document.getElementById("nameInput").value.trim();
-    if (!name || selectedIds.size === 0) return alert("国名とプロビ選択が必要です");
-    const cid = `c-${Date.now()}`;
-    const color = document.getElementById("colorInput").value;
-    const ids = new Set(selectedIds);
+    for (const [cid, c] of countries.entries()) {
+      const opt = document.createElement("option");
+      opt.value = cid;
+      opt.textContent = c.name;
+      sel.appendChild(opt);
+    }
+
+    // 可能なら元の選択を維持
+    if (current && countries.has(current)) sel.value = current;
+    else if (activeCountryId && countries.has(activeCountryId)) sel.value = activeCountryId;
+  }
+
+  // --- 選択解除 ---
+  function clearSelection() {
+    const svg = getSvgRoot();
+    for (const id of selectedIds) {
+      const el = svg.getElementById(id);
+      if (el) el.classList.remove(SELECT_CLASS);
+    }
+    selectedIds.clear();
+    updateStatus();
+  }
+
+  // === クリックで選択/解除 ===
+  document.addEventListener("click", (e) => {
+    const el = e.target;
+    if (!el.classList || !el.classList.contains("prov")) return;
+  
+    const id = el.id;
+    if (!id) return;
+  
+    if (selectedIds.has(id)) {
+      // 解除：元の色に戻す
+      selectedIds.delete(id);
+      el.classList.remove(SELECT_CLASS);
+      restoreProvinceColor(id);
+    } else {
+      // 選択：灰で見せる（CSSが効く）
+      selectedIds.add(id);
+      el.classList.add(SELECT_CLASS);
+    }
+    updateStatus();
+  });
+
+  // === 国を選択（編集対象） ===
+  document.getElementById("countrySelect").addEventListener("change", (e) => {
+    activeCountryId = e.target.value;
+    updateStatus();
+  });
+
+  // === ラベル表示/非表示 ===
+  document.getElementById("toggleLabels").addEventListener("change", (e) => {
+    document.body.classList.toggle("labels-hidden", !e.target.checked);
+  });
+
+  // === 新規作成（国名＋選択プロビ） ===
+  document.getElementById("createCountryBtn").addEventListener("click", () => {
+    if (selectedIds.size === 0) {
+      alert("まずプロビを選択してください。");
+      return;
+    }
+
+    const name = document.getElementById("nameInput").value.trim();
+    if (!name) {
+      alert("国名を入力してください。");
+      return;
+    }
+
+    const cid = `c-${Date.now()}-${Math.floor(Math.random()*1e6)}`;
+    const color = document.getElementById("colorInput").value;
+    const ids = new Set(selectedIds);
+
     const { cx, cy } = computeGroupCenter(ids);
-    const lid = addLabel(name, cx, cy, cid);
-    countries.set(cid, { name, color, ids, labelId: lid, x: cx, y: cy });
-    ids.forEach(id => {
-      const p = document.getElementById(id);
-      if (p) { p.style.fill = color; p.classList.remove(SELECT_CLASS); }
-    });
-    selectedIds.clear();
-    refreshCountrySelect();
-    updateStatus();
-  });
+    const labelId = addLabel(name, cx, cy, cid); // 第4引数にcidを追加
 
-  document.getElementById("applyToCountryBtn").addEventListener("click", () => {
-    if (!activeCountryId || !countries.has(activeCountryId)) return alert("国を選択してください");
-    const country = countries.get(activeCountryId);
-    selectedIds.forEach(id => {
-      const p = document.getElementById(id);
-      if (country.ids.has(id)) {
-        country.ids.delete(id);
-        if (p) p.style.fill = "#ffffff";
-      } else {
-        country.ids.add(id);
-        if (p) p.style.fill = country.color;
-      }
-      if (p) p.classList.remove(SELECT_CLASS);
-    });
-    if (country.ids.size === 0) {
-      document.getElementById(country.labelId)?.remove();
-      countries.delete(activeCountryId);
-      activeCountryId = "";
-      refreshCountrySelect();
-    }
-    selectedIds.clear();
-    updateStatus();
-  });
+    // 座標(x, y)を保持するように変更
+    const country = { name, color, ids, labelId, x: cx, y: cy };
+    countries.set(cid, country);
 
-  document.getElementById("updateLabelBtn").addEventListener("click", () => {
-    if (!activeCountryId) return;
-    const c = countries.get(activeCountryId);
-    c.name = document.getElementById("nameInput").value;
-    const labelEl = document.getElementById(c.labelId);
-    if (labelEl) updateLabelText(labelEl, c.name, c.x, c.y);
-  });
+    // 選択プロビを国色で塗る
+    for (const id of selectedIds) {
+      const p = getSvgRoot().getElementById(id);
+      if (p) {
+        p.classList.remove("selected");   // ← ここが重要
+        p.style.fill = country.color;     // ← 国色で上書き
+      }
+    }
 
-  document.getElementById("countrySelect").addEventListener("change", (e) => {
-    activeCountryId = e.target.value;
-    if (activeCountryId) {
-      const c = countries.get(activeCountryId);
-      document.getElementById("nameInput").value = c.name;
-      document.getElementById("colorInput").value = c.color;
-    }
-    updateStatus();
-  });
+    // 入力リセット
+    document.getElementById("nameInput").value = "";
 
-  function refreshCountrySelect() {
-    const sel = document.getElementById("countrySelect");
-    sel.innerHTML = '<option value="">（国を選択）</option>';
-    countries.forEach((c, id) => {
-      const opt = document.createElement("option");
-      opt.value = id; opt.textContent = c.name.split('\n')[0];
-      sel.appendChild(opt);
-    });
-    sel.value = activeCountryId;
-  }
+    // 国は未選択状態に戻す
+    activeCountryId = "";
+    refreshCountrySelect();
+    document.getElementById("countrySelect").value = "";
 
-  function updateStatus() {
-    document.getElementById("status").textContent = `選択中: ${selectedIds.size} / 国数: ${countries.size}`;
-  }
+    // 選択状態クリア（Setだけ消す）
+    selectedIds.clear();
 
-  // === インポート / エクスポート (GitHub連携込) ===
-  
-  function buildJson() {
-    return JSON.stringify(Array.from(countries.values()).map(c => ({
-      name: c.name, color: c.color, provinces: Array.from(c.ids), x: c.x, y: c.y
-    })), null, 2);
-  }
+    updateStatus();
+  });
 
-  document.getElementById("exportBtn").addEventListener("click", () => {
-    const blob = new Blob([buildJson()], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "map-data.json";
-    a.click();
-  });
+  // === 既存の国に「追加/削除」を反映 ===
+  document.getElementById("applyToCountryBtn").addEventListener("click", () => {
 
-  async function importData(jsonArray) {
-    countries.clear();
-    ensureLabelsLayer().innerHTML = '';
-    svg.querySelectorAll(".prov").forEach(p => p.style.fill = "#ffffff");
+    if (!activeCountryId || !countries.has(activeCountryId)) {
+      alert("まず編集する国を選択してください。");
+      return;
+    }
+
+    if (selectedIds.size === 0) {
+      alert("追加/削除したいプロビを選択してください。");
+      return;
+    }
+
+    const country = countries.get(activeCountryId);
+
+    for (const id of selectedIds) {
+      const p = getSvgRoot().getElementById(id);
+  
+      if (country.ids.has(id)) {
+        // 削除
+        country.ids.delete(id);
+        if (p) p.style.fill = "#ffffff";
+     } else {
+        // 追加
+       country.ids.add(id);
+        if (p) p.style.fill = country.color;
+      }
+
+      // ★ここが超重要
+      if (p) p.classList.remove("selected");
+    }
+
+    if (country.ids.size === 0) {
+      // 画面上の国名ラベルを削除
+      const labelEl = getSvgRoot().getElementById(country.labelId);
+      if (labelEl) labelEl.remove();
+
+      // 国データと使用済み色を削除
+      countries.delete(activeCountryId);
+      usedColors.delete(country.color);
+
+      // 編集対象の国を未選択状態に戻し、セレクトボックスを更新
+      activeCountryId = "";
+      refreshCountrySelect();
+    } else {
+      // プロビが残っている場合は、領土の増減に合わせてラベルを中央へ再配置
+      moveLabelToCountryCenter(country);
+    }
+
+    // 選択状態クリア
+    selectedIds.clear();
+  
+    updateStatus();
+  });
+
+  // 初期化
+  refreshCountrySelect();
+  updateStatus();
+
+  document.getElementById("exportBtn").addEventListener("click", () => {
+
+    const exportData = [];
+
+    for (const [cid, c] of countries.entries()) {
+      exportData.push({
+        name: c.name,
+        color: c.color,
+        provinces: Array.from(c.ids)
+      });
+    }
+
+    const json = JSON.stringify(exportData, null, 2);
+
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "map-data.json";
+    a.click();
+   
+    URL.revokeObjectURL(url);
+  });
+
+  function resetAllToWhite() {
+    const svg = getSvgRoot();
+    const provs = svg.querySelectorAll(".prov");
+    provs.forEach(p => {
+       p.classList.remove("selected");
+       p.style.fill = "#ffffff";
+      });
+
+    // ラベル全削除
+    const layer = svg.querySelector("#labels-layer");
+    if (layer) layer.remove();
+   }
+
+  function importData(jsonArray) {
+  // 1) 初期化
+    countries.clear();
+    usedColors.clear();
+    selectedIds.clear();
+    activeCountryId = "";
+
+    // 2) いったん地図を白に戻す＆ラベル消す
+    resetAllToWhite();
+
+    // 3) JSONから国を復元
     jsonArray.forEach(item => {
-      const cid = `c-${Math.random()}`;
+      if (!item || !item.name || !item.color || !Array.isArray(item.provinces)) return;
+
+      const cid = `c-${Date.now()}-${Math.floor(Math.random()*1e6)}`;
       const ids = new Set(item.provinces);
-      // 位置データがなければ計算、あればそれを使用
-      const x = item.x ?? computeGroupCenter(ids).cx;
-      const y = item.y ?? computeGroupCenter(ids).cy;
-      const lid = addLabel(item.name, x, y, cid);
-      countries.set(cid, { name: item.name, color: item.color, ids, labelId: lid, x, y });
-      ids.forEach(id => { const p = document.getElementById(id); if (p) p.style.fill = item.color; });
+      usedColors.add(item.color);
+
+      // --- 修正箇所：保存された座標があれば優先 ---
+      const lx = (item.x !== undefined) ? item.x : computeGroupCenter(ids).cx;
+      const ly = (item.y !== undefined) ? item.y : computeGroupCenter(ids).cy;
+
+      const labelId = addLabel(item.name, lx, ly, cid);
+      const country = { name: item.name, color: item.color, ids, labelId, x: lx, y: ly };
+      // --- 修正箇所終わり ---
+
+      countries.set(cid, country);
+      repaintCountry(country);
     });
-    refreshCountrySelect();
-    updateStatus();
-  }
 
-  document.getElementById("importFile").addEventListener("change", async (e) => {
-    const text = await e.target.files[0].text();
-    importData(JSON.parse(text));
-  });
+    // 4) UI更新
+    refreshCountrySelect();
+    updateStatus();
+   }
 
-  // GitHub連携ロジック (元のコードを継承)
-  async function getFileSha(owner, repo, path, token) {
-    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-    if (res.status === 404) return null;
-    const json = await res.json();
-    return json.sha;
-  }
+  // --- ファイル読み込み ---
+  async function readJsonFile(file) {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if (!Array.isArray(data)) throw new Error("JSONの形式が想定と違います（配列ではありません）");
+    return data;
+  }
 
-  document.getElementById("publishBtn").addEventListener("click", async () => {
-    const token = document.getElementById("ghToken").value.trim();
-    const st = document.getElementById("publishStatus");
-    if (!token) return alert("Tokenが必要です");
-    st.textContent = "公開中...";
-    try {
-      const content = buildJson();
-      const sha = await getFileSha(GH_OWNER, GH_REPO, GH_PATH, token);
-      const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: "Update map data",
-          content: btoa(unescape(encodeURIComponent(content))),
-          sha: sha || undefined
-        })
+  document.getElementById("importBtn").addEventListener("click", async () => {
+    const input = document.getElementById("importFile");
+    if (!input.files || input.files.length === 0) {
+      alert("map-data.json を選択してください。");
+      return;
+    }
+
+    try {
+      const data = await readJsonFile(input.files[0]);
+      importData(data);
+      alert("読み込み完了！");
+    } catch (e) {
+      console.error(e);
+      alert("読み込みに失敗しました： " + e.message);
+    }
+  });
+
+  const GH_OWNER = "Charlotte5227";
+  const GH_REPO  = "ww123";
+  const GH_PATH  = "map-data.json";
+
+function buildExportArrayFromCountries() {
+    const out = [];
+    for (const [cid, c] of countries.entries()) {
+      out.push({
+        name: c.name,
+        color: c.color,
+        provinces: Array.from(c.ids),
+        x: c.x, // 追加
+        y: c.y  // 追加
       });
-      if (res.ok) st.textContent = "公開完了！";
-      else throw new Error("送信失敗");
-    } catch (e) { st.textContent = "エラー"; alert(e.message); }
-  });
+    }
+    return out;
+  }
 
-  // 自動読み込み
-  (async function init() {
-    try {
-      const res = await fetch(`${GH_PATH}?ts=${Date.now()}`);
-      if (res.ok) importData(await res.json());
-    } catch (e) { console.log("初期データなし"); }
-  })();
+  function toBase64Utf8(str) {
+    // UTF-8文字を安全にbase64化
+    return btoa(unescape(encodeURIComponent(str)));
+  }
 
-  document.getElementById("toggleLabels").addEventListener("change", (e) => {
-    document.body.classList.toggle("labels-hidden", !e.target.checked);
-  });
+async function getFileSha(owner, repo, path, token) {
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+        Accept: "application/vnd.github+json",
+      },
+    });
 
+    if (res.status === 404) return null; // 新規作成扱い
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(`SHA取得失敗: ${res.status}\n${t}`);
+  }
+
+    const json = await res.json();
+    return json.sha;
+  }
+
+  async function putFile(owner, repo, path, token, contentText, shaOrNull) {
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+
+    const body = {
+      message: `Update ${path}`,
+      content: toBase64Utf8(contentText),
+      ...(shaOrNull ? { sha: shaOrNull } : {}),
+    };
+
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+        Accept: "application/vnd.github+json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(`PUT失敗: ${res.status}\n${t}`);
+    }
+   }
+
+  document.getElementById("publishBtn").addEventListener("click", async () => {
+    const token = document.getElementById("ghToken").value.trim();
+    const status = document.getElementById("publishStatus");
+
+    if (!token) {
+      alert("GitHub token を入力してください。");
+      return;
+    }
+
+    status.textContent = "公開中…";
+
+    try {
+      const data = buildExportArrayFromCountries();
+      const jsonText = JSON.stringify(data, null, 2);
+
+      const sha = await getFileSha(GH_OWNER, GH_REPO, GH_PATH, token);
+      await putFile(GH_OWNER, GH_REPO, GH_PATH, token, jsonText, sha);
+
+      status.textContent = "公開OK（viewerは最大12時間で反映）";
+    } catch (e) {
+      console.error(e);
+      status.textContent = "公開失敗";
+      alert(e.message);
+    }
+  });
+
+    // === 管理者サイト：起動時に map-data.json を自動読み込み（GitHub Pages上の最新版） ===
+  async function autoLoadLatestFromPages() {
+    // 同じ階層に map-data.json がある前提（/ww123/ 直下）
+    // キャッシュ回避
+    const url = `map-data.json?ts=${Date.now()}`;
+
+    const res = await fetch(url, { cache: "no-store" });
+
+    // 初回などで map-data.json がまだ無い場合は何もしない
+    if (res.status === 404) return;
+
+    if (!res.ok) throw new Error(`map-data.json自動読み込み失敗: ${res.status}`);
+
+    const data = await res.json();
+    if (!Array.isArray(data)) throw new Error("map-data.json の形式が配列ではありません");
+
+    importData(data);
+  }
+
+  // 起動時：自動読み込み（どの端末でも最新版）
+  autoLoadLatestFromPages().catch(e => console.warn(e));
+
+  // 手動：ボタンがある場合だけ有効
+  const autoBtn = document.getElementById("autoImportBtn");
+  if (autoBtn) {
+    autoBtn.addEventListener("click", async () => {
+      try {
+        await autoLoadLatestFromPages();
+        alert("最新版を読み込みました！");
+      } catch (e) {
+        alert(e.message);
+      }
+    });
+  }
+  
 </script>
+
 </body>
 </html>
