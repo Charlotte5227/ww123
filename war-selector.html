@@ -2081,28 +2081,28 @@ function saveWarImage(){
 
   });
 
-  const margin = 100;
+  // 選択範囲の中心
+  const cx = (minX + maxX)/2;
+  const cy = (minY + maxY)/2;
 
-  minX -= margin;
-  minY -= margin;
-  maxX += margin;
-  maxY += margin;
+  const margin = 500;
 
-  const width = maxX-minX;
-  const height = maxY-minY;
+  const cropX = cx - margin;
+  const cropY = cy - margin;
+  const cropSize = margin*2;
 
   const clone = svg.cloneNode(true);
 
-  clone.querySelectorAll("image").forEach(img => img.remove());
-
-  clone.setAttribute("viewBox",`${minX} ${minY} ${width} ${height}`);
+  clone.setAttribute("viewBox",`${cropX} ${cropY} ${cropSize} ${cropSize}`);
+  clone.setAttribute("width",cropSize);
+  clone.setAttribute("height",cropSize);
 
   const serializer = new XMLSerializer();
   const svgString = serializer.serializeToString(clone);
 
   const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
+  canvas.width = cropSize;
+  canvas.height = cropSize;
 
   const ctx = canvas.getContext("2d");
 
@@ -2115,10 +2115,11 @@ function saveWarImage(){
 
     ctx.drawImage(img,0,0);
 
+    URL.revokeObjectURL(url);
+
     const a = document.createElement("a");
     a.download="war-target.png";
-    a.href=canvas.toDataURL();
-
+    a.href=canvas.toDataURL("image/png");
     a.click();
   };
 
