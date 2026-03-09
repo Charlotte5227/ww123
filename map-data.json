@@ -68,5 +68,28 @@
       "path116",
       "path115"
     ]
+  },
+  {
+    "name": "オルシ・サンディカリズム地方連盟",
+    "color": "#fdafaf",
+    "provinces": [
+      "path180",
+      "path163",
+      "path146",
+      "path147",
+      "path137",
+      "path166"
+    ]
+  },
+  {
+    "name": "革命的ノヴォス社会主義共和国連邦",
+    "color": "#6c4baa",
+    "provinces": [
+      "path161",
+      "path173",
+      "path175",
+      "path176",
+      "path181"
+    ]
   }
 ]
