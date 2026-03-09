@@ -61,7 +61,7 @@ svg { width:100%; height:auto; display:block; background: #fff; }
 
 <svg
    version="1.1"
-   id="svg1"
+   id="mapSvg"
    width="1800"
    height="1056"
    viewBox="0 0 1800 1056"
@@ -1780,28 +1780,26 @@ svg { width:100%; height:auto; display:block; background: #fff; }
       resetProvinces(svg);
 
       for (const country of data) {
-        if (!country.provinces || country.provinces.length === 0) continue;
+  if (!country.provinces || country.provinces.length === 0) continue;
 
-        // 領土を塗る
-        for (const id of country.provinces) {
-          const p = svg.getElementById(id);
-          if (p) p.style.fill = country.color;
-        }
+  for (const id of country.provinces) {
+    const p = svg.getElementById(id);
+    if (p) p.style.fill = country.color;
+  }
 
-        // ラベル座標の決定：保存された座標があれば優先、なければ計算
-        let lx, ly;
-        if (country.x !== undefined && country.y !== undefined) {
-          lx = country.x;
-          ly = country.y;
-        } else {
-          const center = computeBBoxCenter(svg, country.provinces);
-          lx = center.cx;
-          ly = center.cy;
-        }
+  let lx, ly;
 
-        // ラベル追加
-        addLabel(layer, country.name, lx, ly);
-      }
+  if (country.labelX !== undefined && country.labelY !== undefined) {
+    lx = Number(country.labelX);
+    ly = Number(country.labelY);
+  } else {
+    const center = computeBBoxCenter(svg, country.provinces);
+    lx = center.cx;
+    ly = center.cy;
+  }
+
+  addLabel(layer, country.labelText || country.name, lx, ly);
+ }
       
       document.getElementById("statusIndicator").textContent = "最終更新: " + new Date().toLocaleTimeString();
     } catch (e) {
@@ -1825,3 +1823,4 @@ svg { width:100%; height:auto; display:block; background: #fff; }
 
 </body>
 </html>
+
