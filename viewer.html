@@ -6,14 +6,13 @@
 
 <style>
 body { margin:0; font-family:sans-serif; background: #f0f2f5; }
-
 svg { width:100%; height:auto; display:block; background: #fff; }
 
 .prov {
   fill:#ffffff;
   stroke:#111;
   stroke-width:1;
-  transition: fill 0.5s ease; /* 色の変化を滑らかに */
+  transition: fill 0.5s ease;
 }
 
 .label {
@@ -27,12 +26,10 @@ svg { width:100%; height:auto; display:block; background: #fff; }
   user-select: none;
 }
 
-.labels-hidden .label {
-  display:none;
-}
+.labels-hidden .label { display:none; }
   
 #toggleBtn {
-  position: fixed; /* 常に画面右上に配置 */
+  position: fixed;
   top: 20px;
   right: 20px;
   z-index: 10000;
@@ -47,8 +44,6 @@ svg { width:100%; height:auto; display:block; background: #fff; }
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-#toggleBtn:hover { background: #444; }
-
 #statusIndicator {
   position: fixed;
   bottom: 10px;
@@ -59,7 +54,6 @@ svg { width:100%; height:auto; display:block; background: #fff; }
 }
 </style>
 </head>
-
 <body>
 
 <button id="toggleBtn">国名を非表示</button>
@@ -1713,11 +1707,10 @@ svg { width:100%; height:auto; display:block; background: #fff; }
 
 <script>
   // === 設定 ===
-  const REFRESH_INTERVAL_MS = 30000; // 30秒ごとに更新チェック
-  let lastDataHash = "";            // データの変更確認用
+  const REFRESH_INTERVAL_MS = 30000; 
+  let lastDataHash = "";
   let labelsVisible = true;
 
-  // --- ラベル専用レイヤーの確保（常に最前面にするため） ---
   function ensureLabelsLayer(svg) {
     let layer = svg.querySelector("#labels-layer");
     if (!layer) {
@@ -1732,26 +1725,22 @@ svg { width:100%; height:auto; display:block; background: #fff; }
     svg.querySelectorAll(".prov").forEach(p => { p.style.fill = "#ffffff"; });
   }
 
-  // --- 管理サイトと同一の座標計算 ---
+  // フォールバック用の座標計算（x, yがない古いデータ用）
   function computeBBoxCenter(svg, provinceIds) {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     let any = false;
-
     for (const id of provinceIds) {
       const p = svg.getElementById(id);
       if (!p) continue;
       const bb = p.getBBox();
-      minX = Math.min(minX, bb.x);
-      minY = Math.min(minY, bb.y);
-      maxX = Math.max(maxX, bb.x + bb.width);
-      maxY = Math.max(maxY, bb.y + bb.height);
+      minX = Math.min(minX, bb.x); minY = Math.min(minY, bb.y);
+      maxX = Math.max(maxX, bb.x + bb.width); maxY = Math.max(maxY, bb.y + bb.height);
       any = true;
     }
-
-    if (!any) return { cx: 0, cy: 0 };
-    return { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 };
+    return any ? { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 } : { cx: 0, cy: 0 };
   }
 
+  // 管理サイトと共通の描画ロジック（tspanによる改行対応）
   function addLabel(layer, name, x, y) {
     const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
     text.setAttribute("class", "label");
@@ -1759,46 +1748,59 @@ svg { width:100%; height:auto; display:block; background: #fff; }
     text.setAttribute("y", String(y));
     text.setAttribute("text-anchor", "middle");
     text.setAttribute("dominant-baseline", "middle");
-    text.textContent = name;
+
+    const lines = name.split('\n');
+    lines.forEach((line, i) => {
+      const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      tspan.setAttribute("x", String(x));
+      tspan.setAttribute("dy", i === 0 ? "0" : "1.2em");
+      tspan.textContent = line;
+      text.appendChild(tspan);
+    });
     layer.appendChild(text);
   }
 
   async function loadAndRender() {
-    const svg = document.querySelector("svg");
+    const svg = document.getElementById("mapSvg");
     if (!svg) return;
 
     try {
-      // 強制的に最新を取得するためのクエリ（Date.now）
       const url = `map-data.json?t=${Date.now()}`;
       const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) throw new Error("Fetch failed");
 
       const jsonText = await res.text();
-      
-      // データに変更がなければ再描画しない（チカつき防止）
       if (jsonText === lastDataHash) return;
       lastDataHash = jsonText;
       
       const data = JSON.parse(jsonText);
       const layer = ensureLabelsLayer(svg);
       
-      // 描画リセット
       layer.innerHTML = "";
       resetProvinces(svg);
 
-      // 反映
       for (const country of data) {
         if (!country.provinces || country.provinces.length === 0) continue;
 
-        // 塗る
+        // 領土を塗る
         for (const id of country.provinces) {
           const p = svg.getElementById(id);
           if (p) p.style.fill = country.color;
         }
 
-        // ラベル配置（管理サイトとロジックを完全同期）
-        const { cx, cy } = computeBBoxCenter(svg, country.provinces);
-        addLabel(layer, country.name, cx, cy);
+        // ラベル座標の決定：保存された座標があれば優先、なければ計算
+        let lx, ly;
+        if (country.x !== undefined && country.y !== undefined) {
+          lx = country.x;
+          ly = country.y;
+        } else {
+          const center = computeBBoxCenter(svg, country.provinces);
+          lx = center.cx;
+          ly = center.cy;
+        }
+
+        // ラベル追加
+        addLabel(layer, country.name, lx, ly);
       }
       
       document.getElementById("statusIndicator").textContent = "最終更新: " + new Date().toLocaleTimeString();
@@ -1808,11 +1810,9 @@ svg { width:100%; height:auto; display:block; background: #fff; }
     }
   }
 
-  // === 初期化とループ開始 ===
   loadAndRender();
   setInterval(loadAndRender, REFRESH_INTERVAL_MS);
 
-  // === UI操作 ===
   const toggleBtn = document.getElementById("toggleBtn");
   if (toggleBtn) {
     toggleBtn.addEventListener("click", () => {
