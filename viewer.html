@@ -1813,6 +1813,7 @@ function addLabel(layer, textValue, x, y){
   const svgNS = "http://www.w3.org/2000/svg";
 
   const text = document.createElementNS(svgNS,"text");
+  text.classList.add("label");   // ←これ追加
 
   text.setAttribute("x",x);
   text.setAttribute("y",y);
@@ -2008,6 +2009,7 @@ svg.addEventListener("wheel", function(e){
 
 </body>
 </html>
+
 
 
 
