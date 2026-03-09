@@ -1744,17 +1744,6 @@ svg { width:100%; height:auto; display:block; background: #fff; }
     }
     return any ? { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 } : { cx: 0, cy: 0 };
   }
-
-  let lx, ly;
-
-　　if(country.labelX != null && country.labelY != null){
-　　  lx = country.labelX;
-　　  ly = country.labelY;
-　　}else{
-　　  const center = computeGroupCenter(country.provinces);
-　　  lx = center.x;
-　　  ly = center.y;
-　　}
   // 管理サイトと共通の描画ロジック（tspanによる改行対応）
   function addLabel(layer, textValue, x, y){
 
