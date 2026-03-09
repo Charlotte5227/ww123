@@ -1822,17 +1822,6 @@
     });
   }
 
-  let lx, ly;
-
-  if(country.labelX != null && country.labelY != null){
-    lx = country.labelX;
-    ly = country.labelY;
-  }else{
-    const center = computeGroupCenter(country.provinces);
-    lx = center.x;
-    ly = center.y;
-  }
-
   function addLabel(name, x, y) {
     const layer = ensureLabelsLayer();
     const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -2187,3 +2176,4 @@
 
 </body>
 </html>
+
