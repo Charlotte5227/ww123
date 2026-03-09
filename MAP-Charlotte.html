@@ -75,7 +75,7 @@
 
 <svg
    version="1.1"
-   id="svg1"
+   id="mapSvg"
    width="1800"
    height="1056"
    viewBox="0 0 1800 1056"
@@ -1756,7 +1756,9 @@
     p.style.fill = getProvinceBaseColor(id);
   }
 
-  function getSvgRoot() { return document.getElementById('mapSvg'); }
+  function getSvgRoot() {
+    return document.getElementById("mapSvg");
+  }
 
   function updateStatus() {
     const status = document.getElementById("status");
@@ -1968,6 +1970,7 @@
       usedColors.delete(country.color);
       activeCountryId = "";
       refreshCountrySelect();
+      updateStatus(); 
     } else {
       if (!country.lockCenter) moveLabelToCountryCenter(country);
     }
@@ -2168,26 +2171,6 @@
       }
     }
   });
-
-  // サンプル用: 既存データを自動作成しておく
-  (function seedSample(){
-    // もし外部 map-data.json 読み込みがあるならそれが優先されるが、なければサンプルを作る
-    if (true) {
-      // 省略されていたpath id 名に合わせてサンプル領土を作成
-      // 国A: p-a,p-b
-      selectedIds.add('p-a'); selectedIds.add('p-b');
-      document.querySelector('#p-a').classList.add('selected'); document.querySelector('#p-b').classList.add('selected');
-      document.getElementById('nameInput').value = '国A\n(二行目)';
-      document.getElementById('colorInput').value = '#6aa84f';
-      document.getElementById('createCountryBtn').click();
-
-      // 国B: p-c
-      selectedIds.add('p-c'); document.querySelector('#p-c').classList.add('selected');
-      document.getElementById('nameInput').value = '国B';
-      document.getElementById('colorInput').value = '#0aa';
-      document.getElementById('createCountryBtn').click();
-    }
-  })();
 
 </script>
 
