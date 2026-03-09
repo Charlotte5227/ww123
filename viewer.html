@@ -1745,32 +1745,46 @@ svg { width:100%; height:auto; display:block; background: #fff; }
     return any ? { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 } : { cx: 0, cy: 0 };
   }
 
+  let lx, ly;
+
+　　if(country.labelX != null && country.labelY != null){
+　　  lx = country.labelX;
+　　  ly = country.labelY;
+　　}else{
+　　  const center = computeGroupCenter(country.provinces);
+　　  lx = center.x;
+　　  ly = center.y;
+　　}
   // 管理サイトと共通の描画ロジック（tspanによる改行対応）
-  function addLabel(layer, name, x, y) {
+  function addLabel(layer, textValue, x, y){
 
-    const text = document.createElementNS("http://www.w3.org/2000/svg","text");
+  const svgNS = "http://www.w3.org/2000/svg";
 
-    text.setAttribute("class","label");
-    text.setAttribute("x",x);
-    text.setAttribute("y",y);
-    text.setAttribute("text-anchor","middle");
-    text.setAttribute("dominant-baseline","middle");
+  const text = document.createElementNS(svgNS,"text");
 
-    const lines = String(name).split("\n");
+  text.setAttribute("class","country-label");
+  text.setAttribute("x",x);
+  text.setAttribute("y",y);
+  text.setAttribute("text-anchor","middle");
+  text.setAttribute("dominant-baseline","middle");
 
-    lines.forEach((line,i)=>{
-      const tspan = document.createElementNS("http://www.w3.org/2000/svg","tspan");
+  const lines = String(textValue).split("\n");
 
-      tspan.setAttribute("x",x);
-      tspan.setAttribute("dy", i===0 ? "0" : "1.1em");
+  lines.forEach((line,i)=>{
 
-      tspan.textContent = line;
+    const tspan = document.createElementNS(svgNS,"tspan");
 
-      text.appendChild(tspan);
-    });
+    tspan.setAttribute("x",x);
+    tspan.setAttribute("dy", i===0 ? "0" : "1.1em");
 
-    layer.appendChild(text);
-  }
+    tspan.textContent = line;
+
+    text.appendChild(tspan);
+
+  });
+
+  layer.appendChild(text);
+}
 
   async function loadAndRender() {
     const svg = document.getElementById("mapSvg");
@@ -1835,5 +1849,6 @@ svg { width:100%; height:auto; display:block; background: #fff; }
 
 </body>
 </html>
+
 
 
