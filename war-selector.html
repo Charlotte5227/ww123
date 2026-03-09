@@ -31,7 +31,7 @@ svg { width:100%; height:auto; display:block; background: #fff; }
       cursor: move;             /* ドラッグ可能に見せる */
 }
 
-.labels-hidden .label { display:none; }
+.labels-hidden .country-label { display:none; }
   
 #topbar {
   background:#222;
@@ -1968,20 +1968,14 @@ svg.addEventListener("click",(e)=>{
 
   const id = p.id;
 
-  const fill = getComputedStyle(p).fill;
-
-  if(fill !== "rgb(255, 255, 255)") return;
-
   if(selectedProvinces.has(id)){
 
     selectedProvinces.delete(id);
-
     p.classList.remove("prov-war");
 
   }else{
 
     selectedProvinces.add(id);
-
     p.classList.add("prov-war");
 
   }
