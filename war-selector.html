@@ -1840,6 +1840,8 @@ function addLabel(layer, textValue, x, y){
 
   const text = document.createElementNS(svgNS,"text");
 
+  text.classList.add("country-label"); // ★追加
+
   text.setAttribute("x",x);
   text.setAttribute("y",y);
   text.setAttribute("text-anchor","middle");
