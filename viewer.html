@@ -1897,16 +1897,20 @@ svg { width:100%; height:auto; display:block; background: #fff; }
     });
   }
 
-  function downloadPNG(){
+function downloadPNG(){
 
   const svg = document.getElementById("mapSvg");
+
+  const originalViewBox = svg.getAttribute("viewBox");
+
+  svg.setAttribute("viewBox","0 0 1800 1056");
 
   const serializer = new XMLSerializer();
   const svgString = serializer.serializeToString(svg);
 
   const canvas = document.createElement("canvas");
-  canvas.width = svg.viewBox.baseVal.width || 1800;
-  canvas.height = svg.viewBox.baseVal.height || 1056;
+  canvas.width = 1800;
+  canvas.height = 1056;
 
   const ctx = canvas.getContext("2d");
 
@@ -1920,6 +1924,8 @@ svg { width:100%; height:auto; display:block; background: #fff; }
     ctx.drawImage(img,0,0);
 
     URL.revokeObjectURL(url);
+
+    svg.setAttribute("viewBox", originalViewBox);
 
     const a = document.createElement("a");
     a.download = "map.png";
@@ -1992,6 +1998,7 @@ svg.addEventListener("wheel", function(e){
 
 </body>
 </html>
+
 
 
 
