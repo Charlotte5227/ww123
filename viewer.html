@@ -58,6 +58,7 @@ svg { width:100%; height:auto; display:block; background: #fff; }
 <body>
 
 <div id="topbar">
+<button onclick="location.href='https://charlotte5227.github.io/ww123/war-selector.html'">戦争先選択用</button>
 
 <button onclick="zoomIn()">＋</button>
 <button onclick="zoomOut()">－</button>
@@ -1807,17 +1808,26 @@ svg { width:100%; height:auto; display:block; background: #fff; }
     return any ? { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 } : { cx: 0, cy: 0 };
   }
   // 管理サイトと共通の描画ロジック（tspanによる改行対応）
-  function addLabel(layer, textValue, x, y){
+function addLabel(layer, textValue, x, y){
 
   const svgNS = "http://www.w3.org/2000/svg";
 
   const text = document.createElementNS(svgNS,"text");
 
-  text.setAttribute("class","label");
   text.setAttribute("x",x);
   text.setAttribute("y",y);
   text.setAttribute("text-anchor","middle");
   text.setAttribute("dominant-baseline","middle");
+
+  text.setAttribute("style",`
+    font-size:18px;
+    font-weight:800;
+    fill:#fff;
+    stroke:#000;
+    stroke-width:6px;
+    paint-order:stroke fill;
+    user-select:none;
+  `);
 
   const lines = String(textValue).split("\n");
 
@@ -1998,6 +2008,7 @@ svg.addEventListener("wheel", function(e){
 
 </body>
 </html>
+
 
 
 
