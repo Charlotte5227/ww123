@@ -1976,11 +1976,18 @@ svg.addEventListener("click",(e)=>{
     selectedProvinces.delete(id);
     p.classList.remove("prov-war");
 
+    // 元の色に戻す
+    p.style.fill = p.dataset.baseColor || "#ffffff";
+
   }else{
 
     selectedProvinces.add(id);
-    p.classList.add("prov-war");
 
+    // 元色保存
+    p.dataset.baseColor = p.style.fill;
+
+    // 赤斜線適用
+    p.style.fill = "url(#warStripe)";
   }
 
 });
@@ -2085,6 +2092,8 @@ function saveWarImage(){
   const height = maxY-minY;
 
   const clone = svg.cloneNode(true);
+
+  clone.querySelectorAll("image").forEach(img => img.remove());
 
   clone.setAttribute("viewBox",`${minX} ${minY} ${width} ${height}`);
 
