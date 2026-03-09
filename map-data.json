@@ -91,5 +91,17 @@
       "path181",
       "path176"
     ]
+  },
+  {
+    "name": "大魔導国セレスティア",
+    "color": "#c800ff",
+    "provinces": [
+      "path240",
+      "path226",
+      "path217",
+      "path198",
+      "path215",
+      "path233"
+    ]
   }
 ]
