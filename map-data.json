@@ -40,11 +40,12 @@
       "path310",
       "path323",
       "path324",
-      "path315"
+      "path315",
+      "path332"
     ],
     "labelText": "ポップ帝国",
-    "labelX": "1539.0552368164062",
-    "labelY": "553.6823883056641",
+    "labelX": "1547.29638671875",
+    "labelY": "547.0828094482422",
     "lockCenter": false
   },
   {
@@ -86,11 +87,13 @@
       "path162",
       "path152",
       "path116",
-      "path115"
+      "path115",
+      "path170",
+      "path179"
     ],
     "labelText": "フェヴァロ゚ツォトニア人民国",
-    "labelX": "1193.6712036132812",
-    "labelY": "930.6578674316406",
+    "labelX": "1225.8411254882812",
+    "labelY": "930.4371337890625",
     "lockCenter": false
   },
   {
@@ -102,11 +105,15 @@
       "path146",
       "path147",
       "path137",
-      "path166"
+      "path166",
+      "path154",
+      "path174",
+      "path171",
+      "path178"
     ],
     "labelText": "オルシ・サンディ\nカリズム地方連盟",
-    "labelX": "1722.0910034179688",
-    "labelY": "902.1222839355469",
+    "labelX": "1723.050537109375",
+    "labelY": "917.5768127441406",
     "lockCenter": false
   },
   {
@@ -117,11 +124,13 @@
       "path173",
       "path175",
       "path181",
-      "path176"
+      "path176",
+      "path190",
+      "path136"
     ],
     "labelText": "革命的レヴォス\n社会主義共和国連邦",
-    "labelX": "204.07437133789062",
-    "labelY": "894.984375",
+    "labelX": "217.1898422241211",
+    "labelY": "908.9986267089844",
     "lockCenter": false
   },
   {
@@ -133,11 +142,59 @@
       "path217",
       "path198",
       "path215",
-      "path233"
+      "path233",
+      "path197"
     ],
     "labelText": "大魔導国セレスティア",
     "labelX": "1490.5761108398438",
-    "labelY": "792.753173828125",
+    "labelY": "795.9510192871094",
+    "lockCenter": false
+  },
+  {
+    "name": "ヴノルバイ活神国",
+    "color": "#c0ae84",
+    "provinces": [
+      "path29",
+      "path28",
+      "path27",
+      "path54",
+      "path62",
+      "path63"
+    ],
+    "labelText": "ヴノルバイ活神国",
+    "labelX": "1721.7694702148438",
+    "labelY": "1002.9546203613281",
+    "lockCenter": false
+  },
+  {
+    "name": "ルクシア帝国",
+    "color": "#168500",
+    "provinces": [
+      "path268",
+      "path292",
+      "path298",
+      "path261",
+      "path282"
+    ],
+    "labelText": "ルクシア帝国",
+    "labelX": "88.68823623657227",
+    "labelY": "700.33740234375",
+    "lockCenter": false
+  },
+  {
+    "name": "ベガーズ共和国",
+    "color": "#c19dd7",
+    "provinces": [
+      "path329",
+      "path333",
+      "path349",
+      "path345",
+      "path319",
+      "path336"
+    ],
+    "labelText": "ベガーズ共和国",
+    "labelX": "941.2079467773438",
+    "labelY": "482.67408752441406",
     "lockCenter": false
   }
 ]
