@@ -1807,46 +1807,48 @@ svg { width:100%; height:auto; display:block; background: #fff; }
     }
     return any ? { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 } : { cx: 0, cy: 0 };
   }
-  // 管理サイトと共通の描画ロジック（tspanによる改行対応）
-function addLabel(layer, textValue, x, y){
+// 管理サイトと共通の描画ロジック（tspanによる改行対応 ＋ サイズ対応）
+  function addLabel(layer, textValue, x, y, fontSize = 18){
 
-  const svgNS = "http://www.w3.org/2000/svg";
+    const svgNS = "http://www.w3.org/2000/svg";
 
-  const text = document.createElementNS(svgNS,"text");
-  text.classList.add("label");   // ←これ追加
+    const text = document.createElementNS(svgNS,"text");
+    text.classList.add("label");
 
-  text.setAttribute("x",x);
-  text.setAttribute("y",y);
-  text.setAttribute("text-anchor","middle");
-  text.setAttribute("dominant-baseline","middle");
+    text.setAttribute("x",x);
+    text.setAttribute("y",y);
+    text.setAttribute("text-anchor","middle");
+    text.setAttribute("dominant-baseline","middle");
 
-  text.setAttribute("style",`
-    font-size:18px;
-    font-weight:800;
-    fill:#fff;
-    stroke:#000;
-    stroke-width:6px;
-    paint-order:stroke fill;
-    user-select:none;
+  // ここで fontSize を適用できるように変更
+    text.setAttribute("style",`
+      font-size:${fontSize}px;
+      font-weight:800;
+      fill:#fff;
+      stroke:#000;
+      stroke-width:6px;
+      paint-order:stroke fill;
+      user-select:none;
+      pointer-events:none; /* 閲覧サイトではクリック不要なのでnoneに */
   `);
 
-  const lines = String(textValue).split("\n");
+    const lines = String(textValue).split("\n");
 
-  lines.forEach((line,i)=>{
+    lines.forEach((line,i)=>{
 
-    const tspan = document.createElementNS(svgNS,"tspan");
+      const tspan = document.createElementNS(svgNS,"tspan");
 
-    tspan.setAttribute("x",x);
-    tspan.setAttribute("dy", i===0 ? "0" : "1.1em");
+      tspan.setAttribute("x",x);
+      tspan.setAttribute("dy", i===0 ? "0" : "1.1em");
 
-    tspan.textContent = line;
+     tspan.textContent = line;
 
-    text.appendChild(tspan);
+      text.appendChild(tspan);
 
-  });
+    });
 
-  layer.appendChild(text);
-}
+    layer.appendChild(text);
+  }
 
   async function loadAndRender() {
     const svg = document.getElementById("mapSvg");
@@ -1860,35 +1862,46 @@ function addLabel(layer, textValue, x, y){
       const jsonText = await res.text();
       if (jsonText === lastDataHash) return;
       lastDataHash = jsonText;
-      
+    
       const data = JSON.parse(jsonText);
       const layer = ensureLabelsLayer(svg);
-      
+    
       layer.innerHTML = "";
       resetProvinces(svg);
 
-      for (const country of data) {
-  if (!country.provinces || country.provinces.length === 0) continue;
-
-  for (const id of country.provinces) {
-    const p = svg.getElementById(id);
-    if (p) p.style.fill = country.color;
-  }
-
-  let lx, ly;
-
-  if (country.labelX !== undefined && country.labelY !== undefined) {
-    lx = Number(country.labelX);
-    ly = Number(country.labelY);
-  } else {
-    const center = computeBBoxCenter(svg, country.provinces);
-    lx = center.cx;
-    ly = center.cy;
-  }
-
-  addLabel(layer, country.labelText || country.name, lx, ly);
- }
+    // データごとに「国」か「自由ラベル」か判定して処理を分ける
+      for (const item of data) {
       
+      // 1. 自由ラベルの場合
+        if (item.type === "freeLabel") {
+          addLabel(layer, item.text, item.x, item.y, item.fontSize);
+          continue;
+        }
+
+      // 2. 国データの場合（プロビンスがない場合はスキップ）
+        if (!item.provinces || item.provinces.length === 0) continue;
+
+      // 塗りつぶし
+        for (const id of item.provinces) {
+          const p = svg.getElementById(id);
+          if (p) p.style.fill = item.color;
+        }
+
+      // 座標の決定
+        let lx, ly;
+        if (item.labelX !== undefined && item.labelY !== undefined && item.labelX !== null) {
+          lx = Number(item.labelX);
+          ly = Number(item.labelY);
+        } else {
+          const center = computeBBoxCenter(svg, item.provinces);
+          lx = center.cx;
+          ly = center.cy;
+        }
+
+      // 国ラベルの描画（サイズも渡す）
+        addLabel(layer, item.labelText || item.name, lx, ly, item.labelFontSize || 18);
+      }
+    
       document.getElementById("statusIndicator").textContent = "最終更新: " + new Date().toLocaleTimeString();
     } catch (e) {
       console.error("更新エラー:", e);
@@ -2009,12 +2022,3 @@ svg.addEventListener("wheel", function(e){
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
