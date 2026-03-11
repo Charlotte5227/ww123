@@ -68,12 +68,14 @@
       "path393",
       "path386",
       "path379",
-      "path389"
+      "path389",
+      "path384",
+      "path375"
     ],
     "labelText": "Embest･Lesk･Diano",
     "labelFontSize": 18,
-    "labelX": "1272.9652099609375",
-    "labelY": "234.10025787353516",
+    "labelX": "1286.910888671875",
+    "labelY": "236.92176055908203",
     "lockCenter": false
   },
   {
@@ -138,18 +140,12 @@
       "path28",
       "path62",
       "path54",
-      "path27",
-      "path177",
-      "path209",
-      "path117",
-      "path109",
-      "path78",
-      "path104"
+      "path27"
     ],
     "labelText": "オルシ・サンディ\nカリズム地方連盟",
     "labelFontSize": 18,
-    "labelX": "1723.0534057617188",
-    "labelY": "934.7500610351562",
+    "labelX": "1726.050537109375",
+    "labelY": "904.1928100585938",
     "lockCenter": false
   },
   {
