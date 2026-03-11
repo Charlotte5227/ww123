@@ -44,11 +44,14 @@
       "path332",
       "path331",
       "path328",
-      "path313"
+      "path313",
+      "path306",
+      "path304",
+      "path300"
     ],
     "labelText": "ポップ帝国",
-    "labelX": "1579.5391235351562",
-    "labelY": "538.0828094482422",
+    "labelX": "1589.5391235351562",
+    "labelY": "542.5901641845703",
     "lockCenter": false
   },
   {
@@ -116,11 +119,17 @@
       "path154",
       "path174",
       "path171",
-      "path178"
+      "path178",
+      "path63",
+      "path29",
+      "path28",
+      "path62",
+      "path54",
+      "path27"
     ],
     "labelText": "オルシ・サンディ\nカリズム地方連盟",
-    "labelX": "1723.050537109375",
-    "labelY": "917.5768127441406",
+    "labelX": "1726.050537109375",
+    "labelY": "904.1928100585938",
     "lockCenter": false
   },
   {
@@ -155,22 +164,6 @@
     "labelText": "大魔導国セレスティア",
     "labelX": "1490.5761108398438",
     "labelY": "795.9510192871094",
-    "lockCenter": false
-  },
-  {
-    "name": "ヴノルバイ活神国",
-    "color": "#c0ae84",
-    "provinces": [
-      "path29",
-      "path28",
-      "path27",
-      "path54",
-      "path62",
-      "path63"
-    ],
-    "labelText": "ヴノルバイ活神国",
-    "labelX": "1721.7694702148438",
-    "labelY": "1002.9546203613281",
     "lockCenter": false
   },
   {
