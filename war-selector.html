@@ -1834,13 +1834,13 @@ function computeBBoxCenter(svg, provinceIds) {
 
 
 // ラベル描画
-function addLabel(layer, textValue, x, y){
+// ラベル描画（サイズ対応版）
+function addLabel(layer, textValue, x, y, fontSize = 18){
 
   const svgNS = "http://www.w3.org/2000/svg";
-
   const text = document.createElementNS(svgNS,"text");
 
-  text.classList.add("country-label"); // ★追加
+  text.classList.add("country-label");
 
   text.setAttribute("x",x);
   text.setAttribute("y",y);
@@ -1848,96 +1848,89 @@ function addLabel(layer, textValue, x, y){
   text.setAttribute("dominant-baseline","middle");
 
   text.setAttribute("style",`
-    font-size:18px;
+    font-size:${fontSize}px;
     font-weight:800;
     fill:#fff;
     stroke:#000;
     stroke-width:6px;
     paint-order:stroke fill;
     user-select:none;
+    pointer-events:none;
   `);
 
   const lines = String(textValue).split("\n");
 
   lines.forEach((line,i)=>{
-
     const tspan = document.createElementNS(svgNS,"tspan");
-
     tspan.setAttribute("x",x);
     tspan.setAttribute("dy", i===0 ? "0" : "1.1em");
-
     tspan.textContent = line;
-
     text.appendChild(tspan);
-
   });
 
   layer.appendChild(text);
 }
 
-
-// 地図ロード
+// 地図ロード（自由ラベル対応版）
 async function loadAndRender() {
 
   try {
-
     const url = `map-data.json?t=${Date.now()}`;
     const res = await fetch(url,{cache:"no-store"});
 
     if (!res.ok) throw new Error("Fetch failed");
 
     const jsonText = await res.text();
-
     if (jsonText === lastDataHash) return;
-
     lastDataHash = jsonText;
 
     const data = JSON.parse(jsonText);
-
     const layer = ensureLabelsLayer(svg);
 
     layer.innerHTML = "";
-
     resetProvinces(svg);
 
-    for (const country of data) {
+    for (const item of data) {
+      
+      // 1. 自由ラベルの場合
+      if (item.type === "freeLabel") {
+        addLabel(layer, item.text, item.x, item.y, item.fontSize);
+        continue;
+      }
 
-      if (!country.provinces || country.provinces.length === 0) continue;
+      // 2. 国データの場合
+      if (!item.provinces || item.provinces.length === 0) continue;
 
-      for (const id of country.provinces) {
-
+      for (const id of item.provinces) {
         const p = svg.getElementById(id);
-
-        if (p) p.style.fill = country.color;
-
+        if (p) {
+          // 選択中（赤斜線）でない場合のみ、国色を適用
+          if(!selectedProvinces.has(id)){
+            p.style.fill = item.color;
+          }
+          // 元色としてデータを保持しておく
+          p.dataset.baseColor = item.color;
+        }
       }
 
       let lx, ly;
-
-      if (country.labelX !== undefined && country.labelY !== undefined) {
-
-        lx = Number(country.labelX);
-        ly = Number(country.labelY);
-
+      if (item.labelX !== undefined && item.labelY !== undefined && item.labelX !== null) {
+        lx = Number(item.labelX);
+        ly = Number(item.labelY);
       } else {
-
-        const center = computeBBoxCenter(svg,country.provinces);
-
+        const center = computeBBoxCenter(svg,item.provinces);
         lx = center.cx;
         ly = center.cy;
       }
 
-      addLabel(layer,country.labelText || country.name,lx,ly);
-
+      addLabel(layer, item.labelText || item.name, lx, ly, item.labelFontSize || 18);
     }
 
     document.getElementById("statusIndicator").textContent =
       "最終更新: " + new Date().toLocaleTimeString();
 
   } catch(e) {
-
     console.error("更新エラー:",e);
-
     document.getElementById("statusIndicator").textContent =
       "同期エラー発生中";
   }
