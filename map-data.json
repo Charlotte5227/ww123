@@ -55,13 +55,11 @@
       "path393",
       "path386",
       "path379",
-      "path389",
-      "path384",
-      "path375"
+      "path389"
     ],
     "labelText": "Embest･Lesk･Diano",
-    "labelX": "1294.910888671875",
-    "labelY": "239.92176055908203",
+    "labelX": "1272.9652099609375",
+    "labelY": "234.10025787353516",
     "lockCenter": false
   },
   {
@@ -197,6 +195,22 @@
     "labelText": "ベガーズ共和国",
     "labelX": "941.2079467773438",
     "labelY": "482.67408752441406",
+    "lockCenter": false
+  },
+  {
+    "name": "北東洋諸島政府",
+    "color": "#3d3c67",
+    "provinces": [
+      "path403",
+      "path404",
+      "path405",
+      "path400",
+      "path399",
+      "path387"
+    ],
+    "labelText": "北東洋諸島政府",
+    "labelX": "1635.9642333984375",
+    "labelY": "172.3109130859375",
     "lockCenter": false
   }
 ]
