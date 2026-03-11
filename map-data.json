@@ -1,5 +1,6 @@
 [
   {
+    "type": "country",
     "name": "氷国",
     "color": "#2e3cff",
     "provinces": [
@@ -11,11 +12,13 @@
       "path56"
     ],
     "labelText": "氷国",
+    "labelFontSize": 18,
     "labelX": "242.43138885498047",
     "labelY": "1020.5844421386719",
     "lockCenter": false
   },
   {
+    "type": "country",
     "name": "グリフ・ザ・クエス",
     "color": "#7eff75",
     "provinces": [
@@ -27,11 +30,13 @@
       "path347"
     ],
     "labelText": "グリフ・ザ・クエス",
+    "labelFontSize": 18,
     "labelX": "1270.7344360351562",
     "labelY": "532.1234130859375",
     "lockCenter": false
   },
   {
+    "type": "country",
     "name": "ポップ帝国",
     "color": "#ffff00",
     "provinces": [
@@ -50,11 +55,13 @@
       "path300"
     ],
     "labelText": "ポップ帝国",
+    "labelFontSize": 18,
     "labelX": "1589.5391235351562",
     "labelY": "542.5901641845703",
     "lockCenter": false
   },
   {
+    "type": "country",
     "name": "Embest･Lesk･Diano",
     "color": "#ff00ff",
     "provinces": [
@@ -64,11 +71,13 @@
       "path389"
     ],
     "labelText": "Embest･Lesk･Diano",
+    "labelFontSize": 18,
     "labelX": "1272.9652099609375",
     "labelY": "234.10025787353516",
     "lockCenter": false
   },
   {
+    "type": "country",
     "name": "ネルフィー国",
     "color": "#9578ff",
     "provinces": [
@@ -84,11 +93,13 @@
       "path247"
     ],
     "labelText": "ネルフィー国",
+    "labelFontSize": 18,
     "labelX": "665.6815185546875",
     "labelY": "691.8519287109375",
     "lockCenter": false
   },
   {
+    "type": "country",
     "name": "フェヴァロ゚ツォトニア人民国",
     "color": "#00ffff",
     "provinces": [
@@ -102,11 +113,13 @@
       "path179"
     ],
     "labelText": "フェヴァロ゚ツォトニア人民国",
+    "labelFontSize": 18,
     "labelX": "1225.8411254882812",
     "labelY": "930.4371337890625",
     "lockCenter": false
   },
   {
+    "type": "country",
     "name": "オルシ・サンディカリズム地方連盟",
     "color": "#fdafaf",
     "provinces": [
@@ -128,11 +141,13 @@
       "path27"
     ],
     "labelText": "オルシ・サンディ\nカリズム地方連盟",
+    "labelFontSize": 18,
     "labelX": "1726.050537109375",
     "labelY": "904.1928100585938",
     "lockCenter": false
   },
   {
+    "type": "country",
     "name": "革命的レヴォス社会主義共和国連邦",
     "color": "#ff8800",
     "provinces": [
@@ -145,11 +160,13 @@
       "path136"
     ],
     "labelText": "革命的レヴォス\n社会主義共和国連邦",
+    "labelFontSize": 18,
     "labelX": "217.1898422241211",
     "labelY": "908.9986267089844",
     "lockCenter": false
   },
   {
+    "type": "country",
     "name": "大魔導国セレスティア",
     "color": "#c800ff",
     "provinces": [
@@ -162,11 +179,13 @@
       "path197"
     ],
     "labelText": "大魔導国セレスティア",
+    "labelFontSize": 18,
     "labelX": "1490.5761108398438",
     "labelY": "795.9510192871094",
     "lockCenter": false
   },
   {
+    "type": "country",
     "name": "ルクシア帝国",
     "color": "#168500",
     "provinces": [
@@ -177,11 +196,13 @@
       "path282"
     ],
     "labelText": "ルクシア帝国",
+    "labelFontSize": 18,
     "labelX": "88.68823623657227",
     "labelY": "700.33740234375",
     "lockCenter": false
   },
   {
+    "type": "country",
     "name": "ベガーズ共和国",
     "color": "#c19dd7",
     "provinces": [
@@ -193,11 +214,13 @@
       "path336"
     ],
     "labelText": "ベガーズ共和国",
+    "labelFontSize": 18,
     "labelX": "941.2079467773438",
     "labelY": "482.67408752441406",
     "lockCenter": false
   },
   {
+    "type": "country",
     "name": "北東洋諸島政府",
     "color": "#3d3c67",
     "provinces": [
@@ -209,8 +232,16 @@
       "path387"
     ],
     "labelText": "北東洋諸島政府",
+    "labelFontSize": 18,
     "labelX": "1635.9642333984375",
     "labelY": "172.3109130859375",
     "lockCenter": false
+  },
+  {
+    "type": "freeLabel",
+    "text": "『帝国』",
+    "fontSize": "50",
+    "x": "447",
+    "y": "185"
   }
 ]
