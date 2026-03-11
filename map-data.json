@@ -41,11 +41,14 @@
       "path323",
       "path324",
       "path315",
-      "path332"
+      "path332",
+      "path331",
+      "path328",
+      "path313"
     ],
     "labelText": "ポップ帝国",
-    "labelX": "1547.29638671875",
-    "labelY": "547.0828094482422",
+    "labelX": "1579.5391235351562",
+    "labelY": "538.0828094482422",
     "lockCenter": false
   },
   {
@@ -55,13 +58,11 @@
       "path393",
       "path386",
       "path379",
-      "path389",
-      "path384",
-      "path375"
+      "path389"
     ],
     "labelText": "Embest･Lesk･Diano",
-    "labelX": "1294.910888671875",
-    "labelY": "239.92176055908203",
+    "labelX": "1272.9652099609375",
+    "labelY": "234.10025787353516",
     "lockCenter": false
   },
   {
@@ -73,11 +74,15 @@
       "path295",
       "path287",
       "path286",
-      "path289"
+      "path289",
+      "path274",
+      "path275",
+      "path252",
+      "path247"
     ],
     "labelText": "ネルフィー国",
-    "labelX": "631.6815185546875",
-    "labelY": "672.1986999511719",
+    "labelX": "665.6815185546875",
+    "labelY": "691.8519287109375",
     "lockCenter": false
   },
   {
@@ -201,18 +206,18 @@
   },
   {
     "name": "北東洋諸島政府",
-    "color": "#00b7ce",
+    "color": "#3d3c67",
     "provinces": [
+      "path403",
       "path404",
+      "path405",
       "path400",
       "path399",
-      "path403",
-      "path387",
-      "path405"
+      "path387"
     ],
     "labelText": "北東洋諸島政府",
     "labelX": "1635.9642333984375",
     "labelY": "172.3109130859375",
-    "lockCenter": true
+    "lockCenter": false
   }
 ]
