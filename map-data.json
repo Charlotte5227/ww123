@@ -372,5 +372,12 @@
     "labelX": "1635.9642333984375",
     "labelY": "172.3109130859375",
     "lockCenter": false
+  },
+  {
+    "type": "freeLabel",
+    "text": "『帝国』",
+    "fontSize": "72",
+    "x": "327",
+    "y": "238"
   }
 ]
