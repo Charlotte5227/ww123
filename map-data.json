@@ -215,11 +215,16 @@
       "path18",
       "path17",
       "path16",
-      "path40"
+      "path40",
+      "path133",
+      "path105",
+      "path4",
+      "path5",
+      "path35"
     ],
     "labelText": "ネルフィー国",
     "labelFontSize": 18,
-    "labelX": "728.9676218032837",
+    "labelX": "733.9676218032837",
     "labelY": "741.1600494384766",
     "lockCenter": false
   },
@@ -326,8 +331,8 @@
     ],
     "labelText": "革命的レヴォス\n社会主義共和国連邦",
     "labelFontSize": 18,
-    "labelX": "222.1898422241211",
-    "labelY": "916.4147338867188",
+    "labelX": "226.1898422241211",
+    "labelY": "905.4147338867188",
     "lockCenter": false
   },
   {
@@ -415,11 +420,11 @@
   {
     "type": "country",
     "name": "北東洋諸島政府",
-    "color": "#42e9ff",
+    "color": "#f8ff8f",
     "provinces": [
       "path387",
-      "path400",
       "path399",
+      "path400",
       "path405",
       "path404",
       "path403"
