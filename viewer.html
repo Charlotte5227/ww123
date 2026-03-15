@@ -8874,7 +8874,7 @@ svg { width:100%; height:auto; display:block; background: #fff; }
   let labelsVisible = true;
   let zoomLevel = 1;
   const ZOOM_STEP = 0.2;
-  let viewBox = { x:0, y:0, w:1800, h:1056 };
+  let viewBox = { x:0, y:0, w:1800, h:2000 };
 
   let isDragging = false;
   let startX = 0;
@@ -8898,7 +8898,7 @@ svg { width:100%; height:auto; display:block; background: #fff; }
     const svg = document.getElementById("mapSvg");
 
     const baseWidth = 1800;
-    const baseHeight = 1056;
+    const baseHeight = 2000;
 
     const width = baseWidth * zoomLevel;
     const height = baseHeight * zoomLevel;
