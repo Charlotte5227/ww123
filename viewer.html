@@ -9069,35 +9069,47 @@ svg { width:100%; height:auto; display:block; background: #fff; }
     });
   }
 
-function downloadPNG(){
-
+function downloadPNG() {
   const svg = document.getElementById("mapSvg");
 
+  // 元の属性を保存
   const originalViewBox = svg.getAttribute("viewBox");
+  const originalWidth = svg.getAttribute("width");
+  const originalHeight = svg.getAttribute("height");
 
-  svg.setAttribute("viewBox","0 0 1800 2000");
+  // エクスポート用に viewBox と絶対サイズをセット
+  svg.setAttribute("viewBox", "0 0 1800 2000");
+  svg.setAttribute("width", "1800");
+  svg.setAttribute("height", "2000");
 
   const serializer = new XMLSerializer();
   const svgString = serializer.serializeToString(svg);
 
+  // シリアライズが終わったら、すぐに元の属性に戻す
+  if (originalViewBox) svg.setAttribute("viewBox", originalViewBox);
+  else svg.removeAttribute("viewBox");
+  
+  if (originalWidth) svg.setAttribute("width", originalWidth);
+  else svg.removeAttribute("width");
+  
+  if (originalHeight) svg.setAttribute("height", originalHeight);
+  else svg.removeAttribute("height");
+
   const canvas = document.createElement("canvas");
   canvas.width = 1800;
   canvas.height = 2000;
-
   const ctx = canvas.getContext("2d");
 
+  // 画像の生成
   const img = new Image();
-
-  const svgBlob = new Blob([svgString], {type:"image/svg+xml;charset=utf-8"});
+  const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
   const url = URL.createObjectURL(svgBlob);
 
-  img.onload = function(){
-
-    ctx.drawImage(img,0,0);
+  img.onload = function() {
+    // 念のため drawImage でもサイズを明示的に指定
+    ctx.drawImage(img, 0, 0, 1800, 2000);
 
     URL.revokeObjectURL(url);
-
-    svg.setAttribute("viewBox", originalViewBox);
 
     const a = document.createElement("a");
     a.download = "map.png";
