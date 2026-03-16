@@ -74,12 +74,15 @@
       "path1511",
       "path1521",
       "path1525",
-      "path1531"
+      "path1531",
+      "path1610",
+      "path1647",
+      "path1648"
     ],
     "labelText": "ポップ帝国",
     "labelFontSize": 18,
-    "labelX": "1638.5407104492188",
-    "labelY": "1011.128662109375",
+    "labelX": "1657.5407104492188",
+    "labelY": "1010.7468414306641",
     "lockCenter": false
   },
   {
