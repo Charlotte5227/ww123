@@ -30,12 +30,14 @@
       "path1524",
       "path1533",
       "path1535",
-      "path1526"
+      "path1526",
+      "path1562",
+      "path1572"
     ],
     "labelText": "グリフ・ザ・クエス",
     "labelFontSize": 18,
     "labelX": "1270.7344360351562",
-    "labelY": "979.8071594238281",
+    "labelY": "881.3982543945312",
     "lockCenter": false
   },
   {
@@ -220,12 +222,22 @@
       "path1221",
       "path1247",
       "path1223",
-      "path1241"
+      "path1241",
+      "path1319",
+      "path1296",
+      "path1132",
+      "path1076",
+      "path1095",
+      "path1110",
+      "path1068",
+      "path1120",
+      "path1121",
+      "path1155"
     ],
     "labelText": "ネルフィー国",
     "labelFontSize": 18,
-    "labelX": "732.4173412322998",
-    "labelY": "1212.1465759277344",
+    "labelX": "825.7615795135498",
+    "labelY": "1209.8699645996094",
     "lockCenter": false
   },
   {
@@ -386,12 +398,21 @@
     "color": "#00eeff",
     "provinces": [
       "path259",
-      "path220"
+      "path220",
+      "path257",
+      "path312",
+      "path300",
+      "path232",
+      "path168",
+      "path176",
+      "path280",
+      "path350",
+      "path237"
     ],
     "labelText": "アルト連邦",
     "labelFontSize": 18,
-    "labelX": "766.2549743652344",
-    "labelY": "1945.9496459960938",
+    "labelX": "763.4511413574219",
+    "labelY": "1941.5443725585938",
     "lockCenter": false
   },
   {
