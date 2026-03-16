@@ -1,51 +1,6 @@
 [
   {
     "type": "country",
-    "name": "フェヴァロ゚ツォトニア人民国",
-    "color": "#48cdf9",
-    "provinces": [
-      "path1415",
-      "path1399",
-      "path1386",
-      "path1374",
-      "path1376",
-      "path1366",
-      "path1353",
-      "path1362",
-      "path1340",
-      "path1305",
-      "path1345",
-      "path1335",
-      "path1300",
-      "path1298",
-      "path1313",
-      "path1343",
-      "path1323",
-      "path1346",
-      "path1371",
-      "path1372",
-      "path1377",
-      "path1369",
-      "path1364",
-      "path1367",
-      "path1383",
-      "path1390",
-      "path1406",
-      "path1395",
-      "path1454",
-      "path1546",
-      "path1544",
-      "path1557",
-      "path1551"
-    ],
-    "labelText": "フェヴァロ゚ツォトニア人民国",
-    "labelFontSize": 18,
-    "labelX": "1175.2177734375",
-    "labelY": "1354.8555297851562",
-    "lockCenter": false
-  },
-  {
-    "type": "country",
     "name": "氷国",
     "color": "#1100ff",
     "provinces": [
@@ -423,6 +378,20 @@
     "labelFontSize": 18,
     "labelX": "1664.9246215820312",
     "labelY": "632.3109130859375",
+    "lockCenter": false
+  },
+  {
+    "type": "country",
+    "name": "アルト連邦",
+    "color": "#00eeff",
+    "provinces": [
+      "path259",
+      "path220"
+    ],
+    "labelText": "アルト連邦",
+    "labelFontSize": 18,
+    "labelX": "766.2549743652344",
+    "labelY": "1945.9496459960938",
     "lockCenter": false
   },
   {
