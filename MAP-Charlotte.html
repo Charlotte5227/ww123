@@ -9079,6 +9079,10 @@
 
   // === クリックイベント（プロビの選択 ＆ ラベルの選択） ===
   document.addEventListener("click", (e) => {
+    if (isMapMoved) {
+      isMapMoved = false; // フラグを戻して処理を終了
+      return;
+    }
     const el = e.target;
 
     // 1. プロビをクリックした場合
@@ -9523,6 +9527,131 @@
     activeCountryId = "";
     document.getElementById("countrySelect").value = "";
     updateStatus();
+  });
+
+// ==========================================
+  // マップのズーム（拡大縮小）とパン（移動）機能
+  // ==========================================
+  const MAP_WIDTH = 1800;
+  const MAP_HEIGHT = 2000;
+  const svgEl = getSvgRoot();
+
+  // 初期 viewBox の設定（もしHTML側で設定されていない場合の保険）
+  if (!svgEl.getAttribute("viewBox")) {
+    svgEl.setAttribute("viewBox", `0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`);
+  }
+
+  let isMapPanning = false;
+  let isMapMoved = false; // クリック判定との競合防止用
+  let startPanX = 0;
+  let startPanY = 0;
+  let startViewBoxX = 0;
+  let startViewBoxY = 0;
+
+  // --- ホイールによる拡大縮小 ---
+  svgEl.addEventListener("wheel", (e) => {
+    e.preventDefault(); // 画面全体のスクロールを防ぐ
+
+    const vb = svgEl.viewBox.baseVal;
+    let w = vb.width;
+    let h = vb.height;
+    let x = vb.x;
+    let y = vb.y;
+
+    // マウスカーソルのSVG内での座標を取得
+    const pt = svgEl.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    const svgP = pt.matrixTransform(svgEl.getScreenCTM().inverse());
+
+    // 拡大縮小の倍率
+    const zoomFactor = 1.1;
+    const direction = e.deltaY > 0 ? 1 : -1;
+
+    let newW, newH;
+    if (direction > 0) { // 縮小（引く）
+      newW = w * zoomFactor;
+      newH = h * zoomFactor;
+    } else { // 拡大（寄る）
+      newW = w / zoomFactor;
+      newH = h / zoomFactor;
+    }
+
+    // --- サイズの制限 ---
+    if (newW > MAP_WIDTH) newW = MAP_WIDTH;
+    if (newH > MAP_HEIGHT) newH = MAP_HEIGHT;
+    // 最小サイズの制限（近づきすぎ防止。必要に応じて数値を調整してください）
+    if (newW < 200) newW = 200;
+    if (newH < 200) newH = 200;
+
+    // ポインタの位置を中心にズームするよう x, y を計算
+    let newX = svgP.x - (svgP.x - x) * (newW / w);
+    let newY = svgP.y - (svgP.y - y) * (newH / h);
+
+    // --- はみ出し制限（1800x2000の枠内） ---
+    if (newX < 0) newX = 0;
+    if (newY < 0) newY = 0;
+    if (newX + newW > MAP_WIDTH) newX = MAP_WIDTH - newW;
+    if (newY + newH > MAP_HEIGHT) newY = MAP_HEIGHT - newH;
+
+    svgEl.setAttribute("viewBox", `${newX} ${newY} ${newW} ${newH}`);
+  }, { passive: false });
+
+  // --- ドラッグによる地図の移動 ---
+  svgEl.addEventListener("pointerdown", (e) => {
+    // 対象がラベルの場合は地図のパンを無効化（ラベルのドラッグを優先）
+    if (e.target.closest('.label')) return;
+
+    isMapPanning = true;
+    isMapMoved = false; // ドラッグ開始時に移動フラグをリセット
+    startPanX = e.clientX;
+    startPanY = e.clientY;
+    
+    const vb = svgEl.viewBox.baseVal;
+    startViewBoxX = vb.x;
+    startViewBoxY = vb.y;
+
+    svgEl.setPointerCapture(e.pointerId);
+  });
+
+  svgEl.addEventListener("pointermove", (e) => {
+    if (!isMapPanning) return;
+
+    const dx = e.clientX - startPanX;
+    const dy = e.clientY - startPanY;
+
+    // わずかな手の震えはクリックとみなすため、一定量動いた時だけフラグを立てる
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+      isMapMoved = true;
+    }
+
+    // 画面上のピクセル移動量をSVG内のスケールに変換
+    const ctm = svgEl.getScreenCTM();
+    if (!ctm) return;
+    const scale = ctm.a; 
+
+    const vb = svgEl.viewBox.baseVal;
+    let newX = startViewBoxX - (dx / scale);
+    let newY = startViewBoxY - (dy / scale);
+
+    // --- はみ出し制限（1800x2000の枠内） ---
+    if (newX < 0) newX = 0;
+    if (newY < 0) newY = 0;
+    if (newX + vb.width > MAP_WIDTH) newX = MAP_WIDTH - vb.width;
+    if (newY + vb.height > MAP_HEIGHT) newY = MAP_HEIGHT - vb.height;
+
+    svgEl.setAttribute("viewBox", `${newX} ${newY} ${vb.width} ${vb.height}`);
+  });
+
+  svgEl.addEventListener("pointerup", (e) => {
+    if (isMapPanning) {
+      isMapPanning = false;
+      svgEl.releasePointerCapture(e.pointerId);
+    }
+  });
+
+  svgEl.addEventListener("pointercancel", () => {
+    isMapPanning = false;
   });
 
 </script>
