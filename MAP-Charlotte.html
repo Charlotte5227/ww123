@@ -9611,7 +9611,6 @@
     startViewBoxX = vb.x;
     startViewBoxY = vb.y;
 
-    svgEl.setPointerCapture(e.pointerId);
   });
 
   svgEl.addEventListener("pointermove", (e) => {
@@ -9646,7 +9645,6 @@
   svgEl.addEventListener("pointerup", (e) => {
     if (isMapPanning) {
       isMapPanning = false;
-      svgEl.releasePointerCapture(e.pointerId);
     }
   });
 
