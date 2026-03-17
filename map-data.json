@@ -419,6 +419,42 @@
     "lockCenter": false
   },
   {
+    "type": "country",
+    "name": "ザンギエル自由共和国",
+    "color": "#b1b332",
+    "provinces": [
+      "path969",
+      "path1031",
+      "path1063",
+      "path1045",
+      "path970",
+      "path1029"
+    ],
+    "labelText": "ザンギエル自由共和国",
+    "labelFontSize": 18,
+    "labelX": "1259.6732788085938",
+    "labelY": "1581.5146484375",
+    "lockCenter": false
+  },
+  {
+    "type": "country",
+    "name": "竜骨帝国",
+    "color": "#2b912d",
+    "provinces": [
+      "path638",
+      "path654",
+      "path692",
+      "path684",
+      "path689",
+      "path642"
+    ],
+    "labelText": "竜骨帝国",
+    "labelFontSize": 18,
+    "labelX": "682.7307739257812",
+    "labelY": "1710.873779296875",
+    "lockCenter": false
+  },
+  {
     "type": "freeLabel",
     "text": "「帝国」",
     "fontSize": "72",
