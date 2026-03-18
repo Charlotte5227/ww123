@@ -12,7 +12,7 @@
       "path1239"
     ],
     "labelText": "氷国",
-    "labelFontSize": 18,
+    "labelFontSize": "20",
     "labelX": "244.32335662841797",
     "labelY": "1500.501708984375",
     "lockCenter": false
@@ -43,7 +43,7 @@
       "path1546"
     ],
     "labelText": "グリフ・ザ・クエス",
-    "labelFontSize": 18,
+    "labelFontSize": "20",
     "labelX": "1270.9933471679688",
     "labelY": "991.8763427734375",
     "lockCenter": false
@@ -85,12 +85,26 @@
       "path1531",
       "path1610",
       "path1647",
-      "path1648"
+      "path1648",
+      "path1677",
+      "path1686",
+      "path1659",
+      "path1666",
+      "path1653",
+      "path1671",
+      "path1720",
+      "path1744",
+      "path1787",
+      "path1719",
+      "path1749",
+      "path1766",
+      "path1796",
+      "path1786"
     ],
     "labelText": "ポップ帝国",
-    "labelFontSize": 18,
-    "labelX": "1657.5407104492188",
-    "labelY": "1010.7468414306641",
+    "labelFontSize": "20",
+    "labelX": "1661.1817626953125",
+    "labelY": "1012.6463470458984",
     "lockCenter": false
   },
   {
@@ -243,12 +257,27 @@
       "path1068",
       "path1120",
       "path1121",
-      "path1155"
+      "path1155",
+      "path1183",
+      "path1177",
+      "path1185",
+      "path1217",
+      "path1278",
+      "path1147",
+      "path1158",
+      "path1135",
+      "path1157",
+      "path1184",
+      "path1172",
+      "path1170",
+      "path1169",
+      "path1181",
+      "path1176"
     ],
     "labelText": "ネルフィー国",
-    "labelFontSize": 18,
-    "labelX": "730.7615795135498",
-    "labelY": "1207.8699645996094",
+    "labelFontSize": "30",
+    "labelX": "733.7615795135498",
+    "labelY": "1209.8699645996094",
     "lockCenter": false
   },
   {
@@ -298,7 +327,7 @@
       "path1206"
     ],
     "labelText": "革命的レヴォス\n社会主義共和国連邦",
-    "labelFontSize": 18,
+    "labelFontSize": "20",
     "labelX": "210.0664520263672",
     "labelY": "1368.867919921875",
     "lockCenter": false
@@ -339,7 +368,7 @@
       "path1464"
     ],
     "labelText": "大魔導国セレスティア",
-    "labelFontSize": 18,
+    "labelFontSize": "20",
     "labelX": "1493.9441528320312",
     "labelY": "1265.3761596679688",
     "lockCenter": false
@@ -356,7 +385,7 @@
       "path1444"
     ],
     "labelText": "ルクシア帝国",
-    "labelFontSize": 18,
+    "labelFontSize": "20",
     "labelX": "82.41550827026367",
     "labelY": "1182.9735107421875",
     "lockCenter": false
@@ -380,7 +409,7 @@
       "path1460"
     ],
     "labelText": "ベガーズ共和国",
-    "labelFontSize": 18,
+    "labelFontSize": "20",
     "labelX": "930.41650390625",
     "labelY": "1013.8343200683594",
     "lockCenter": false
@@ -398,7 +427,7 @@
       "path1586"
     ],
     "labelText": "北東洋諸島政府",
-    "labelFontSize": 18,
+    "labelFontSize": "20",
     "labelX": "1664.9246215820312",
     "labelY": "632.3109130859375",
     "lockCenter": false
@@ -421,7 +450,7 @@
       "path237"
     ],
     "labelText": "アルト連邦",
-    "labelFontSize": 18,
+    "labelFontSize": "20",
     "labelX": "763.4511413574219",
     "labelY": "1941.5443725585938",
     "lockCenter": false
@@ -439,7 +468,7 @@
       "path1029"
     ],
     "labelText": "ザンギエル自由共和国",
-    "labelFontSize": 18,
+    "labelFontSize": "20",
     "labelX": "1259.6732788085938",
     "labelY": "1581.5146484375",
     "lockCenter": false
@@ -454,12 +483,20 @@
       "path692",
       "path684",
       "path689",
-      "path642"
+      "path642",
+      "path631",
+      "path667",
+      "path715",
+      "path745",
+      "path761",
+      "path732",
+      "path649",
+      "path693"
     ],
     "labelText": "竜骨帝国",
     "labelFontSize": 18,
-    "labelX": "682.7307739257812",
-    "labelY": "1710.873779296875",
+    "labelX": "683.7124938964844",
+    "labelY": "1703.6304321289062",
     "lockCenter": false
   },
   {
