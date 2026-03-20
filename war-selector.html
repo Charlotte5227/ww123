@@ -9229,7 +9229,11 @@ function saveWarImage() {
   // 保存用 clone 作成
   const clone = svg.cloneNode(true);
 
-// 非選択パスに inline fill を付与
+  if (!labelsVisible) {
+    clone.querySelectorAll(".country-label").forEach(t => t.remove());
+  }
+
+  // 非選択パスに inline fill を付与
   clone.querySelectorAll(".prov").forEach(p => {
     const baseColor = p.dataset.baseColor || "#ffffff";
     if (!selectedProvinces.has(p.id)) {
