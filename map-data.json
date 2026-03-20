@@ -447,12 +447,22 @@
       "path176",
       "path280",
       "path350",
-      "path237"
+      "path237",
+      "path318",
+      "path375",
+      "path402",
+      "path349",
+      "path273",
+      "path181",
+      "path129",
+      "path126",
+      "path139",
+      "path233"
     ],
     "labelText": "アルト連邦",
     "labelFontSize": "20",
-    "labelX": "763.4511413574219",
-    "labelY": "1941.5443725585938",
+    "labelX": "763.0846862792969",
+    "labelY": "1941.3336791992188",
     "lockCenter": false
   },
   {
@@ -491,12 +501,20 @@
       "path761",
       "path732",
       "path649",
-      "path693"
+      "path693",
+      "path788",
+      "path799",
+      "path810",
+      "path793",
+      "path762",
+      "path842",
+      "path846",
+      "path871"
     ],
     "labelText": "竜骨帝国",
     "labelFontSize": 18,
     "labelX": "683.7124938964844",
-    "labelY": "1703.6304321289062",
+    "labelY": "1677.04052734375",
     "lockCenter": false
   },
   {
