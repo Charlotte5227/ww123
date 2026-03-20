@@ -9075,10 +9075,13 @@ function downloadPNG() {
   // 保存用 clone 作成（元の SVG は触らない）
   const clone = svg.cloneNode(true);
 
-  // ラベル非表示の場合は clone から削除
-  if (!labelsVisible) {
-    clone.querySelectorAll(".country-label").forEach(t => t.remove());
-  }
+  // 非表示になっているラベルだけを削除
+  clone.querySelectorAll(".country-label").forEach(label => {
+    const style = window.getComputedStyle(label);
+    if (style.display === "none" || style.visibility === "hidden") {
+      label.remove();
+    }
+  });
 
   // 元の属性を保存
   const originalViewBox = clone.getAttribute("viewBox");
