@@ -8979,8 +8979,6 @@ function computeBBoxCenter(svg, provinceIds) {
     : { cx: 0, cy: 0 };
 }
 
-
-// ラベル描画
 // ラベル描画（サイズ対応版）
 function addLabel(layer, textValue, x, y, fontSize = 18){
 
@@ -9200,70 +9198,79 @@ svg.addEventListener("wheel",(e)=>{
 
 
 // 画像保存
-function saveWarImage(){
+function saveWarImage() {
 
   if(selectedProvinces.size === 0){
     alert("プロビを選択してください");
     return;
   }
 
-  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
 
-  selectedProvinces.forEach(id=>{
-
+  selectedProvinces.forEach(id => {
     const p = svg.getElementById(id);
     const bb = p.getBBox();
-
-    minX = Math.min(minX,bb.x);
-    minY = Math.min(minY,bb.y);
-    maxX = Math.max(maxX,bb.x+bb.width);
-    maxY = Math.max(maxY,bb.y+bb.height);
-
+    minX = Math.min(minX, bb.x);
+    minY = Math.min(minY, bb.y);
+    maxX = Math.max(maxX, bb.x + bb.width);
+    maxY = Math.max(maxY, bb.y + bb.height);
   });
 
-  // 選択範囲の中心
-  const cx = (minX + maxX)/2;
-  const cy = (minY + maxY)/2;
-
+  const width = maxX - minX;
+  const height = maxY - minY;
   const margin = 100;
+  const scale = 4;
 
-  const cropX = cx - margin;
-  const cropY = cy - margin;
-  const cropSize = margin*2;
+  // 選択範囲＋マージンで正方形に
+  const size = Math.max(width, height) + margin*2;
+  const cropX = (minX + maxX)/2 - size/2;
+  const cropY = (minY + maxY)/2 - size/2;
 
+  // 保存用 clone 作成
   const clone = svg.cloneNode(true);
 
-  clone.setAttribute("viewBox",`${cropX} ${cropY} ${cropSize} ${cropSize}`);
-  clone.setAttribute("width",cropSize);
-  clone.setAttribute("height",cropSize);
+// 非選択パスに inline fill を付与
+  clone.querySelectorAll(".prov").forEach(p => {
+    const baseColor = p.dataset.baseColor || "#ffffff";
+    if (!selectedProvinces.has(p.id)) {
+      p.setAttribute("fill", baseColor); // inline fill
+    }
+  });
+  clone.setAttribute("viewBox", `${cropX} ${cropY} ${size} ${size}`);
+  clone.setAttribute("width", size * scale);
+  clone.setAttribute("height", size * scale);
 
   const serializer = new XMLSerializer();
   const svgString = serializer.serializeToString(clone);
 
   const canvas = document.createElement("canvas");
-  canvas.width = cropSize;
-  canvas.height = cropSize;
+  canvas.width = size * scale;
+  canvas.height = size * scale;
 
   const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#fff"; // 背景を白に
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
 
   const img = new Image();
+  img.crossOrigin = "anonymous";
 
-  const blob = new Blob([svgString],{type:"image/svg+xml"});
+  const blob = new Blob([svgString], {type: "image/svg+xml"});
   const url = URL.createObjectURL(blob);
 
-  img.onload=()=>{
-
-    ctx.drawImage(img,0,0);
-
+  img.onload = () => {
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     URL.revokeObjectURL(url);
 
     const a = document.createElement("a");
-    a.download="war-target.png";
-    a.href=canvas.toDataURL("image/png");
+    a.download = "war-target.png";
+    a.href = canvas.toDataURL("image/png");
     a.click();
   };
 
-  img.src=url;
+  img.src = url;
 }
 </script>
 
