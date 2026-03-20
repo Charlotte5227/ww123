@@ -9072,43 +9072,53 @@ svg { width:100%; height:auto; display:block; background: #fff; }
 function downloadPNG() {
   const svg = document.getElementById("mapSvg");
 
+  // 保存用 clone 作成（元の SVG は触らない）
+  const clone = svg.cloneNode(true);
+
+  // ラベル非表示の場合は clone から削除
+  if (!labelsVisible) {
+    clone.querySelectorAll(".country-label").forEach(t => t.remove());
+  }
+
   // 元の属性を保存
-  const originalViewBox = svg.getAttribute("viewBox");
-  const originalWidth = svg.getAttribute("width");
-  const originalHeight = svg.getAttribute("height");
+  const originalViewBox = clone.getAttribute("viewBox");
+  const originalWidth = clone.getAttribute("width");
+  const originalHeight = clone.getAttribute("height");
 
   // エクスポート用に viewBox と絶対サイズをセット
-  svg.setAttribute("viewBox", "0 0 1800 2000");
-  svg.setAttribute("width", "1800");
-  svg.setAttribute("height", "2000");
+  clone.setAttribute("viewBox", "0 0 1800 2000");
+  clone.setAttribute("width", "1800");
+  clone.setAttribute("height", "2000");
 
   const serializer = new XMLSerializer();
-  const svgString = serializer.serializeToString(svg);
+  const svgString = serializer.serializeToString(clone);
 
-  // シリアライズが終わったら、すぐに元の属性に戻す
-  if (originalViewBox) svg.setAttribute("viewBox", originalViewBox);
-  else svg.removeAttribute("viewBox");
+  // 元の属性に戻す
+  if (originalViewBox) clone.setAttribute("viewBox", originalViewBox);
+  else clone.removeAttribute("viewBox");
   
-  if (originalWidth) svg.setAttribute("width", originalWidth);
-  else svg.removeAttribute("width");
+  if (originalWidth) clone.setAttribute("width", originalWidth);
+  else clone.removeAttribute("width");
   
-  if (originalHeight) svg.setAttribute("height", originalHeight);
-  else svg.removeAttribute("height");
+  if (originalHeight) clone.setAttribute("height", originalHeight);
+  else clone.removeAttribute("height");
 
   const canvas = document.createElement("canvas");
   canvas.width = 1800;
   canvas.height = 2000;
   const ctx = canvas.getContext("2d");
 
-  // 画像の生成
+  // 背景を白にする（透明防止）
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
   const img = new Image();
+  img.crossOrigin = "anonymous";
   const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
   const url = URL.createObjectURL(svgBlob);
 
   img.onload = function() {
-    // 念のため drawImage でもサイズを明示的に指定
     ctx.drawImage(img, 0, 0, 1800, 2000);
-
     URL.revokeObjectURL(url);
 
     const a = document.createElement("a");
