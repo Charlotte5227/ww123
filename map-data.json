@@ -1,1 +1,116 @@
-[]
+[
+  {
+    "type": "country",
+    "name": "竜骨帝国",
+    "color": "#00ffff",
+    "provinces": [
+      "path689",
+      "path684",
+      "path692",
+      "path654",
+      "path638",
+      "path642"
+    ],
+    "labelText": "竜骨帝国",
+    "labelFontSize": 18,
+    "labelX": "682.7307739257812",
+    "labelY": "1710.873779296875",
+    "lockCenter": false
+  },
+  {
+    "type": "country",
+    "name": "劇場ミユキ",
+    "color": "#0000ff",
+    "provinces": [
+      "path1846",
+      "path1868",
+      "path1847",
+      "path1848",
+      "path1849"
+    ],
+    "labelText": "劇場ミユキ",
+    "labelFontSize": 18,
+    "labelX": "1601",
+    "labelY": "252.04568481445312",
+    "lockCenter": false
+  },
+  {
+    "type": "country",
+    "name": "バック・ザ・クエス",
+    "color": "#00ff00",
+    "provinces": [
+      "path1490",
+      "path1505",
+      "path1499",
+      "path1530",
+      "path1524",
+      "path1504"
+    ],
+    "labelText": "バック・ザ・クエス",
+    "labelFontSize": 18,
+    "labelX": "1270.7344360351562",
+    "labelY": "1003.9357604980469",
+    "lockCenter": false
+  },
+  {
+    "type": "country",
+    "name": "白銀帝国",
+    "color": "#ff00ff",
+    "provinces": [
+      "path2100",
+      "path2137",
+      "path2187",
+      "path2186",
+      "path2169",
+      "path2141"
+    ],
+    "labelText": "白銀帝国",
+    "labelFontSize": 18,
+    "labelX": "666.7434387207031",
+    "labelY": "21.920812606811523",
+    "lockCenter": false
+  },
+  {
+    "type": "country",
+    "name": "大魔導国セレスティア",
+    "color": "#ffff00",
+    "provinces": [
+      "path1409",
+      "path1400",
+      "path1381",
+      "path1398",
+      "path1416",
+      "path1423"
+    ],
+    "labelText": "大魔導国セレスティア",
+    "labelFontSize": 18,
+    "labelX": "1490.6415405273438",
+    "labelY": "1264.7542114257812",
+    "lockCenter": false
+  },
+  {
+    "type": "country",
+    "name": "ザンギエル第一王政",
+    "color": "#d0a3ff",
+    "provinces": [
+      "path1031",
+      "path969",
+      "path1063",
+      "path1045",
+      "path970",
+      "path1029"
+    ],
+    "labelText": "ザンギエル第一王政",
+    "labelFontSize": 18,
+    "labelX": "1259.6732788085938",
+    "labelY": "1581.5146484375",
+    "lockCenter": false
+  },
+  {
+    "type": "freeLabel",
+    "text": "『帝国』",
+    "fontSize": "72",
+    "x": "748.4405364990234",
+    "y": "668.3713989257812"
+  }
+]
