@@ -2,84 +2,143 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Map Painter (ラベル編集・サイズ変更対応)</title>
   <style>
-    body { margin: 0; font-family: sans-serif; }
-    svg { width: 100%; height: auto; display: block; background: #e8eef6; }
+    /* 画面全体を上下に分割するレイアウト */
+    body { 
+      margin: 0; 
+      font-family: sans-serif; 
+      display: flex; 
+      flex-direction: column; 
+      height: 100vh; /* 画面の高さいっぱい */
+      overflow: hidden; 
+      background: #f0f0f0; 
+    }
 
-    .prov { fill: #ffffff; stroke: #111; stroke-width: 1; cursor: pointer; }
+    /* 上部：地図エリア */
+    #mapContainer { 
+      flex: 1; 
+      overflow: hidden; 
+      position: relative; 
+      background: #e8eef6; 
+      touch-action: none; /* スマホでのスワイプによる画面移動を禁止 */
+    }
+    svg { 
+      width: 100%; 
+      height: 100%; 
+      display: block; 
+      touch-action: none; 
+    }
+
+    .prov { fill: #FEF9DB; stroke: #111; stroke-width: 1; cursor: pointer; }
     .prov:hover { opacity: 0.85; }
-
-    #ui { padding: 12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    #nameInput { padding: 6px 8px; min-width: 220px; }
     .prov.selected { fill: #ff00003f !important; opacity: 0.9; }
+
+    /* ラベルのスタイル */
     .label {
       font-weight: 800;
-      fill: #fff;                /* 文字色：白 */
-      stroke: #000;              /* 縁：黒 */
-      stroke-width: 6px;         /* 縁の太さ */
-      paint-order: stroke fill;  /* 縁→塗りの順 */
+      fill: #fff;
+      stroke: #000;
+      stroke-width: 6px;
+      paint-order: stroke fill;
       user-select: none;
-      pointer-events: auto;      /* クリックやドラッグを受ける */
-      cursor: move;              /* ドラッグ可能に見せる */
+      pointer-events: auto;
+      cursor: move;
+      touch-action: none; /* スマホでのラベルドラッグを快適にする */
+      transition: fill 0.2s, stroke 0.2s; /* 色変更時のアニメーション */
     }
     .labels-hidden .label { display: none; }
 
-    /* 小さめのUIスタイル */
-    #labelEditor { display:flex; gap:6px; align-items:flex-start; }
-    #labelText { width:360px; height:56px; padding:6px; font-size:14px; }
-    .tiny { padding:6px 8px; }
+    /* ★追加: 選択中のラベルを目立たせるスタイル */
+    .label.selected-label {
+      fill: #ffeb3b !important; /* 黄色 */
+      stroke: #d32f2f !important; /* 赤いフチ */
+      stroke-width: 8px;
+    }
+
+    /* 下部：UIパネル（新しい枠） */
+    #uiContainer {
+      height: 40vh; /* 画面の下部40%をUIに割り当て */
+      min-height: 250px;
+      background: #ffffff;
+      border-top: 2px solid #ccc;
+      box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+      padding: 15px 20px;
+      overflow-y: auto; /* UIが多い場合はスクロール可能に */
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    /* UIの要素をまとめるグループ */
+    .ui-group { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 12px; 
+      align-items: center; 
+      border-bottom: 1px solid #eee; 
+      padding-bottom: 15px; 
+    }
+    .ui-group:last-child { border-bottom: none; }
+
+    /* ボタンスタイル（大きく、角丸、ホバーアクション） */
+    button {
+      padding: 12px 18px;
+      border-radius: 10px;
+      border: none;
+      background-color: #3b82f6; /* デフォルトの青色 */
+      color: white;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      touch-action: manipulation;
+    }
+    button:hover {
+      transform: scale(1.05); /* カーソルが合った時に少し大きく */
+      background-color: #2563eb;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+    }
+    button:active {
+      transform: scale(0.95);
+    }
+
+    /* 目的別にボタンの色を変更して視認性を高める */
+    #createCountryBtn, #applyToCountryBtn { background-color: #10b981; } /* 緑 */
+    #createCountryBtn:hover, #applyToCountryBtn:hover { background-color: #059669; }
+    
+    #exportBtn, #importBtn, #publishBtn { background-color: #f59e0b; } /* オレンジ */
+    #exportBtn:hover, #importBtn:hover, #publishBtn:hover { background-color: #d97706; }
+
+    #addProvinceNumbersBtn { background-color: #8b5cf6; } /* 紫 */
+    #addProvinceNumbersBtn:hover { background-color: #7c3aed; }
+
+    /* 入力フォームのスタイル */
+    input[type="text"], input[type="password"], select, textarea {
+      padding: 10px 12px; 
+      border-radius: 8px; 
+      border: 1px solid #ccc; 
+      font-size: 14px;
+      outline: none;
+    }
+    input[type="text"]:focus, textarea:focus { border-color: #3b82f6; }
+    
+    textarea { width: 100%; max-width: 300px; height: 60px; resize: none; }
+
+    /* ズームスライダー */
+    .slider-wrapper { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 250px; }
+    input[type="range"] { flex: 1; height: 6px; background: #ddd; border-radius: 3px; outline: none; }
+    
+    /* 文字サイズ用 */
+    .tiny { padding: 8px 12px; font-size: 12px; }
   </style>
 </head>
 <body>
 
-<div id="ui">
-  <input id="nameInput" placeholder="国名（例：ブラジル）" />
-
-  <input type="color" id="colorInput" value="#ff4444" title="国の色" style="cursor: pointer;" />
-  <select id="countrySelect">
-    <option value="">（国を選択）</option>
-  </select>
-
-  <button id="createCountryBtn">新規作成</button>
-  <button id="applyToCountryBtn">選択プロビを国に反映（追加/削除）</button>
-  <button id="addFreeLabelBtn">ラベル追加</button>
-  <button id="exportBtn">データを書き出す</button>
-  <input type="file" id="importFile" accept="application/json" />
-  <button id="importBtn">map-data.json を読み込む</button>
-  <input id="ghToken" type="password" placeholder="GitHub token（fine-grained PAT）">
-  <button id="publishBtn">公開（map-data.jsonをGitHubへ反映）</button>
-  <span id="publishStatus"></span>
-
-  <label>
-    <input type="checkbox" id="toggleLabels" checked />
-    国名を表示
-  </label>
-
-  <span id="status"></span>
-</div>
-
-<div id="ui" style="border-top:1px solid #ddd; padding-top:8px;">
-  <div id="labelEditor">
-    <textarea id="labelText" placeholder="選択中の国ラベル（改行は Enter）"></textarea>
-    <div style="display:flex; flex-direction:column; gap:6px;">
-      <button id="applyLabelTextBtn" class="tiny">ラベルに反映（改行可）</button>
-      <button id="resetLabelPosBtn" class="tiny">ラベルを中央へ移動</button>
-      <label style="font-size:12px"><input type="checkbox" id="lockLabelCenter"> 中央に固定（自動配置）</label>
-
-      <div style="display:flex; gap:6px; align-items:center; margin-top:6px;">
-        <label style="font-size:12px;">文字サイズ</label>
-        <input type="range" id="labelSize" min="8" max="72" value="18" />
-        <span id="labelSizeVal">18</span>px
-        <button id="applySizeBtn" class="tiny" style="margin-left:6px;">サイズ適用</button>
-      </div>
-    <div style="font-size:12px; color:#555; max-width:260px;">ラベルはドラッグで移動可能です。ラベル編集後は「ラベルに反映」を押してください。</div>
-    </div>
-  </div>
-</div>
-
-<svg
+<div id="mapContainer">
+  <svg
    version="1.1"
    id="mapSvg"
    width="1800"
@@ -8873,19 +8932,97 @@
   </g>
 </svg>
 
+</div>
+
+<div id="uiContainer">
+  
+  <div class="ui-group">
+    <div class="slider-wrapper">
+      <label style="font-weight:bold;">🔍 ズーム:</label>
+      <input type="range" id="zoomSlider" min="0.5" max="10" step="0.1" value="1" />
+      <span id="zoomVal" style="font-weight:bold; width: 40px;">1.0x</span>
+    </div>
+    <span id="status" style="font-weight:bold; color:#333; margin-left:auto;">選択中: 0 / 国数: 0</span>
+  </div>
+
+  <div class="ui-group">
+    <input id="nameInput" placeholder="国名（例：ブラジル）" />
+    <input type="color" id="colorInput" value="#ff4444" title="国の色" style="cursor: pointer; width: 40px; height: 40px; border: none; padding: 0;" />
+    <button id="createCountryBtn">新規作成</button>
+    
+    <span style="margin-left: 10px;">編集:</span>
+    <select id="countrySelect">
+      <option value="">（国を選択）</option>
+    </select>
+    <button id="applyToCountryBtn">選択プロビを国に反映（追加/削除）</button>
+  </div>
+
+  <div class="ui-group">
+    <textarea id="labelText" placeholder="選択中のラベルテキスト（改行は Enter）"></textarea>
+    
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button id="applyLabelTextBtn" class="tiny">ラベル文字を反映</button>
+        <button id="resetLabelPosBtn" class="tiny">ラベルを中央へ</button>
+        <label style="font-size:13px; cursor:pointer;"><input type="checkbox" id="lockLabelCenter"> 中央に固定</label>
+      </div>
+      
+      <div style="display:flex; gap:8px; align-items:center;">
+        <label style="font-size:13px;">文字サイズ</label>
+        <input type="range" id="labelSize" min="8" max="100" value="18" style="width: 100px;" />
+        <span id="labelSizeVal" style="font-size:13px; width:20px;">18</span>
+        <button id="applySizeBtn" class="tiny">個別サイズ適用</button>
+      </div>
+    </div>
+
+    <div style="margin-left: auto; display: flex; flex-direction: column; gap: 8px;">
+        <button id="addFreeLabelBtn">自由にラベルを追加</button>
+        <label style="font-size:14px; cursor:pointer;">
+          <input type="checkbox" id="toggleLabels" checked /> ラベルを表示
+        </label>
+    </div>
+  </div>
+
+  <div class="ui-group">
+    <button id="addProvinceNumbersBtn">1から順番にプロビ番号を割り振る</button>
+    
+    <div style="display:flex; gap:8px; align-items:center; margin-left: 10px;">
+      <label style="font-size:13px; font-weight:bold;">数字ラベルの一括サイズ:</label>
+      <input type="range" id="provLabelSize" min="5" max="50" value="14" style="width: 100px;" />
+      <span id="provLabelSizeVal" style="font-size:13px; width:20px;">14</span>
+      <button id="applyProvSizeBtn" class="tiny">一括適用</button>
+    </div>
+
+    <span style="font-size:12px; color:#555; width: 100%; margin-top: 5px;">※生成された番号ラベルはクリックして個別にテキストやサイズを変更できます。ドラッグで位置調整も可能です。</span>
+  </div>
+
+  <div class="ui-group">
+    <button id="exportBtn">データを書き出す</button>
+    <input type="file" id="importFile" accept="application/json" style="max-width: 200px;" />
+    <button id="importBtn">読み込む</button>
+
+    <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+      <input id="ghToken" type="password" placeholder="GitHub token" style="width: 150px;">
+      <button id="publishBtn">GitHubへ公開</button>
+      <span id="publishStatus" style="font-size:13px;"></span>
+    </div>
+  </div>
+
+</div>
+
 <script>
   // === 設定 ===
   const SELECT_CLASS = "selected";
-  const DEFAULT_LABEL_SIZE = 18;     // デフォルトの文字サイズ（px）
+  const DEFAULT_LABEL_SIZE = 18;
 
   // === 状態 ===
-  const selectedIds = new Set(); // クリックで選択しているプロビ
-  const countries = new Map();   // key: countryId, value: {name, color, ids:Set, labelId, labelText, labelFontSize, lockCenter}
+  const selectedIds = new Set();
+  const countries = new Map();
   const usedColors = new Set();
-  let activeCountryId = "";      // 今編集している国
+  let activeCountryId = "";
   
-  const freeLabels = [];         // 手動追加ラベルの配列 { text, labelId, fontSize }
-  let activeFreeLabelId = null;  // 現在選択中の自由ラベル（labelId）
+  const freeLabels = [];
+  let activeFreeLabelId = null;
 
   function randColor() {
     const maxAttempts = 500;
@@ -8904,7 +9041,7 @@
     for (const c of countries.values()) {
       if (c.ids.has(id)) return c.color;
     }
-    return "#ffffff";
+    return "#FEF9DB";
   }
 
   function restoreProvinceColor(id) {
@@ -8918,7 +9055,7 @@
     return document.getElementById("mapSvg");
   }
 
-  // === UIの更新（一元管理） ===
+  // === UIの更新 ===
   function updateStatus() {
     const status = document.getElementById("status");
     const c = activeCountryId ? countries.get(activeCountryId) : null;
@@ -8926,11 +9063,10 @@
 
     let modeText = "";
     if (c) modeText = ` / 編集中: ${c.name} (国)`;
-    else if (fl) modeText = ` / 編集中: 自由ラベル`;
+    else if (fl) modeText = ` / 編集中: ${fl.type === 'provNumber' ? '数字ラベル' : '自由ラベル'}`;
 
     status.textContent = `選択中: ${selectedIds.size} / 国数: ${countries.size}${modeText}`;
 
-    // ラベルエディタへの反映
     const ta = document.getElementById('labelText');
     const lockCb = document.getElementById('lockLabelCenter');
     const sizeInput = document.getElementById('labelSize');
@@ -8947,7 +9083,7 @@
     } else if (fl) {
       ta.value = fl.text || '';
       lockCb.checked = false;
-      lockCb.disabled = true; // 自由ラベルは中央固定無効
+      lockCb.disabled = true;
       btnResetPos.disabled = true; 
       sizeInput.value = fl.fontSize || DEFAULT_LABEL_SIZE;
       sizeVal.textContent = sizeInput.value;
@@ -8956,6 +9092,27 @@
       lockCb.checked = false;
       lockCb.disabled = true;
       btnResetPos.disabled = true;
+    }
+
+    // ★追加: 選択中のラベルをハイライトする処理を呼び出し
+    updateHighlight();
+  }
+
+  // ★追加: 選択中のラベルを目立たせる（他のラベルの選択を解除する）
+  function updateHighlight() {
+    const svg = getSvgRoot();
+    svg.querySelectorAll('.label').forEach(el => el.classList.remove('selected-label'));
+    
+    let targetLabelId = null;
+    if (activeCountryId && countries.has(activeCountryId)) {
+      targetLabelId = countries.get(activeCountryId).labelId;
+    } else if (activeFreeLabelId) {
+      targetLabelId = activeFreeLabelId;
+    }
+    
+    if (targetLabelId) {
+      const el = svg.getElementById(targetLabelId);
+      if (el) el.classList.add('selected-label');
     }
   }
 
@@ -8989,16 +9146,12 @@
     return { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 };
   }
 
-  // テキスト（改行）を tspan に分割してセットする
   function setLabelTextElem(labelEl, text) {
-    // remove existing children
     while (labelEl.firstChild) labelEl.removeChild(labelEl.firstChild);
-
     const lines = (text||'').split('\n');
     lines.forEach((ln, i) => {
       const tspan = document.createElementNS('http://www.w3.org/2000/svg','tspan');
       tspan.setAttribute('x', labelEl.getAttribute('x') || 0);
-      // 行間：1.05em をベースに少し詰める
       tspan.setAttribute('dy', i===0 ? '0em' : '1.05em');
       tspan.textContent = ln;
       labelEl.appendChild(tspan);
@@ -9008,7 +9161,6 @@
   function addLabel(name, x, y, size = DEFAULT_LABEL_SIZE) {
     const layer = ensureLabelsLayer();
     const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-
     const id = `label-${Date.now()}-${Math.floor(Math.random()*1e6)}`;
     text.setAttribute("id", id);
     text.setAttribute("class", "label");
@@ -9017,17 +9169,11 @@
     text.setAttribute("text-anchor", "middle");
     text.setAttribute("dominant-baseline", "middle");
     text.setAttribute("pointer-events", "auto");
-
-    // フォントサイズを inline style と data 属性で持たせる
     text.style.fontSize = `${size}px`;
     text.setAttribute('data-font-size', String(size));
 
-    // 改行対応
     setLabelTextElem(text, name);
-
-    // ドラッグのためのイベント
     makeLabelDraggable(text);
-
     layer.appendChild(text);
     return id;
   }
@@ -9039,11 +9185,9 @@
     const { cx, cy } = computeGroupCenter(country.ids);
     label.setAttribute('x', String(cx));
     label.setAttribute('y', String(cy));
-    // 再レンダリングのため tspan の x を更新
     Array.from(label.querySelectorAll('tspan')).forEach(t => t.setAttribute('x', String(cx)));
   }
 
-  // --- 塗り ---
   function repaintCountry(country) {
     const svg = getSvgRoot();
     for (const id of country.ids) {
@@ -9052,7 +9196,6 @@
     }
   }
 
-  // --- 国一覧 ---
   function refreshCountrySelect() {
     const sel = document.getElementById("countrySelect");
     const current = sel.value;
@@ -9067,25 +9210,13 @@
     else if (activeCountryId && countries.has(activeCountryId)) sel.value = activeCountryId;
   }
 
-  function clearSelection() {
-    const svg = getSvgRoot();
-    for (const id of selectedIds) {
-      const el = svg.getElementById(id);
-      if (el) el.classList.remove(SELECT_CLASS);
-    }
-    selectedIds.clear();
-    updateStatus();
-  }
-
-  // === クリックイベント（プロビの選択 ＆ ラベルの選択） ===
   document.addEventListener("click", (e) => {
     if (isMapMoved) {
-      isMapMoved = false; // フラグを戻して処理を終了
+      isMapMoved = false; 
       return;
     }
     const el = e.target;
 
-    // 1. プロビをクリックした場合
     if (el && el.classList && el.classList.contains("prov")) {
       const id = el.id;
       if (!id) return;
@@ -9101,12 +9232,9 @@
       return;
     }
 
-    // 2. ラベル（またはその中の tspan）をクリックした場合
     const labelNode = el.closest ? el.closest('.label') : null;
     if (labelNode) {
       const labelId = labelNode.id;
-      
-      // 国ラベルか判定
       for (const [cid, c] of countries.entries()) {
         if (c.labelId === labelId) {
           activeCountryId = cid;
@@ -9117,33 +9245,28 @@
           return;
         }
       }
-
-      // 自由ラベルか判定
       const fl = freeLabels.find(f => f.labelId === labelId);
       if (fl) {
         activeCountryId = "";
         activeFreeLabelId = labelId;
         refreshCountrySelect();
-        document.getElementById('countrySelect').value = ""; // 国選択は外す
+        document.getElementById('countrySelect').value = ""; 
         updateStatus();
         return;
       }
     }
   });
 
-  // === 国を選択（ドロップダウンから） ===
   document.getElementById("countrySelect").addEventListener("change", (e) => {
     activeCountryId = e.target.value;
-    if (activeCountryId) activeFreeLabelId = null; // 国を選んだら自由ラベルの選択状態を解除
+    if (activeCountryId) activeFreeLabelId = null;
     updateStatus();
   });
 
-  // === ラベル表示/非表示 ===
   document.getElementById("toggleLabels").addEventListener("change", (e) => {
     document.body.classList.toggle("labels-hidden", !e.target.checked);
   });
 
-  // === 新規作成（国名＋選択プロビ） ===
   document.getElementById("createCountryBtn").addEventListener("click", () => {
     if (selectedIds.size === 0) { alert("まずプロビを選択してください。"); return; }
     const name = document.getElementById("nameInput").value.trim();
@@ -9155,12 +9278,7 @@
     const { cx, cy } = computeGroupCenter(ids);
     const labelId = addLabel(name, cx, cy, DEFAULT_LABEL_SIZE);
 
-    const country = { 
-      name, color, ids, labelId, 
-      labelText: name, 
-      labelFontSize: DEFAULT_LABEL_SIZE, 
-      lockCenter: false 
-    };
+    const country = { name, color, ids, labelId, labelText: name, labelFontSize: DEFAULT_LABEL_SIZE, lockCenter: false };
     countries.set(cid, country);
 
     for (const id of selectedIds) {
@@ -9177,7 +9295,6 @@
     updateStatus();
   });
 
-  // === 既存の国に「追加/削除」を反映 ===
   document.getElementById("applyToCountryBtn").addEventListener("click", () => {
     if (!activeCountryId || !countries.has(activeCountryId)) { alert("まず編集する国を選択してください。"); return; }
     if (selectedIds.size === 0) { alert("追加/削除したいプロビを選択してください。"); return; }
@@ -9186,7 +9303,7 @@
       const p = getSvgRoot().getElementById(id);
       if (country.ids.has(id)) {
         country.ids.delete(id);
-        if (p) p.style.fill = "#ffffff";
+        if (p) p.style.fill = "#FEF9DB";
       } else {
         country.ids.add(id);
         if (p) p.style.fill = country.color;
@@ -9207,51 +9324,37 @@
     updateStatus();
   });
 
-  // 初期化
   refreshCountrySelect();
   updateStatus();
 
-  // === エクスポート用データの構築 ===
   function buildExportArrayFromCountries() {
     const out = [];
-
-    // 国データの書き出し
     for (const [, c] of countries.entries()) {
       const labelEl = getSvgRoot().getElementById(c.labelId);
       const lx = labelEl ? labelEl.getAttribute('x') : null;
       const ly = labelEl ? labelEl.getAttribute('y') : null;
-
       out.push({
-        type: "country",
-        name: c.name,
-        color: c.color,
-        provinces: Array.from(c.ids),
-        labelText: c.labelText,
-        labelFontSize: c.labelFontSize || DEFAULT_LABEL_SIZE,
-        labelX: lx,
-        labelY: ly,
-        lockCenter: !!c.lockCenter
+        type: "country", name: c.name, color: c.color, provinces: Array.from(c.ids),
+        labelText: c.labelText, labelFontSize: c.labelFontSize || DEFAULT_LABEL_SIZE,
+        labelX: lx, labelY: ly, lockCenter: !!c.lockCenter
       });
     }
-
-    // 自由ラベルの書き出し
     for (const l of freeLabels) {
       const el = getSvgRoot().getElementById(l.labelId);
       if (!el) continue;
-
+      // ★修正: provNumber などのタイプをそのまま保存する
       out.push({
-        type: "freeLabel",
-        text: l.text,
+        type: l.type || "freeLabel", 
+        provId: l.provId,  // プロビ番号用の追加データ
+        text: l.text, 
         fontSize: l.fontSize || DEFAULT_LABEL_SIZE,
-        x: el.getAttribute("x"),
+        x: el.getAttribute("x"), 
         y: el.getAttribute("y")
       });
     }
-
     return out;
   }
 
-  // === エクスポート（ダウンロード） ===
   document.getElementById("exportBtn").addEventListener("click", () => {
     const exportData = buildExportArrayFromCountries();
     const json = JSON.stringify(exportData, null, 2);
@@ -9265,48 +9368,40 @@
   function resetAllToWhite() {
     const svg = getSvgRoot();
     const provs = svg.querySelectorAll(".prov");
-    provs.forEach(p => { p.classList.remove("selected"); p.style.fill = "#ffffff"; });
+    provs.forEach(p => { p.classList.remove("selected"); p.style.fill = "#FEF9DB"; });
     const layer = svg.querySelector("#labels-layer"); if (layer) layer.remove();
   }
 
-  // === インポート処理 ===
   function importData(jsonArray) {
     countries.clear(); usedColors.clear(); selectedIds.clear(); 
-    activeCountryId = "";
-    freeLabels.length = 0;
-    activeFreeLabelId = null;
+    activeCountryId = ""; freeLabels.length = 0; activeFreeLabelId = null;
     resetAllToWhite();
 
     jsonArray.forEach(item => {
-      // 自由ラベルの復元
-      if (item.type === "freeLabel") {
-        const fontSize = item.fontSize || DEFAULT_LABEL_SIZE;
+      // ★修正: freeLabel と provNumber の両方に対応
+      if (item.type === "freeLabel" || item.type === "provNumber") {
+        const fontSize = item.fontSize || (item.type === "provNumber" ? 14 : DEFAULT_LABEL_SIZE);
         const labelId = addLabel(item.text, item.x, item.y, fontSize);
-        freeLabels.push({ text: item.text, labelId: labelId, fontSize: fontSize });
+        freeLabels.push({ 
+          type: item.type,
+          provId: item.provId,
+          text: item.text, 
+          labelId: labelId, 
+          fontSize: fontSize 
+        });
         return;
       }
-
-      // 国データの復元（旧データ互換のため type がない場合も国として扱う）
       if (!item || !item.name || !item.color || !Array.isArray(item.provinces)) return;
       const cid = `c-${Date.now()}-${Math.floor(Math.random()*1e6)}`;
       const ids = new Set(item.provinces);
       usedColors.add(item.color);
       const { cx, cy } = computeGroupCenter(ids);
-      
       const labelX = (typeof item.labelX !== 'undefined' && item.labelX !== null) ? Number(item.labelX) : cx;
       const labelY = (typeof item.labelY !== 'undefined' && item.labelY !== null) ? Number(item.labelY) : cy;
       const fontSize = item.labelFontSize || DEFAULT_LABEL_SIZE;
 
       const labelId = addLabel(item.labelText || item.name, labelX, labelY, fontSize);
-      const country = { 
-        name: item.name, 
-        color: item.color, 
-        ids, 
-        labelId, 
-        labelText: item.labelText || item.name, 
-        labelFontSize: fontSize,
-        lockCenter: !!item.lockCenter 
-      };
+      const country = { name: item.name, color: item.color, ids, labelId, labelText: item.labelText || item.name, labelFontSize: fontSize, lockCenter: !!item.lockCenter };
       
       countries.set(cid, country);
       repaintCountry(country);
@@ -9315,34 +9410,28 @@
     updateStatus();
   }
 
-  async function readJsonFile(file) { const text = await file.text(); const data = JSON.parse(text); if (!Array.isArray(data)) throw new Error("JSONの形式が想定と違います（配列ではありません）"); return data; }
+  async function readJsonFile(file) { const text = await file.text(); const data = JSON.parse(text); if (!Array.isArray(data)) throw new Error("JSONの形式が想定と違います"); return data; }
 
-  // === インポート（ファイル読み込み） ===
   document.getElementById("importBtn").addEventListener("click", async () => {
     const input = document.getElementById("importFile");
     if (!input.files || input.files.length === 0) { alert("map-data.json を選択してください。"); return; }
-    try { const data = await readJsonFile(input.files[0]); importData(data); alert("読み込み完了！"); } catch (e) { console.error(e); alert("読み込みに失敗しました： " + e.message); }
+    try { const data = await readJsonFile(input.files[0]); importData(data); alert("読み込み完了！"); } catch (e) { alert("失敗： " + e.message); }
   });
 
-  // === GitHubへの書き出し（元コードのまま） ===
-  const GH_OWNER = "Charlotte5227";
-  const GH_REPO  = "ww123";
-  const GH_PATH  = "map-data.json";
-
+  // --- GitHub ---
+  const GH_OWNER = "Charlotte5227"; const GH_REPO  = "www123"; const GH_PATH  = "map-data.json";
   function toBase64Utf8(str) { return btoa(unescape(encodeURIComponent(str))); }
-  
   async function getFileSha(owner, repo, path, token) {
     const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}`, "X-GitHub-Api-Version": "2022-11-28", Accept: "application/vnd.github+json", }, });
-    if (res.status === 404) return null; if (!res.ok) { const t = await res.text(); throw new Error(`SHA取得失敗: ${res.status}\n${t}`); }
-    const json = await res.json(); return json.sha;
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}`, "X-GitHub-Api-Version": "2022-11-28", Accept: "application/vnd.github+json" } });
+    if (res.status === 404) return null; if (!res.ok) throw new Error("SHA取得失敗");
+    return (await res.json()).sha;
   }
-  
   async function putFile(owner, repo, path, token, contentText, shaOrNull) {
     const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-    const body = { message: `Update ${path}`, content: toBase64Utf8(contentText), ...(shaOrNull ? { sha: shaOrNull } : {}), };
-    const res = await fetch(url, { method: "PUT", headers: { Authorization: `Bearer ${token}`, "X-GitHub-Api-Version": "2022-11-28", Accept: "application/vnd.github+json", "Content-Type": "application/json", }, body: JSON.stringify(body), });
-    if (!res.ok) { const t = await res.text(); throw new Error(`PUT失敗: ${res.status}\n${t}`); }
+    const body = { message: `Update ${path}`, content: toBase64Utf8(contentText), ...(shaOrNull ? { sha: shaOrNull } : {}) };
+    const res = await fetch(url, { method: "PUT", headers: { Authorization: `Bearer ${token}`, "X-GitHub-Api-Version": "2022-11-28", Accept: "application/vnd.github+json", "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error("PUT失敗");
   }
 
   document.getElementById("publishBtn").addEventListener("click", async () => {
@@ -9352,34 +9441,14 @@
     status.textContent = "公開中…";
     try {
       const data = buildExportArrayFromCountries();
-      const jsonText = JSON.stringify(data, null, 2);
       const sha = await getFileSha(GH_OWNER, GH_REPO, GH_PATH, token);
-      await putFile(GH_OWNER, GH_REPO, GH_PATH, token, jsonText, sha);
-      status.textContent = "公開OK（viewerは最大12時間で反映）";
-    } catch (e) { console.error(e); status.textContent = "公開失敗"; alert(e.message); }
+      await putFile(GH_OWNER, GH_REPO, GH_PATH, token, JSON.stringify(data, null, 2), sha);
+      status.textContent = "公開OK";
+    } catch (e) { status.textContent = "失敗"; alert(e.message); }
   });
 
-  // 自動読み込み（Pages 側）
-  async function autoLoadLatestFromPages() {
-    const url = `map-data.json?ts=${Date.now()}`;
-    const res = await fetch(url, { cache: "no-store" });
-    if (res.status === 404) return;
-    if (!res.ok) throw new Error(`map-data.json自動読み込み失敗: ${res.status}`);
-    const data = await res.json();
-    if (!Array.isArray(data)) throw new Error("map-data.json の形式が配列ではありません");
-    importData(data);
-  }
-  autoLoadLatestFromPages().catch(e => console.warn(e));
-
-  // ==========================================
-  // ラベル編集 UI の動作（追加・統合）
-  // ==========================================
-
-  // --- テキストの反映 ---
   document.getElementById('applyLabelTextBtn').addEventListener('click', () => {
     const text = document.getElementById('labelText').value;
-
-    // 国ラベルが編集中の場合
     if (activeCountryId && countries.has(activeCountryId)) {
       const c = countries.get(activeCountryId);
       c.labelText = text;
@@ -9387,8 +9456,6 @@
       if (labelEl) setLabelTextElem(labelEl, text);
       return;
     }
-
-    // 自由ラベルが編集中の場合
     if (activeFreeLabelId) {
       const fl = freeLabels.find(f => f.labelId === activeFreeLabelId);
       if (fl) {
@@ -9398,51 +9465,36 @@
       }
       return;
     }
-
-    alert('編集対象の国またはラベルを選んでください');
+    alert('編集対象のラベルをクリックして選択してください');
   });
 
-  // --- サイズスライダーの動作 ---
   document.getElementById('labelSize').addEventListener('input', (e) => {
     document.getElementById('labelSizeVal').textContent = e.target.value;
   });
 
-  // --- サイズの反映 ---
   document.getElementById('applySizeBtn').addEventListener('click', () => {
     const size = document.getElementById('labelSize').value;
-    
-    // 国ラベルが編集中の場合
     if (activeCountryId && countries.has(activeCountryId)) {
       const c = countries.get(activeCountryId);
       c.labelFontSize = size;
       const labelEl = getSvgRoot().getElementById(c.labelId);
-      if (labelEl) {
-        labelEl.style.fontSize = `${size}px`;
-        labelEl.setAttribute('data-font-size', size);
-      }
+      if (labelEl) { labelEl.style.fontSize = `${size}px`; labelEl.setAttribute('data-font-size', size); }
       return;
     }
-
-    // 自由ラベルが編集中の場合
     if (activeFreeLabelId) {
       const fl = freeLabels.find(f => f.labelId === activeFreeLabelId);
       if (fl) {
         fl.fontSize = size;
         const labelEl = getSvgRoot().getElementById(fl.labelId);
-        if (labelEl) {
-          labelEl.style.fontSize = `${size}px`;
-          labelEl.setAttribute('data-font-size', size);
-        }
+        if (labelEl) { labelEl.style.fontSize = `${size}px`; labelEl.setAttribute('data-font-size', size); }
       }
       return;
     }
-
-    alert('編集対象の国またはラベルを選んでください');
+    alert('編集対象のラベルをクリックして選択してください');
   });
 
-  // --- 国ラベルの自動配置制御 ---
   document.getElementById('resetLabelPosBtn').addEventListener('click', () => {
-    if (!activeCountryId || !countries.has(activeCountryId)) { alert('編集対象の国を選んでください'); return; }
+    if (!activeCountryId || !countries.has(activeCountryId)) return;
     const c = countries.get(activeCountryId);
     const { cx, cy } = computeGroupCenter(c.ids);
     const labelEl = getSvgRoot().getElementById(c.labelId);
@@ -9459,7 +9511,6 @@
     if (c.lockCenter) moveLabelToCountryCenter(c);
   });
 
-  // --- ラベルのドラッグ機能 ---
   function makeLabelDraggable(labelEl) {
     let dragging = false;
     let startX = 0, startY = 0, origX = 0, origY = 0;
@@ -9475,8 +9526,12 @@
 
     labelEl.addEventListener('pointermove', (ev) => {
       if (!dragging) return;
-      const dx = ev.clientX - startX;
-      const dy = ev.clientY - startY;
+      const ctm = getSvgRoot().getScreenCTM();
+      if (!ctm) return;
+      const scale = ctm.a; // ズーム時の移動量補正
+      
+      const dx = (ev.clientX - startX) / scale;
+      const dy = (ev.clientY - startY) / scale;
       const newX = origX + dx; const newY = origY + dy;
       labelEl.setAttribute('x', String(newX));
       labelEl.setAttribute('y', String(newY));
@@ -9487,130 +9542,175 @@
       if (!dragging) return;
       dragging = false;
       try { labelEl.releasePointerCapture(ev.pointerId); } catch (e) {}
-      
-      // 国データがあれば「中央に固定」を解除
       for (const [cid, c] of countries.entries()) {
         if (c.labelId === labelEl.id) {
-          c.lockCenter = false; 
-          c.labelText = c.labelText || c.name;
-          updateStatus();
-          break;
+          c.lockCenter = false; c.labelText = c.labelText || c.name;
+          updateStatus(); break;
         }
       }
     });
-
-    // pointercancel も監視
     labelEl.addEventListener('pointercancel', () => { dragging = false; });
   }
 
-  // --- 自由ラベルの追加ボタン ---
   document.getElementById("addFreeLabelBtn").addEventListener("click", () => {
-    const text = prompt("ラベルの文字を入力してください（後から変更可能です）");
+    const text = prompt("ラベルの文字を入力してください");
     if (!text) return;
-
     const svg = getSvgRoot();
-    // 画面中央付近に配置
     const viewBox = svg.viewBox && svg.viewBox.baseVal ? svg.viewBox.baseVal : null;
-    const x = viewBox && viewBox.width ? viewBox.width/2 : 500;
-    const y = viewBox && viewBox.height ? viewBox.height/2 : 300;
-
+    const x = viewBox && viewBox.width ? viewBox.x + viewBox.width/2 : 500;
+    const y = viewBox && viewBox.height ? viewBox.y + viewBox.height/2 : 300;
     const labelId = addLabel(text, x, y, DEFAULT_LABEL_SIZE);
-  
-    freeLabels.push({
-      text: text,
-      labelId: labelId,
-      fontSize: DEFAULT_LABEL_SIZE
-    });
-
-    // 作成した自由ラベルを選択状態にする
-    activeFreeLabelId = labelId;
-    activeCountryId = "";
+    freeLabels.push({ type: "freeLabel", text: text, labelId: labelId, fontSize: DEFAULT_LABEL_SIZE });
+    activeFreeLabelId = labelId; activeCountryId = "";
     document.getElementById("countrySelect").value = "";
     updateStatus();
   });
 
-// ==========================================
-  // マップのズーム（拡大縮小）とパン（移動）機能
+  // ==========================================
+  // 【追加要件5, 6】 プロビへ連番を割り振る
+  // ==========================================
+  document.getElementById("addProvinceNumbersBtn").addEventListener("click", () => {
+    if(!confirm("すべてのプロヴィンスに連番ラベルを自動生成しますか？\n(生成された数字はクリックで編集、ドラッグで位置調整可能です)")) return;
+    
+    const svg = getSvgRoot();
+    const provs = svg.querySelectorAll(".prov");
+    let count = 1;
+
+    // UIから現在の「数字ラベル一括サイズ」を取得して割り振る
+    const fontSize = parseInt(document.getElementById("provLabelSize").value, 10); 
+
+    provs.forEach(p => {
+      // 各プロヴィンスの中心を取得
+      const bb = p.getBBox();
+      const cx = bb.x + bb.width / 2;
+      const cy = bb.y + bb.height / 2;
+      
+      const labelId = addLabel(String(count), cx, cy, fontSize);
+      
+      // ★修正: provNumberとして専用のタイプを付与する
+      freeLabels.push({
+        type: "provNumber",
+        provId: p.id,
+        text: String(count),
+        labelId: labelId,
+        fontSize: fontSize
+      });
+      count++;
+    });
+    
+    alert(`${count - 1} 個の連番ラベルを生成しました。`);
+    updateStatus();
+  });
+
+  // ★追加: 数字ラベル(provNumber)を一括でサイズ変更する処理
+  document.getElementById('provLabelSize').addEventListener('input', (e) => {
+    document.getElementById('provLabelSizeVal').textContent = e.target.value;
+  });
+
+  document.getElementById('applyProvSizeBtn').addEventListener('click', () => {
+    const newSize = document.getElementById('provLabelSize').value;
+    let count = 0;
+    freeLabels.forEach(fl => {
+      if (fl.type === "provNumber") {
+        fl.fontSize = newSize;
+        const labelEl = getSvgRoot().getElementById(fl.labelId);
+        if (labelEl) {
+          labelEl.style.fontSize = `${newSize}px`;
+          labelEl.setAttribute('data-font-size', newSize);
+        }
+        count++;
+      }
+    });
+    
+    if (activeFreeLabelId) updateStatus(); // UIの表示を更新
+    if (count > 0) {
+      alert(`${count} 個の数字ラベルのサイズを変更しました。`);
+    } else {
+      alert("変更する数字ラベルが見つかりません。先に「プロビ番号を割り振る」を実行してください。");
+    }
+  });
+
+
+  // ==========================================
+  // マップのズームとパン
   // ==========================================
   const MAP_WIDTH = 1800;
   const MAP_HEIGHT = 2000;
   const svgEl = getSvgRoot();
 
-  // 初期 viewBox の設定（もしHTML側で設定されていない場合の保険）
   if (!svgEl.getAttribute("viewBox")) {
     svgEl.setAttribute("viewBox", `0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`);
   }
 
   let isMapPanning = false;
-  let isMapMoved = false; // クリック判定との競合防止用
-  let startPanX = 0;
-  let startPanY = 0;
-  let startViewBoxX = 0;
-  let startViewBoxY = 0;
+  let isMapMoved = false; 
+  let startPanX = 0; let startPanY = 0;
+  let startViewBoxX = 0; let startViewBoxY = 0;
 
-  // --- ホイールによる拡大縮小 ---
-  svgEl.addEventListener("wheel", (e) => {
-    e.preventDefault(); // 画面全体のスクロールを防ぐ
+  // UIスライダー要素
+  const zoomSlider = document.getElementById("zoomSlider");
+  const zoomVal = document.getElementById("zoomVal");
+
+  // スライダーと連動してViewBoxを更新
+  function updateZoomFromSlider() {
+    const scale = parseFloat(zoomSlider.value); // 0.5 ~ 10
+    zoomVal.textContent = scale.toFixed(1) + "x";
 
     const vb = svgEl.viewBox.baseVal;
-    let w = vb.width;
-    let h = vb.height;
-    let x = vb.x;
-    let y = vb.y;
+    // 現在の画面の中心を維持する
+    const cx = vb.x + vb.width / 2;
+    const cy = vb.y + vb.height / 2;
 
-    // マウスカーソルのSVG内での座標を取得
-    const pt = svgEl.createSVGPoint();
-    pt.x = e.clientX;
-    pt.y = e.clientY;
-    const svgP = pt.matrixTransform(svgEl.getScreenCTM().inverse());
+    let newW = MAP_WIDTH / scale;
+    let newH = MAP_HEIGHT / scale;
+    let newX = cx - newW / 2;
+    let newY = cy - newH / 2;
 
-    // 拡大縮小の倍率
-    const zoomFactor = 1.1;
-    const direction = e.deltaY > 0 ? 1 : -1;
-
-    let newW, newH;
-    if (direction > 0) { // 縮小（引く）
-      newW = w * zoomFactor;
-      newH = h * zoomFactor;
-    } else { // 拡大（寄る）
-      newW = w / zoomFactor;
-      newH = h / zoomFactor;
-    }
-
-    // --- サイズの制限 ---
-    if (newW > MAP_WIDTH) newW = MAP_WIDTH;
-    if (newH > MAP_HEIGHT) newH = MAP_HEIGHT;
-    // 最小サイズの制限（近づきすぎ防止。必要に応じて数値を調整してください）
-    if (newW < 200) newW = 200;
-    if (newH < 200) newH = 200;
-
-    // ポインタの位置を中心にズームするよう x, y を計算
-    let newX = svgP.x - (svgP.x - x) * (newW / w);
-    let newY = svgP.y - (svgP.y - y) * (newH / h);
-
-    // --- はみ出し制限（1800x2000の枠内） ---
     if (newX < 0) newX = 0;
     if (newY < 0) newY = 0;
-    if (newX + newW > MAP_WIDTH) newX = MAP_WIDTH - newW;
-    if (newY + newH > MAP_HEIGHT) newY = MAP_HEIGHT - newH;
+    if (newX + newW > MAP_WIDTH) newX = Math.max(0, MAP_WIDTH - newW);
+    if (newY + newH > MAP_HEIGHT) newY = Math.max(0, MAP_HEIGHT - newH);
 
     svgEl.setAttribute("viewBox", `${newX} ${newY} ${newW} ${newH}`);
+  }
+
+  // スライダー操作イベント
+  zoomSlider.addEventListener("input", updateZoomFromSlider);
+
+  // ホイールによる拡大縮小
+  svgEl.addEventListener("wheel", (e) => {
+    e.preventDefault(); 
+    
+    // 現在のスライダー値を取得
+    let currentScale = parseFloat(zoomSlider.value);
+    const zoomStep = 0.1;
+    
+    if (e.deltaY > 0) { // 引く（縮小）
+      currentScale -= zoomStep * 2;
+    } else { // 寄る（拡大）
+      currentScale += zoomStep * 2;
+    }
+
+    // スライダーの範囲内に収める
+    if (currentScale < parseFloat(zoomSlider.min)) currentScale = parseFloat(zoomSlider.min);
+    if (currentScale > parseFloat(zoomSlider.max)) currentScale = parseFloat(zoomSlider.max);
+    
+    zoomSlider.value = currentScale;
+    updateZoomFromSlider(); // スライダー更新処理を呼び出す
   }, { passive: false });
 
-  // --- ドラッグによる地図の移動 ---
+  // ドラッグ（パン）操作
   svgEl.addEventListener("pointerdown", (e) => {
-    // 対象がラベルの場合は地図のパンを無効化（ラベルのドラッグを優先）
-    if (e.target.closest('.label')) return;
+    if (e.target.closest('.label')) return; 
 
     isMapPanning = true;
-    isMapMoved = false; // ドラッグ開始時に移動フラグをリセット
+    isMapMoved = false; 
     startPanX = e.clientX;
     startPanY = e.clientY;
     
     const vb = svgEl.viewBox.baseVal;
     startViewBoxX = vb.x;
     startViewBoxY = vb.y;
-
   });
 
   svgEl.addEventListener("pointermove", (e) => {
@@ -9619,12 +9719,11 @@
     const dx = e.clientX - startPanX;
     const dy = e.clientY - startPanY;
 
-    // わずかな手の震えはクリックとみなすため、一定量動いた時だけフラグを立てる
-    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+    // スマホ操作を考慮して、移動判定の閾値を少し大きく（10px）
+    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
       isMapMoved = true;
     }
 
-    // 画面上のピクセル移動量をSVG内のスケールに変換
     const ctm = svgEl.getScreenCTM();
     if (!ctm) return;
     const scale = ctm.a; 
@@ -9633,7 +9732,6 @@
     let newX = startViewBoxX - (dx / scale);
     let newY = startViewBoxY - (dy / scale);
 
-    // --- はみ出し制限（1800x2000の枠内） ---
     if (newX < 0) newX = 0;
     if (newY < 0) newY = 0;
     if (newX + vb.width > MAP_WIDTH) newX = MAP_WIDTH - vb.width;
@@ -9642,17 +9740,9 @@
     svgEl.setAttribute("viewBox", `${newX} ${newY} ${vb.width} ${vb.height}`);
   });
 
-  svgEl.addEventListener("pointerup", (e) => {
-    if (isMapPanning) {
-      isMapPanning = false;
-    }
-  });
-
-  svgEl.addEventListener("pointercancel", () => {
-    isMapPanning = false;
-  });
+  svgEl.addEventListener("pointerup", () => { isMapPanning = false; });
+  svgEl.addEventListener("pointercancel", () => { isMapPanning = false; });
 
 </script>
-
 </body>
 </html>
