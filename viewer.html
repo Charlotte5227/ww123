@@ -5,73 +5,146 @@
 <title>閲覧サイト</title>
 
 <style>
-body { margin:0; font-family:sans-serif; background: #f0f2f5; }
-svg { width:100%; height:auto; display:block; background: #fff; }
+/* === 全体のレイアウト設定 === */
+body { 
+  margin: 0; 
+  font-family: sans-serif; 
+  background: #f0f2f5; 
+  display: flex; 
+  flex-direction: column; 
+  height: 100vh; /* 画面の高さに合わせる */
+  overflow: hidden; /* 全体のスクロールを無効化 */
+}
 
+/* === ボタンのスタイル === */
+button {
+  font-size: 15px;
+  padding: 10px 22px;
+  border-radius: 25px;
+  border: none;
+  background: #fff;
+  color: #333;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+  transition: all 0.2s ease; 
+  touch-action: manipulation;
+}
+button:hover {
+  transform: scale(1.05); 
+  box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+}
+
+#topbar {
+  background: #222;
+  padding: 15px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  z-index: 10;
+}
+
+/* === 地図コンテナ === */
+#mapContainer {
+  flex-grow: 1;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  touch-action: none; /* スマホでのブラウザデフォルトスクロールを禁止 */
+}
+
+svg { 
+  width: 100%; 
+  height: 100%; 
+  display: block; 
+  background: #fff; 
+  cursor: grab;
+}
+svg:active { cursor: grabbing; }
+
+/* プロビンス（領土）のスタイル */
 .prov {
-  fill:#ffffff;
-  stroke:#111;
-  stroke-width:1;
+  fill: #FEF9DB;
+  stroke: #111;
+  stroke-width: 1;
   transition: fill 0.5s ease;
 }
 
+/* === ラベルのスタイル === */
 .label {
-      font-size: 18px;
-      font-weight: 800;
-      fill: #fff;                /* 文字色：白 */
-      stroke: #000;             /* 縁：黒 */
-      stroke-width: 6px;        /* 縁の太さ（好みで4〜8） */
-      paint-order: stroke fill; /* 縁→塗りの順 */
-      user-select: none;
-      pointer-events: auto;     /* クリックやドラッグを受ける */
-      cursor: move;             /* ドラッグ可能に見せる */
+  font-size: 18px;
+  font-weight: 800;
+  fill: #fff;               
+  stroke: #000;             
+  stroke-width: 6px;        
+  paint-order: stroke fill; 
+  user-select: none;
+  pointer-events: none;     
 }
+.labels-hidden .label { display: none; }
 
-.labels-hidden .label { display:none; }
+/* === 数字ラベルのスタイル === */
+.prov-number {
+  font-weight: bold;
+  fill: #333; 
+  user-select: none;
+  pointer-events: none;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+.numbers-hidden .prov-number { display: none; }
   
-#topbar {
-  background:#222;
-  padding:12px;
-  text-align:right;
-}
-
-#toggleBtn {
-  font-size:14px;
-  padding:8px 18px;
-  border-radius:20px;
-  border:none;
-  background:#fff;
-  cursor:pointer;
-}
-
-#mapContainer {
-  width:100%;
-}
-
 #statusIndicator {
-  font-size: 10px;
-  color: #888;
-  z-index: 10000;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #555;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 4px 8px;
+  border-radius: 4px;
+  z-index: 1000;
+}
+
+/* === 拡大縮小バー（スライダー） === */
+#sliderContainer {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 12px 25px;
+  border-radius: 30px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-weight: bold;
+  color: #333;
+}
+#zoomSlider {
+  width: 200px;
+  cursor: pointer;
+}
+@media (max-width: 600px) {
+  #zoomSlider { width: 120px; } /* スマホでは少し短く */
 }
 </style>
 </head>
-<body>
-
+<body class="numbers-hidden"> 
 <div id="topbar">
-<button onclick="location.href='https://charlotte5227.github.io/ww123/war-selector.html'">戦争先選択用</button>
-
-<button onclick="zoomIn()">＋</button>
-<button onclick="zoomOut()">－</button>
-
-<button onclick="downloadPNG()">PNG保存</button>
-
-<button id="toggleBtn">国名を非表示</button>
-
+  <button onclick="zoomIn()">＋ 拡大</button>
+  <button onclick="zoomOut()">－ 縮小</button>
+  <button onclick="downloadPNG()">PNG保存</button>
+  <button id="toggleBtn">国名を非表示</button>
+  <button id="toggleNumBtn">番号を表示</button>
 </div>
 
 <div id="mapContainer">
-
-<svg
+   <svg
    version="1.1"
    id="mapSvg"
    width="1800"
@@ -8864,84 +8937,114 @@ svg { width:100%; height:auto; display:block; background: #fff; }
        id="path1" />
   </g>
 </svg>
+
   
-<div id="statusIndicator">データ同期中...</div>
+  <div id="statusIndicator">データ同期中...</div>
+
+  <div id="sliderContainer">
+    <span style="font-size: 14px;">縮小</span>
+    <input type="range" id="zoomSlider" min="0.5" max="8" step="0.1" value="1">
+    <span style="font-size: 14px;">拡大</span>
+  </div>
+</div>
   
 <script>
   // === 設定 ===
   const REFRESH_INTERVAL_MS = 30000; 
   let lastDataHash = "";
   let labelsVisible = true;
-  let zoomLevel = 1;
-  const ZOOM_STEP = 0.2;
-  let viewBox = { x:0, y:0, w:1800, h:2000 };
+  let numbersVisible = false; // 初期状態では番号は非表示
 
-  let isDragging = false;
-  let startX = 0;
-  let startY = 0;
+  let viewBox = { x: 0, y: 0, w: 1800, h: 2000 };
 
-  function ensureLabelsLayer(svg) {
-    let layer = svg.querySelector("#labels-layer");
+  // レイヤーの確保
+  function ensureLayer(svg, layerId) {
+    let layer = svg.querySelector(`#${layerId}`);
     if (!layer) {
       layer = document.createElementNS("http://www.w3.org/2000/svg", "g");
-      layer.setAttribute("id", "labels-layer");
+      layer.setAttribute("id", layerId);
       svg.appendChild(layer);
     }
     return layer;
   }
 
   function resetProvinces(svg) {
-    svg.querySelectorAll(".prov").forEach(p => { p.style.fill = "#ffffff"; });
+    svg.querySelectorAll(".prov").forEach(p => { p.style.fill = "#FEF9DB"; });
   }
 
-  function applyZoom() {
+  // === ViewBoxとスライダーの同期 ===
+  function updateViewBox(){
+    const maxCx = 1800; const minCx = 0;
+    const maxCy = 2000; const minCy = 0;
+    
+    let cx = viewBox.x + viewBox.w / 2;
+    let cy = viewBox.y + viewBox.h / 2;
+    
+    if (cx < minCx) viewBox.x = minCx - viewBox.w / 2;
+    if (cx > maxCx) viewBox.x = maxCx - viewBox.w / 2;
+    if (cy < minCy) viewBox.y = minCy - viewBox.h / 2;
+    if (cy > maxCy) viewBox.y = maxCy - viewBox.h / 2;
+
     const svg = document.getElementById("mapSvg");
+    svg.setAttribute("viewBox", `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`);
 
-    const baseWidth = 1800;
-    const baseHeight = 2000;
-
-    const width = baseWidth * zoomLevel;
-    const height = baseHeight * zoomLevel;
-
-    svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    // スライダーの更新
+    const slider = document.getElementById("zoomSlider");
+    if(slider) slider.value = 1800 / viewBox.w;
   }
 
   function zoom(factor){
-
     const cx = viewBox.x + viewBox.w/2;
     const cy = viewBox.y + viewBox.h/2;
-
     const newW = viewBox.w * factor;
     const newH = viewBox.h * factor;
 
-    if(newW < 300 || newW > 5000) return;
+    if(newW < 500 || newW > 8000) return;
 
     viewBox.w = newW;
     viewBox.h = newH;
-
     viewBox.x = cx - viewBox.w/2;
     viewBox.y = cy - viewBox.h/2;
-
     updateViewBox();
   }
 
-  function zoomIn(){
-    zoom(0.8);
+  function zoomIn(){ zoom(0.8); }
+  function zoomOut(){ zoom(1.25); }
+
+  // スライダー操作処理
+  const zoomSlider = document.getElementById("zoomSlider");
+  zoomSlider.addEventListener("input", (e) => {
+    const scale = parseFloat(e.target.value);
+    const cx = viewBox.x + viewBox.w / 2;
+    const cy = viewBox.y + viewBox.h / 2;
+    
+    viewBox.w = 1800 / scale;
+    viewBox.h = 2000 / scale;
+    viewBox.x = cx - viewBox.w / 2;
+    viewBox.y = cy - viewBox.h / 2;
+    updateViewBox();
+  });
+
+  // === ボタン切り替え処理 ===
+  const toggleBtn = document.getElementById("toggleBtn");
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", () => {
+      labelsVisible = !labelsVisible;
+      document.body.classList.toggle("labels-hidden", !labelsVisible);
+      toggleBtn.textContent = labelsVisible ? "国名を非表示" : "国名を表示";
+    });
   }
 
-  function zoomOut(){
-    zoom(1.25);
+  const toggleNumBtn = document.getElementById("toggleNumBtn");
+  if (toggleNumBtn) {
+    toggleNumBtn.addEventListener("click", () => {
+      numbersVisible = !numbersVisible;
+      document.body.classList.toggle("numbers-hidden", !numbersVisible);
+      toggleNumBtn.textContent = numbersVisible ? "番号を非表示" : "番号を表示";
+    });
   }
 
-  function updateViewBox(){
-    const svg = document.getElementById("mapSvg");
-    svg.setAttribute(
-      "viewBox",
-      `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`
-    );
-  }
-
-  // フォールバック用の座標計算（x, yがない古いデータ用）
+  // === 描画系の処理 ===
   function computeBBoxCenter(svg, provinceIds) {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     let any = false;
@@ -8955,53 +9058,43 @@ svg { width:100%; height:auto; display:block; background: #fff; }
     }
     return any ? { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 } : { cx: 0, cy: 0 };
   }
-// 管理サイトと共通の描画ロジック（tspanによる改行対応 ＋ サイズ対応）
+
   function addLabel(layer, textValue, x, y, fontSize = 18){
-
     const svgNS = "http://www.w3.org/2000/svg";
-
     const text = document.createElementNS(svgNS,"text");
     text.classList.add("label");
-
     text.setAttribute("x",x);
     text.setAttribute("y",y);
     text.setAttribute("text-anchor","middle");
     text.setAttribute("dominant-baseline","middle");
-
-  // ここで fontSize を適用できるように変更
-    text.setAttribute("style",`
-      font-size:${fontSize}px;
-      font-weight:800;
-      fill:#fff;
-      stroke:#000;
-      stroke-width:6px;
-      paint-order:stroke fill;
-      user-select:none;
-      pointer-events:none; /* 閲覧サイトではクリック不要なのでnoneに */
-  `);
-
+    // インラインスタイルでエクスポート時にも見た目を保持する
+    text.setAttribute("style", `font-size:${fontSize}px; font-weight:800; fill:#fff; stroke:#000; stroke-width:6px; paint-order:stroke fill; user-select:none;`);
     const lines = String(textValue).split("\n");
-
     lines.forEach((line,i)=>{
-
       const tspan = document.createElementNS(svgNS,"tspan");
-
       tspan.setAttribute("x",x);
       tspan.setAttribute("dy", i===0 ? "0" : "1.1em");
-
-     tspan.textContent = line;
-
+      tspan.textContent = line;
       text.appendChild(tspan);
-
     });
-
     layer.appendChild(text);
   }
 
+  function addProvNumber(layer, textValue, x, y, fontSize = 14) {
+    const svgNS = "http://www.w3.org/2000/svg";
+    const text = document.createElementNS(svgNS, "text");
+    text.classList.add("prov-number");
+    text.setAttribute("x", x);
+    text.setAttribute("y", y);
+    text.setAttribute("style", `font-size:${fontSize}px; font-weight:bold; fill:#333; text-anchor:middle; dominant-baseline:middle; user-select:none;`);
+    text.textContent = textValue;
+    layer.appendChild(text);
+  }
+
+  // === データ読み込みとマップの更新 ===
   async function loadAndRender() {
     const svg = document.getElementById("mapSvg");
     if (!svg) return;
-
     try {
       const url = `map-data.json?t=${Date.now()}`;
       const res = await fetch(url, { cache: "no-store" });
@@ -9010,46 +9103,48 @@ svg { width:100%; height:auto; display:block; background: #fff; }
       const jsonText = await res.text();
       if (jsonText === lastDataHash) return;
       lastDataHash = jsonText;
-    
+      
       const data = JSON.parse(jsonText);
-      const layer = ensureLabelsLayer(svg);
-    
-      layer.innerHTML = "";
+      
+      const numbersLayer = ensureLayer(svg, "numbers-layer");
+      const labelsLayer = ensureLayer(svg, "labels-layer");
+      
+      // レイヤーの重なり順を整える（番号はラベルの下にする）
+      svg.appendChild(numbersLayer);
+      svg.appendChild(labelsLayer);
+      
+      labelsLayer.innerHTML = "";
+      numbersLayer.innerHTML = "";
       resetProvinces(svg);
 
-    // データごとに「国」か「自由ラベル」か判定して処理を分ける
       for (const item of data) {
-      
-      // 1. 自由ラベルの場合
-        if (item.type === "freeLabel") {
-          addLabel(layer, item.text, item.x, item.y, item.fontSize);
+        // 編集サイトで作った数字ラベルを読み込む
+        if (item.type === "provNumber") {
+          addProvNumber(numbersLayer, item.text, item.x, item.y, item.fontSize);
           continue;
         }
-
-      // 2. 国データの場合（プロビンスがない場合はスキップ）
+        if (item.type === "freeLabel") {
+          addLabel(labelsLayer, item.text, item.x, item.y, item.fontSize);
+          continue;
+        }
+        
+        // 国データの読み込み
         if (!item.provinces || item.provinces.length === 0) continue;
 
-      // 塗りつぶし
         for (const id of item.provinces) {
           const p = svg.getElementById(id);
           if (p) p.style.fill = item.color;
         }
 
-      // 座標の決定
         let lx, ly;
         if (item.labelX !== undefined && item.labelY !== undefined && item.labelX !== null) {
-          lx = Number(item.labelX);
-          ly = Number(item.labelY);
+          lx = Number(item.labelX); ly = Number(item.labelY);
         } else {
           const center = computeBBoxCenter(svg, item.provinces);
-          lx = center.cx;
-          ly = center.cy;
+          lx = center.cx; ly = center.cy;
         }
-
-      // 国ラベルの描画（サイズも渡す）
-        addLabel(layer, item.labelText || item.name, lx, ly, item.labelFontSize || 18);
+        addLabel(labelsLayer, item.labelText || item.name, lx, ly, item.labelFontSize || 18);
       }
-    
       document.getElementById("statusIndicator").textContent = "最終更新: " + new Date().toLocaleTimeString();
     } catch (e) {
       console.error("更新エラー:", e);
@@ -9060,137 +9155,174 @@ svg { width:100%; height:auto; display:block; background: #fff; }
   loadAndRender();
   setInterval(loadAndRender, REFRESH_INTERVAL_MS);
 
-  const toggleBtn = document.getElementById("toggleBtn");
-  if (toggleBtn) {
-    toggleBtn.addEventListener("click", () => {
-      labelsVisible = !labelsVisible;
-      document.body.classList.toggle("labels-hidden", !labelsVisible);
-      toggleBtn.textContent = labelsVisible ? "国名を非表示" : "国名を表示";
-    });
+  // === PNG保存処理（表示・非表示状態を反映） ===
+  function downloadPNG() {
+    const svg = document.getElementById("mapSvg");
+    const originalViewBox = svg.getAttribute("viewBox");
+    svg.setAttribute("viewBox", "0 0 1800 2000");
+    svg.setAttribute("width", "1800");
+    svg.setAttribute("height", "2000");
+
+    // 現在の非表示状態をPNGに反映させるために、一時的なスタイルをSVG内に注入
+    const exportStyle = document.createElementNS("http://www.w3.org/2000/svg", "style");
+    let cssText = "";
+    if (!labelsVisible) cssText += ".label { display: none !important; }\n";
+    if (!numbersVisible) cssText += ".prov-number { display: none !important; }\n";
+    exportStyle.textContent = cssText;
+    svg.appendChild(exportStyle);
+
+    const serializer = new XMLSerializer();
+    const svgString = serializer.serializeToString(svg);
+
+    // 注入したスタイルを削除して元に戻す
+    svg.removeChild(exportStyle);
+    if (originalViewBox) svg.setAttribute("viewBox", originalViewBox);
+    else svg.removeAttribute("viewBox");
+    svg.removeAttribute("width");
+    svg.removeAttribute("height");
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 1800; canvas.height = 2000;
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+    const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(svgBlob);
+
+    img.onload = function() {
+      ctx.drawImage(img, 0, 0, 1800, 2000);
+      URL.revokeObjectURL(url);
+      const a = document.createElement("a");
+      a.download = "map.png";
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+    };
+    img.src = url;
   }
 
-function downloadPNG() {
+  // === スマホ・PC共通のドラッグ ＆ ピンチズーム処理 ===
   const svg = document.getElementById("mapSvg");
+  let isDragging = false;
+  let startX = 0, startY = 0;
+  let initialPinchDistance = null;
+  let initialPinchViewBox = null;
 
-  // 保存用 clone 作成（元の SVG は触らない）
-  const clone = svg.cloneNode(true);
-
-  // 非表示になっているラベルだけを削除
-  clone.querySelectorAll(".country-label").forEach(label => {
-    const style = window.getComputedStyle(label);
-    if (style.display === "none" || style.visibility === "hidden") {
-      label.remove();
+  function getPointerPos(e) {
+    if (e.touches && e.touches.length > 0) {
+      return { x: e.touches[0].clientX, y: e.touches[0].clientY };
     }
-  });
+    return { x: e.clientX, y: e.clientY };
+  }
 
-  // 元の属性を保存
-  const originalViewBox = clone.getAttribute("viewBox");
-  const originalWidth = clone.getAttribute("width");
-  const originalHeight = clone.getAttribute("height");
+  function getPinchDistance(touches) {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
 
-  // エクスポート用に viewBox と絶対サイズをセット
-  clone.setAttribute("viewBox", "0 0 1800 2000");
-  clone.setAttribute("width", "1800");
-  clone.setAttribute("height", "2000");
+  function handleStart(e) {
+    // 2本指でのタッチ（ピンチズームの開始）
+    if (e.touches && e.touches.length === 2) {
+      initialPinchDistance = getPinchDistance(e.touches);
+      initialPinchViewBox = { ...viewBox };
+      isDragging = false;
+      return;
+    }
+    // それ以上の指でのタッチは無視
+    if (e.touches && e.touches.length > 2) return;
+    
+    isDragging = true;
+    const pos = getPointerPos(e);
+    startX = pos.x;
+    startY = pos.y;
+  }
 
-  const serializer = new XMLSerializer();
-  const svgString = serializer.serializeToString(clone);
+  function handleMove(e) {
+    e.preventDefault(); // スワイプで画面全体が動くのを防ぐ
 
-  // 元の属性に戻す
-  if (originalViewBox) clone.setAttribute("viewBox", originalViewBox);
-  else clone.removeAttribute("viewBox");
-  
-  if (originalWidth) clone.setAttribute("width", originalWidth);
-  else clone.removeAttribute("width");
-  
-  if (originalHeight) clone.setAttribute("height", originalHeight);
-  else clone.removeAttribute("height");
+    // ピンチズーム（スマホ拡大縮小）処理
+    if (e.touches && e.touches.length === 2 && initialPinchDistance) {
+      const currentDistance = getPinchDistance(e.touches);
+      // ピンチアウト(広げる)＝拡大＝scaleが小さくなる
+      const scale = initialPinchDistance / currentDistance;
+      
+      const newW = initialPinchViewBox.w * scale;
+      const newH = initialPinchViewBox.h * scale;
+      
+      // 拡大縮小の限界値チェック
+      if (newW >= 500 && newW <= 8000) {
+        const cx = initialPinchViewBox.x + initialPinchViewBox.w / 2;
+        const cy = initialPinchViewBox.y + initialPinchViewBox.h / 2;
+        viewBox.w = newW;
+        viewBox.h = newH;
+        viewBox.x = cx - newW / 2;
+        viewBox.y = cy - newH / 2;
+        updateViewBox();
+      }
+      return;
+    }
 
-  const canvas = document.createElement("canvas");
-  canvas.width = 1800;
-  canvas.height = 2000;
-  const ctx = canvas.getContext("2d");
+    // 通常のドラッグ（移動）処理
+    if (!isDragging) return;
+    
+    const pos = getPointerPos(e);
+    const dx = pos.x - startX;
+    const dy = pos.y - startY;
+    
+    startX = pos.x;
+    startY = pos.y;
 
-  // 背景を白にする（透明防止）
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const scaleX = viewBox.w / svg.clientWidth;
+    const scaleY = viewBox.h / svg.clientHeight;
 
-  const img = new Image();
-  img.crossOrigin = "anonymous";
-  const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-  const url = URL.createObjectURL(svgBlob);
+    viewBox.x -= dx * scaleX;
+    viewBox.y -= dy * scaleY;
+    updateViewBox();
+  }
 
-  img.onload = function() {
-    ctx.drawImage(img, 0, 0, 1800, 2000);
-    URL.revokeObjectURL(url);
+  function handleEnd(e) {
+    if (!e.touches || e.touches.length < 2) {
+      initialPinchDistance = null;
+    }
+    if (!e.touches || e.touches.length === 0) {
+      isDragging = false;
+    }
+  }
 
-    const a = document.createElement("a");
-    a.download = "map.png";
-    a.href = canvas.toDataURL("image/png");
-    a.click();
-  };
+  // PC: マウスイベント
+  svg.addEventListener("mousedown", handleStart);
+  window.addEventListener("mousemove", handleMove, { passive: false });
+  window.addEventListener("mouseup", handleEnd);
 
-  img.src = url;
-}
+  // スマホ: タッチイベント
+  svg.addEventListener("touchstart", handleStart, { passive: false });
+  window.addEventListener("touchmove", handleMove, { passive: false });
+  window.addEventListener("touchend", handleEnd);
+  window.addEventListener("touchcancel", handleEnd);
 
-const svg = document.getElementById("mapSvg");
+  // PC: マウスホイールでのズーム
+  svg.addEventListener("wheel", function(e){
+    e.preventDefault();
+    const rect = svg.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
 
-svg.addEventListener("mousedown", e => {
+    const svgX = viewBox.x + (mouseX / svg.clientWidth) * viewBox.w;
+    const svgY = viewBox.y + (mouseY / svg.clientHeight) * viewBox.h;
 
-  isDragging = true;
+    const zoomFactor = e.deltaY < 0 ? 0.9 : 1.1;
 
-  startX = e.clientX;
-  startY = e.clientY;
+    if(viewBox.w * zoomFactor < 500 || viewBox.w * zoomFactor > 8000) return;
 
-});
+    viewBox.w *= zoomFactor;
+    viewBox.h *= zoomFactor;
+    viewBox.x = svgX - (mouseX / svg.clientWidth) * viewBox.w;
+    viewBox.y = svgY - (mouseY / svg.clientHeight) * viewBox.h;
+    updateViewBox();
+  }, { passive: false });
 
-window.addEventListener("mousemove", e => {
-
-  if(!isDragging) return;
-
-  const dx = e.clientX - startX;
-  const dy = e.clientY - startY;
-
-  startX = e.clientX;
-  startY = e.clientY;
-
-  const scaleX = viewBox.w / svg.clientWidth;
-  const scaleY = viewBox.h / svg.clientHeight;
-
-  viewBox.x -= dx * scaleX;
-  viewBox.y -= dy * scaleY;
-
+  // 初期化実行
   updateViewBox();
 
-});
-
-window.addEventListener("mouseup", () => {
-  isDragging = false;
-});
-
-svg.addEventListener("wheel", function(e){
-
-  e.preventDefault();
-
-  const rect = svg.getBoundingClientRect();
-
-  const mouseX = e.clientX - rect.left;
-  const mouseY = e.clientY - rect.top;
-
-  const svgX = viewBox.x + (mouseX / svg.clientWidth) * viewBox.w;
-  const svgY = viewBox.y + (mouseY / svg.clientHeight) * viewBox.h;
-
-  const zoomFactor = e.deltaY < 0 ? 0.9 : 1.1;
-
-  viewBox.w *= zoomFactor;
-  viewBox.h *= zoomFactor;
-
-  viewBox.x = svgX - (mouseX / svg.clientWidth) * viewBox.w;
-  viewBox.y = svgY - (mouseY / svg.clientHeight) * viewBox.h;
-
-  updateViewBox();
-
-});
 </script>
 
 </body>
