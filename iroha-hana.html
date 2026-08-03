@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>花いろは暗号 — ГЕРБАРИЙ №48</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&family=PT+Mono&family=Shippori+Mincho:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink-0:#061523;
+  --ink-1:#0B2436;
+  --ink-2:#102F45;
+  --ink-3:#17415C;
+  --line:rgba(184,220,238,.20);
+  --line-2:rgba(184,220,238,.38);
+  --bloom:#E7F1F6;
+  --dim:#9FBFD1;
+  --dimmer:#6E92A8;
+  --halo:#74B0CC;
+  --seal:#C2472F;
+  --cy:'PT Serif',Georgia,'Times New Roman',serif;
+  --jp:'Shippori Mincho','Hiragino Mincho ProN','Yu Mincho',YuMincho,'MS PMincho',serif;
+  --mono:'PT Mono','SFMono-Regular',Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--ink-1);
+  color:var(--bloom);
+  font-family:var(--jp);
+  font-size:16px;
+  line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+  position:relative;
+  min-height:100vh;
+}
+/* 青写真の紙ムラ */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(120% 80% at 15% 0%,rgba(116,176,204,.16),transparent 60%),
+    radial-gradient(90% 70% at 95% 100%,rgba(8,20,34,.75),transparent 55%);
+}
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/><feColorMatrix type='saturate' values='0'/></filter><rect width='180' height='180' filter='url(%23n)' opacity='.30'/></svg>");
+  mix-blend-mode:overlay;
+}
+.wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 24px 96px}
+
+/* ─── 見出し ─── */
+.masthead{padding:56px 0 28px;border-bottom:1px solid var(--line-2)}
+.eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:.34em;text-transform:uppercase;
+  color:var(--halo);display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;
+}
+.eyebrow .seal{color:var(--seal);letter-spacing:.1em}
+h1{
+  font-family:var(--jp);font-weight:800;font-size:clamp(2.6rem,7vw,4.6rem);
+  margin:.18em 0 0;letter-spacing:.14em;line-height:1.08;
+}
+h1 .sub{display:block;font-family:var(--cy);font-style:italic;font-weight:400;
+  font-size:clamp(.9rem,2.2vw,1.25rem);letter-spacing:.06em;color:var(--dim);
+  margin-top:.9em;text-transform:none}
+.lede{max-width:44em;color:var(--dim);font-size:.94rem;margin:22px 0 0}
+
+/* ─── 切替 ─── */
+.controls{display:flex;gap:28px;align-items:flex-end;flex-wrap:wrap;padding:26px 0 18px;border-bottom:1px solid var(--line)}
+.modes{display:flex;border:1px solid var(--line-2)}
+.modes button{
+  appearance:none;background:transparent;border:0;border-right:1px solid var(--line-2);
+  color:var(--dim);font-family:var(--jp);font-size:.9rem;letter-spacing:.16em;
+  padding:11px 22px;cursor:pointer;transition:background .25s,color .25s;
+}
+.modes button:last-child{border-right:0}
+.modes button[aria-pressed="true"]{background:var(--bloom);color:var(--ink-0);font-weight:600}
+.modes button:hover:not([aria-pressed="true"]){color:var(--bloom);background:rgba(231,241,246,.07)}
+.opt{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;
+  letter-spacing:.16em;color:var(--dimmer);cursor:pointer;padding-bottom:4px}
+.opt input{accent-color:var(--halo);width:14px;height:14px}
+.opt:hover{color:var(--dim)}
+
+/* ─── 入出力 ─── */
+.bench{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);
+  border:1px solid var(--line);margin-top:26px}
+.cell{background:var(--ink-2);padding:20px 22px 22px;min-width:0}
+.cell-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px}
+.cell-head h2{margin:0;font-family:var(--mono);font-size:11px;letter-spacing:.28em;
+  text-transform:uppercase;color:var(--halo);font-weight:400}
+.count{font-family:var(--mono);font-size:11px;color:var(--dimmer);letter-spacing:.1em}
+textarea{
+  width:100%;min-height:150px;resize:vertical;background:transparent;border:0;outline:0;
+  color:var(--bloom);font-family:var(--jp);font-size:1.22rem;line-height:1.95;
+  letter-spacing:.06em;padding:0;
+}
+textarea::placeholder{color:rgba(159,191,209,.42)}
+textarea:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--halo);outline-offset:3px}
+.out{
+  min-height:150px;font-family:var(--cy);font-size:1rem;line-height:2.05;
+  word-break:break-word;color:var(--bloom);white-space:pre-wrap;
+}
+.out .g{transition:color .2s}
+.out .g:hover{color:var(--halo)}
+.out .dot{color:var(--seal);font-weight:700}
+.out .raw{color:var(--dimmer)}
+.out .bad{color:var(--seal);border-bottom:1px dashed var(--seal)}
+.out:empty::before{content:attr(data-empty);color:rgba(159,191,209,.42);font-family:var(--jp)}
+.tools{display:flex;gap:8px;margin-top:16px}
+.tools button{
+  appearance:none;background:transparent;border:1px solid var(--line-2);color:var(--dim);
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+  padding:8px 15px;cursor:pointer;transition:.22s;
+}
+.tools button:hover{border-color:var(--halo);color:var(--bloom);background:rgba(116,176,204,.1)}
+
+/* ─── 注意書き ─── */
+.notice{
+  margin-top:14px;border-left:2px solid var(--seal);padding:9px 0 9px 14px;
+  font-size:.83rem;color:var(--dim);display:none;
+}
+.notice.on{display:block}
+.notice b{color:var(--seal);font-weight:600}
+
+/* ─── 標本台紙 ─── */
+.sheet-head{display:flex;align-items:baseline;gap:16px;margin:64px 0 20px;
+  padding-bottom:11px;border-bottom:1px solid var(--line-2)}
+.sheet-head h2{margin:0;font-family:var(--jp);font-weight:600;font-size:1.15rem;letter-spacing:.2em}
+.sheet-head span{font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--dimmer)}
+.sheet{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:14px}
+.card{
+  background:var(--ink-2);border:1px solid var(--line);padding:14px 15px 15px;
+  display:flex;flex-direction:column;gap:9px;position:relative;overflow:hidden;
+  animation:lay .5s cubic-bezier(.22,.68,.32,1) backwards;
+}
+@keyframes lay{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+.card .no{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--dimmer)}
+.card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.card .kana{font-family:var(--jp);font-size:2.5rem;line-height:1;font-weight:400}
+.card .num{font-family:var(--mono);font-size:1.5rem;color:var(--halo);letter-spacing:.04em}
+.card .marks{display:flex;gap:9px;align-items:flex-end;padding:5px 0 3px;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.card .marks svg{width:34px;height:46px;color:var(--bloom);opacity:.9;flex:none}
+.card .marks .initonly{opacity:.34}
+.card .names{font-family:var(--cy);font-style:italic;font-size:.83rem;line-height:1.5;color:var(--dim)}
+.card .names em{font-style:italic;color:var(--bloom);font-weight:700}
+.card .tag{
+  position:absolute;top:0;right:0;font-family:var(--mono);font-size:9px;letter-spacing:.14em;
+  padding:3px 7px;background:var(--halo);color:var(--ink-0);
+}
+.card.err{border-color:var(--seal)}
+.card.err .tag{background:var(--seal);color:#fff}
+.card.err .kana{color:var(--seal)}
+.card.plain{opacity:.55}
+.card.plain .kana{color:var(--dim)}
+
+/* ─── 索引 ─── */
+.index{margin-top:76px;display:grid;grid-template-columns:1fr 1fr;gap:46px}
+.index h3{font-family:var(--jp);font-weight:600;font-size:1rem;letter-spacing:.2em;margin:0 0 4px}
+.index .cap{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;color:var(--dimmer);
+  margin:0 0 18px;padding-bottom:11px;border-bottom:1px solid var(--line-2)}
+.flora{display:flex;flex-direction:column;gap:2px}
+.flora .row{display:grid;grid-template-columns:22px 40px 1fr;gap:12px;align-items:center;
+  padding:5px 6px;transition:background .2s}
+.flora .row:hover{background:rgba(116,176,204,.09)}
+.flora .d{font-family:var(--mono);font-size:1.05rem;color:var(--halo)}
+.flora svg{width:32px;height:44px;color:var(--bloom);opacity:.85}
+.flora .n{font-family:var(--cy);font-style:italic;font-size:.9rem;color:var(--dim);line-height:1.35}
+.flora .n b{font-style:normal;color:var(--bloom);font-weight:700;margin-right:.15em}
+.iroha{display:grid;grid-template-columns:repeat(8,1fr);gap:1px;background:var(--line);
+  border:1px solid var(--line)}
+.iroha div{background:var(--ink-2);padding:7px 3px 5px;text-align:center}
+.iroha .k{font-family:var(--jp);font-size:1.05rem;display:block;line-height:1.2}
+.iroha .i{font-family:var(--mono);font-size:9px;color:var(--dimmer);display:block}
+.iroha .last{background:var(--ink-3)}
+.rules{margin-top:26px;border-top:1px solid var(--line);padding-top:16px}
+.rules dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:7px 16px;font-size:.85rem}
+.rules dt{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--halo);
+  padding-top:.35em;white-space:nowrap}
+.rules dd{margin:0;font-family:var(--cy);font-style:italic;color:var(--dim)}
+.rules dd .dot{color:var(--seal);font-style:normal;font-weight:700}
+
+footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);
+  font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--dimmer);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media(max-width:860px){
+  .bench{grid-template-columns:1fr}
+  .index{grid-template-columns:1fr;gap:44px}
+  .wrap{padding:0 18px 64px}
+  .masthead{padding-top:38px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<g id="_s" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></g>
+
+<symbol id="fl-0" viewBox="0 0 48 64"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M24 64V38"/><path d="M24 50c-6-1-9-5-11-10M24 44c5-1 8-4 10-8"/>
+<path d="M15 38c0-7 4-12 9-12s9 5 9 12c-4 3-14 3-18 0z"/>
+<path d="M18 27l-4-11M21 26l-2-13M24 25V12M27 26l2-13M30 27l4-11"/></g></symbol>
+
+<symbol id="fl-1" viewBox="0 0 48 64"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M24 64V33"/><path d="M24 48c-7-1-10-5-12-11M24 54c7-1 10-5 12-11"/>
+<g><ellipse cx="24" cy="15" rx="4.4" ry="8"/><ellipse cx="24" cy="15" rx="4.4" ry="8" transform="rotate(60 24 24)"/><ellipse cx="24" cy="15" rx="4.4" ry="8" transform="rotate(120 24 24)"/><ellipse cx="24" cy="15" rx="4.4" ry="8" transform="rotate(180 24 24)"/><ellipse cx="24" cy="15" rx="4.4" ry="8" transform="rotate(240 24 24)"/><ellipse cx="24" cy="15" rx="4.4" ry="8" transform="rotate(300 24 24)"/></g>
+<circle cx="24" cy="24" r="2.6"/></g></symbol>
+
+<symbol id="fl-2" viewBox="0 0 48 64"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M24 64V46"/><path d="M24 54l-6-5M24 48l6-5"/>
+<path d="M20 46h8V32h-8z"/>
+<path d="M12 32l2-9 3 4 2-8 3 5 2-8 2 8 3-5 2 8 3-4 2 9z"/></g></symbol>
+
+<symbol id="fl-3" viewBox="0 0 48 64"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M24 64V39"/><path d="M24 52c-6-1-9-5-11-10"/>
+<circle cx="24" cy="27" r="11.5"/>
+<path d="M12.6 26c4.5 4.5 18.3 4.5 22.8 0M18 17.2c-2.2 6-2.2 14.6 0 19.8M30 17.2c2.2 6 2.2 14.6 0 19.8"/></g></symbol>
+
+<symbol id="fl-4" viewBox="0 0 48 64"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M24 64V36"/><path d="M24 58l-5-5M24 50l5-5M24 42l-5-5"/>
+<circle cx="24" cy="26" r="5.5"/>
+<g><path d="M24 19v-7"/><path d="M24 19v-7" transform="rotate(45 24 26)"/><path d="M24 19v-7" transform="rotate(90 24 26)"/><path d="M24 19v-7" transform="rotate(135 24 26)"/><path d="M24 19v-7" transform="rotate(180 24 26)"/><path d="M24 19v-7" transform="rotate(225 24 26)"/><path d="M24 19v-7" transform="rotate(270 24 26)"/><path d="M24 19v-7" transform="rotate(315 24 26)"/></g></g></symbol>
+
+<symbol id="fl-5" viewBox="0 0 48 64"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M24 64V33"/><circle cx="24" cy="26" r="2.4"/>
+<g><g><path d="M24 21V11"/><circle cx="24" cy="10" r="1.1"/></g>
+<g transform="rotate(36 24 26)"><path d="M24 21V11"/><circle cx="24" cy="10" r="1.1"/></g>
+<g transform="rotate(72 24 26)"><path d="M24 21V11"/><circle cx="24" cy="10" r="1.1"/></g>
+<g transform="rotate(108 24 26)"><path d="M24 21V11"/><circle cx="24" cy="10" r="1.1"/></g>
+<g transform="rotate(144 24 26)"><path d="M24 21V11"/><circle cx="24" cy="10" r="1.1"/></g>
+<g transform="rotate(180 24 26)"><path d="M24 21V15"/></g>
+<g transform="rotate(216 24 26)"><path d="M24 21V11"/><circle cx="24" cy="10" r="1.1"/></g>
+<g transform="rotate(252 24 26)"><path d="M24 21V11"/><circle cx="24" cy="10" r="1.1"/></g>
+<g transform="rotate(288 24 26)"><path d="M24 21V11"/><circle cx="24" cy="10" r="1.1"/></g>
+<g transform="rotate(324 24 26)"><path d="M24 21V11"/><circle cx="24" cy="10" r="1.1"/></g></g></g></symbol>
+
+<symbol id="fl-6" viewBox="0 0 48 64"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M20 64V34c0-9 5-14 11-15"/><path d="M20 50c-5-1-8-5-9-10"/>
+<path d="M26 20c5 0 8 3 8 8 0 9-4 15-8 18-4-3-8-9-8-18 0-5 3-8 8-8z"/>
+<path d="M18.6 38c2 3 3.4 5 7.4 8 4-3 5.4-5 7.4-8"/></g></symbol>
+
+<symbol id="fl-7" viewBox="0 0 48 64"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M24 64V38"/>
+<path d="M24 56l-6-4M24 56l6-4M24 48l-6-4M24 48l6-4"/>
+<path d="M24 38C18 34 14 30 11 26M24 38c-3-5-5-9-6-13M24 38v-14M24 38c3-5 5-9 6-13M24 38c6-4 10-8 13-12"/>
+<circle cx="11" cy="24" r="2"/><circle cx="17.5" cy="23" r="2"/><circle cx="24" cy="22.5" r="2"/><circle cx="30.5" cy="23" r="2"/><circle cx="37" cy="24" r="2"/></g></symbol>
+
+<symbol id="fl-8" viewBox="0 0 48 64"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M24 64V37"/><path d="M24 52l-6-4"/>
+<g><g><path d="M22.2 20.5L21.6 9h4.8l-.6 11.5"/><path d="M21.9 9.4l1.1 1.4 1 -1.4 1 1.4 1 -1.4"/></g>
+<g transform="rotate(45 24 26)"><path d="M22.2 20.5L21.6 9h4.8l-.6 11.5"/></g>
+<g transform="rotate(90 24 26)"><path d="M22.2 20.5L21.6 9h4.8l-.6 11.5"/></g>
+<g transform="rotate(135 24 26)"><path d="M22.2 20.5L21.6 9h4.8l-.6 11.5"/></g>
+<g transform="rotate(180 24 26)"><path d="M22.2 20.5L21.6 9h4.8l-.6 11.5"/></g>
+<g transform="rotate(225 24 26)"><path d="M22.2 20.5L21.6 9h4.8l-.6 11.5"/></g>
+<g transform="rotate(270 24 26)"><path d="M22.2 20.5L21.6 9h4.8l-.6 11.5"/></g>
+<g transform="rotate(315 24 26)"><path d="M22.2 20.5L21.6 9h4.8l-.6 11.5"/></g></g>
+<circle cx="24" cy="26" r="3"/></g></symbol>
+
+<symbol id="fl-9" viewBox="0 0 48 64"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M17 64V27"/><path d="M17 48c5-1 8-4 9-9"/>
+<ellipse cx="17" cy="14" rx="4" ry="6"/><ellipse cx="17" cy="14" rx="4" ry="6" transform="rotate(90 17 20)"/><ellipse cx="17" cy="14" rx="4" ry="6" transform="rotate(180 17 20)"/><ellipse cx="17" cy="14" rx="4" ry="6" transform="rotate(270 17 20)"/>
+<circle cx="17" cy="20" r="1.8"/>
+<path d="M35 46V16"/><path d="M32.4 44V18.5c0-2 1-3 2.6-3s2.6 1 2.6 3V44c0 2-1 3-2.6 3s-2.6-1-2.6-3z"/></g></symbol>
+</defs></svg>
+
+<div class="wrap">
+
+<header class="masthead">
+  <div class="eyebrow">
+    <span>Гербарий цифр</span><span>Sibirica × Iroha</span><span class="seal">標本 №48</span>
+  </div>
+  <h1>花いろは暗号<span class="sub">Десять цветов, сорок восемь знаков</span></h1>
+  <p class="lede">かなを、いろは歌での順番に置きかえ、その数字を十種の花の名で綴る換字法。上の枠にかなを打つと、下の台紙に一字ずつ標本が並びます。</p>
+</header>
+
+<div class="controls">
+  <div class="modes" role="group" aria-label="変換の向き">
+    <button id="mEnc" aria-pressed="true">暗号にする</button>
+    <button id="mDec" aria-pressed="false">文にもどす</button>
+  </div>
+  <label class="opt"><input type="checkbox" id="spaced"> 一字ごとに空白をいれる</label>
+</div>
+
+<div class="bench">
+  <div class="cell">
+    <div class="cell-head"><h2 id="inLabel">日本語のかな</h2><span class="count" id="inCount">0字</span></div>
+    <textarea id="input" placeholder="こんにちわ" spellcheck="false" autocomplete="off"></textarea>
+    <div class="tools"><button id="btnSample">例をいれる</button><button id="btnClear">消す</button></div>
+  </div>
+  <div class="cell">
+    <div class="cell-head"><h2 id="outLabel">暗号文</h2><span class="count" id="outCount">0字</span></div>
+    <div class="out" id="output" data-empty="ここに花の名前が並びます"></div>
+    <div class="tools"><button id="btnCopy">コピー</button><button id="btnSwap">結果を入力に移す</button></div>
+    <div class="notice" id="notice"></div>
+  </div>
+</div>
+
+<div class="sheet-head">
+  <h2>標本台紙</h2><span id="sheetMeta">一字ずつの内訳</span>
+</div>
+<div class="sheet" id="sheet"></div>
+
+<div class="index">
+  <div>
+    <h3>花の索引</h3>
+    <p class="cap">Десять растений · 0—9</p>
+    <div class="flora" id="flora"></div>
+    <div class="rules">
+      <dl>
+        <dt>そのまま</dt><dd>Купальница Купальница<span style="font-style:normal;color:var(--dimmer)"> — こ</span></dd>
+        <dt>濁点</dt><dd>В<span class="dot">.</span>Мать-и-мачеха<span style="font-style:normal;color:var(--dimmer)"> — が</span></dd>
+        <dt>半濁点</dt><dd>Бодяк<span class="dot">.</span>К<span style="font-style:normal;color:var(--dimmer)"> — ぱ</span></dd>
+        <dt>小書き</dt><dd>В<span class="dot">.</span>Э<span style="font-style:normal;color:var(--dimmer)"> — っ</span></dd>
+      </dl>
+    </div>
+  </div>
+  <div>
+    <h3>いろは四十八</h3>
+    <p class="cap">Порядок знаков · 01—48</p>
+    <div class="iroha" id="irohaTable"></div>
+  </div>
+</div>
+
+<footer>
+  <span>花いろは暗号 · 変換台</span>
+  <span>いろは47字 + ん = 48</span>
+</footer>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ── 対応表 ────────────────────────────── */
+const IROHA = "いろはにほへとちりぬるをわかよたれそつねならむうゐのおくやまけふこえてあさきゆめみしゑひもせす" + "ん";
+
+const FLOWERS = [
+  "Бодяк","Ветреница","Гвоздика","Купальница","Мать-и-мачеха",
+  "Одуванчик","Поповиокодония","Тысячелистник","Цикорий","Эрмания"
+];
+
+const JP_NAME = ["アザミ","イチリンソウ","ナデシコ","キンバイソウ","フキタンポポ","タンポポ","キキョウ科の一属","ノコギリソウ","キクニガナ","アブラナ科の一属"];
+
+const DAKU = {"が":"か","ぎ":"き","ぐ":"く","げ":"け","ご":"こ","ざ":"さ","じ":"し","ず":"す","ぜ":"せ","ぞ":"そ","だ":"た","ぢ":"ち","づ":"つ","で":"て","ど":"と","ば":"は","び":"ひ","ぶ":"ふ","べ":"へ","ぼ":"ほ","ゔ":"う"};
+const HANDAKU = {"ぱ":"は","ぴ":"ひ","ぷ":"ふ","ぺ":"へ","ぽ":"ほ"};
+const SMALL = {"ぁ":"あ","ぃ":"い","ぅ":"う","ぇ":"え","ぉ":"お","ゃ":"や","ゅ":"ゆ","ょ":"よ","っ":"つ","ゎ":"わ"};
+
+const rev = o => Object.fromEntries(Object.entries(o).map(([k,v])=>[v,k]));
+const R_DAKU = rev(DAKU), R_HANDAKU = rev(HANDAKU), R_SMALL = rev(SMALL);
+
+const INITIALS = FLOWERS.map(n => n[0]);
+const INIT_TO_D = Object.fromEntries(INITIALS.map((c,i)=>[c,i]));
+const BY_LEN = FLOWERS.map((n,i)=>({n,i})).sort((a,b)=>b.n.length-a.n.length);
+
+const irohaIndex = ch => { const i = IROHA.indexOf(ch); return i<0 ? -1 : i+1; };
+
+/* ── 正規化 ───────────────────────────── */
+function toHira(ch){
+  const c = ch.codePointAt(0);
+  if (c>=0x30A1 && c<=0x30F6) return String.fromCodePoint(c-0x60);
+  if (c===0xFF66) return "を";
+  if (c>=0xFF71 && c<=0xFF9D) return ch; // 半角カナは非対応として通す
+  return ch;
+}
+
+/* ── 暗号化 ───────────────────────────── */
+// 戻り: {kind, ch, base, num, d1, d2, mod, parts:[{text,init}], text}
+function encodeChar(raw){
+  const ch = toHira(raw);
+  let base = ch, mod = "none";
+  if (DAKU[ch])         { base = DAKU[ch];    mod = "daku"; }
+  else if (HANDAKU[ch]) { base = HANDAKU[ch]; mod = "handaku"; }
+  else if (SMALL[ch])   { base = SMALL[ch];   mod = "small"; }
+
+  const num = irohaIndex(base);
+  if (num < 0) return { kind:"raw", ch:raw, text:raw };
+
+  const d1 = Math.floor(num/10), d2 = num%10;
+  const a = { d:d1, init: (mod==="daku"||mod==="small") };
+  const b = { d:d2, init: (mod==="handaku"||mod==="small") };
+  const sa = a.init ? INITIALS[d1] : FLOWERS[d1];
+  const sb = b.init ? INITIALS[d2] : FLOWERS[d2];
+  const dot = (mod !== "none");
+  return {
+    kind:"ok", ch, base, num, mod, parts:[a,b], dot,
+    text: dot ? sa + "." + sb : sa + sb,
+    sa, sb
+  };
+}
+
+function encode(str){
+  const items = [];
+  for (const raw of str.normalize("NFC")) items.push(encodeChar(raw));
+  return items;
+}
+
+/* ── 復号 ─────────────────────────────── */
+function readElement(s, i){
+  for (const {n, i:d} of BY_LEN) if (s.startsWith(n, i)) return { d, init:false, len:n.length };
+  const d = INIT_TO_D[s[i]];
+  if (d !== undefined) return { d, init:true, len:1 };
+  return null;
+}
+
+function decode(str){
+  const s = str.normalize("NFC");
+  const items = [];
+  let i = 0;
+  while (i < s.length){
+    if (s[i] === "."){ i++; continue; }
+    const a = readElement(s, i);
+    if (!a){ items.push({kind:"raw", ch:s[i], text:s[i]}); i++; continue; }
+    let j = i + a.len;
+    if (s[j] === ".") j++;
+    const b = readElement(s, j);
+    if (!b){ items.push({kind:"err", ch:s.slice(i, j), text:s.slice(i, j), why:"花が一つしかありません"}); i = j; continue; }
+    const end = j + b.len;
+
+    let mod = "none";
+    if ( a.init && !b.init) mod = "daku";
+    if (!a.init &&  b.init) mod = "handaku";
+    if ( a.init &&  b.init) mod = "small";
+
+    const num = a.d*10 + b.d;
+    const src = s.slice(i, end);
+    if (num < 1 || num > 48){
+      items.push({kind:"err", ch:src, text:"□", why:num+" はいろはの外です"});
+      i = end; continue;
+    }
+    const base = IROHA[num-1];
+    let out = base, ok = true;
+    if (mod === "daku")    { out = R_DAKU[base]    || null; if(!out) ok=false; }
+    if (mod === "handaku") { out = R_HANDAKU[base] || null; if(!out) ok=false; }
+    if (mod === "small")   { out = R_SMALL[base]   || null; if(!out) ok=false; }
+    if (!ok){
+      const label = mod==="daku"?"濁点":mod==="handaku"?"半濁点":"小書き";
+      items.push({kind:"err", ch:src, text:"□", num, base, mod, why:"「"+base+"」に"+label+"はつきません"});
+      i = end; continue;
+    }
+    items.push({kind:"ok", ch:out, base, num, mod, src,
+      parts:[{d:a.d,init:a.init},{d:b.d,init:b.init}],
+      sa: a.init?INITIALS[a.d]:FLOWERS[a.d], sb: b.init?INITIALS[b.d]:FLOWERS[b.d],
+      dot: mod!=="none", text: out});
+    i = end;
+  }
+  return items;
+}
+
+/* ── 画面 ─────────────────────────────── */
+const $ = id => document.getElementById(id);
+const el = { input:$("input"), output:$("output"), sheet:$("sheet"), notice:$("notice"),
+  inLabel:$("inLabel"), outLabel:$("outLabel"), inCount:$("inCount"), outCount:$("outCount"),
+  sheetMeta:$("sheetMeta"), spaced:$("spaced") };
+let mode = "enc";
+const esc = t => t.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const MODLABEL = {daku:"濁点", handaku:"半濁点", small:"小書き", none:""};
+
+function render(){
+  const src = el.input.value;
+  const items = mode === "enc" ? encode(src) : decode(src);
+  const sep = el.spaced.checked ? " " : "";
+
+  /* 出力テキスト */
+  const plain = items.map(x => x.text).join(mode === "enc" ? sep : "");
+  const html = items.map(x => {
+    if (x.kind === "raw") return '<span class="raw">' + esc(x.text) + '</span>';
+    if (x.kind === "err") return '<span class="bad" title="' + esc(x.why||"") + '">' + esc(x.text) + '</span>';
+    if (mode === "dec")   return '<span class="g">' + esc(x.text) + '</span>';
+    return '<span class="g">' + esc(x.sa) + (x.dot ? '<span class="dot">.</span>' : '') + esc(x.sb) + '</span>';
+  }).join(mode === "enc" ? sep : "");
+  el.output.innerHTML = html;
+  el.output.dataset.plain = plain;
+
+  el.inCount.textContent  = [...src].length + "字";
+  el.outCount.textContent = [...plain].length + "字";
+
+  /* 注意書き */
+  const rawChars = [...new Set(items.filter(x=>x.kind==="raw").map(x=>x.ch))]
+    .filter(c => !/\s/.test(c) && c !== "。" && c !== "、");
+  const errs = items.filter(x => x.kind === "err");
+  const msgs = [];
+  if (rawChars.length) msgs.push("<b>" + esc(rawChars.join(" ")) + "</b> は対応表にないので、そのまま置いてあります。漢字やカタカナ表記の語は、かなに開いてください。長音符「ー」も未定義です。");
+  if (errs.length) msgs.push("<b>" + errs.length + "か所</b>が読み解けません（" + esc(errs[0].why || "花の並びが不正です") + " ほか）。");
+  el.notice.innerHTML = msgs.join("<br>");
+  el.notice.classList.toggle("on", msgs.length > 0);
+
+  /* 標本台紙 */
+  const cards = items.filter(x => x.kind !== "raw" || /\S/.test(x.ch));
+  el.sheetMeta.textContent = cards.length ? cards.length + "点 · " + (mode==="enc" ? "かな → 花" : "花 → かな") : "一字ずつの内訳";
+  el.sheet.innerHTML = cards.map((x, n) => {
+    const no = String(n+1).padStart(2,"0");
+    const delay = "animation-delay:" + Math.min(n*28, 620) + "ms";
+    if (x.kind === "raw")
+      return '<article class="card plain" style="'+delay+'"><div class="no">'+no+'</div>'
+        + '<div class="top"><span class="kana">'+esc(x.ch)+'</span></div>'
+        + '<div class="names">対応表になし</div></article>';
+    if (x.kind === "err")
+      return '<article class="card err" style="'+delay+'"><span class="tag">読めず</span><div class="no">'+no+'</div>'
+        + '<div class="top"><span class="kana">□</span>'+(x.num?'<span class="num">'+String(x.num).padStart(2,"0")+'</span>':'')+'</div>'
+        + '<div class="names">'+esc(x.why||"")+'</div></article>';
+    const [a,b] = x.parts;
+    const mark = p => '<svg viewBox="0 0 48 64" class="'+(p.init?"initonly":"")+'"><use href="#fl-'+p.d+'"/></svg>';
+    const nm = (s,p) => p.init ? '<em>'+esc(s)+'</em>' : esc(s);
+    return '<article class="card" style="'+delay+'">'
+      + (x.mod !== "none" ? '<span class="tag">'+MODLABEL[x.mod]+'</span>' : '')
+      + '<div class="no">'+no+'</div>'
+      + '<div class="top"><span class="kana">'+esc(x.ch)+'</span><span class="num">'+String(x.num).padStart(2,"0")+'</span></div>'
+      + '<div class="marks">'+mark(a)+mark(b)+'</div>'
+      + '<div class="names">'+nm(x.sa,a)+(x.dot?'<span style="color:var(--seal);font-style:normal">.</span>':'<br>')+nm(x.sb,b)+'</div>'
+      + '</article>';
+  }).join("");
+}
+
+function setMode(m){
+  mode = m;
+  $("mEnc").setAttribute("aria-pressed", m === "enc");
+  $("mDec").setAttribute("aria-pressed", m === "dec");
+  el.inLabel.textContent  = m === "enc" ? "日本語のかな" : "暗号文";
+  el.outLabel.textContent = m === "enc" ? "暗号文" : "日本語のかな";
+  el.input.placeholder    = m === "enc" ? "こんにちわ" : "КупальницаКупальница…";
+  el.output.dataset.empty = m === "enc" ? "ここに花の名前が並びます" : "ここにかなが並びます";
+  el.input.style.fontFamily = m === "enc" ? "var(--jp)" : "var(--cy)";
+  el.output.style.fontFamily = m === "enc" ? "var(--cy)" : "var(--jp)";
+  el.output.style.fontSize = m === "enc" ? "1rem" : "1.22rem";
+  el.spaced.parentElement.style.opacity = m === "enc" ? "1" : ".35";
+  render();
+}
+
+$("mEnc").onclick = () => setMode("enc");
+$("mDec").onclick = () => setMode("dec");
+el.spaced.onchange = render;
+el.input.addEventListener("input", render);
+$("btnClear").onclick = () => { el.input.value = ""; el.input.focus(); render(); };
+$("btnSample").onclick = () => {
+  el.input.value = mode === "enc" ? "こんにちわ" : encode("こんにちわ").map(x=>x.text).join("");
+  render();
+};
+$("btnSwap").onclick = () => {
+  el.input.value = el.output.dataset.plain || "";
+  setMode(mode === "enc" ? "dec" : "enc");
+};
+$("btnCopy").onclick = async (e) => {
+  const t = el.output.dataset.plain || "";
+  if (!t) return;
+  const b = e.currentTarget, old = b.textContent;
+  try { await navigator.clipboard.writeText(t); }
+  catch { const ta = document.createElement("textarea"); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); }
+  b.textContent = "写しました"; setTimeout(() => { b.textContent = old; }, 1400);
+};
+
+/* 索引 */
+$("flora").innerHTML = FLOWERS.map((n,i) =>
+  '<div class="row"><span class="d">'+i+'</span>'
+  + '<svg viewBox="0 0 48 64"><use href="#fl-'+i+'"/></svg>'
+  + '<span class="n"><b>'+n[0]+'</b>'+n.slice(1)+'<br><span style="font-style:normal;font-family:var(--jp);font-size:.76rem;color:var(--dimmer)">'+JP_NAME[i]+'</span></span></div>'
+).join("");
+
+$("irohaTable").innerHTML = [...IROHA].map((k,i) =>
+  '<div'+(i===47?' class="last"':'')+'><span class="k">'+k+'</span><span class="i">'+String(i+1).padStart(2,"0")+'</span></div>'
+).join("");
+
+el.input.value = "こんにちわ";
+setMode("enc");
+})();
+</script>
+</body>
+</html>
