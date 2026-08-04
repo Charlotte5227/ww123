@@ -154,6 +154,18 @@ textarea:focus-visible,button:focus-visible,input:focus-visible{outline:2px soli
 .card.err .kana{color:var(--seal)}
 .card.plain{opacity:.55}
 .card.plain .kana{color:var(--dim)}
+.card.sp .kana{color:var(--halo)}
+.card.sp .tag{background:var(--dim);color:var(--ink-0)}
+.card.mk{opacity:.72}
+.card.mk .kana{color:var(--dimmer)}
+
+/* ─── 特殊符号表 ─── */
+.codes dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:9px 22px;font-size:.88rem}
+.codes dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--halo);
+  padding-top:.4em;white-space:nowrap}
+.codes dd{margin:0;color:var(--dim)}
+.codes dd b{color:var(--bloom);font-weight:600}
+.codes dd .ex{font-family:var(--cy);font-style:italic;color:var(--dimmer);font-size:.86em}
 
 /* ─── 索引 ─── */
 .index{margin-top:76px;display:grid;grid-template-columns:1fr 1fr;gap:46px}
@@ -276,7 +288,7 @@ footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);
     <span>Гербарий цифр</span><span>Sibirica × Iroha</span><span class="seal">標本 №48</span>
   </div>
   <h1>花いろは暗号<span class="sub">Десять цветов, сорок восемь знаков</span></h1>
-  <p class="lede">かなを、いろは歌での順番に置きかえ、その数字を十種の花の名で綴る換字法。上の枠にかなを打つと、下の台紙に一字ずつ標本が並びます。</p>
+  <p class="lede">かなを、いろは歌での順番に置きかえ、その数字を十種の花の名で綴る換字法。49より上の数は服務符号にあて、数字・句読点・長音・英字・キリル文字も綴れます。上の枠に打つと、下の台紙に一字ずつ標本が並びます。</p>
 </header>
 
 <div class="controls">
@@ -291,7 +303,7 @@ footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);
   <div class="cell">
     <div class="cell-head"><h2 id="inLabel">日本語のかな</h2><span class="count" id="inCount">0字</span></div>
     <textarea id="input" placeholder="こんにちわ" spellcheck="false" autocomplete="off"></textarea>
-    <div class="tools"><button id="btnSample">例をいれる</button><button id="btnClear">消す</button></div>
+    <div class="tools"><button id="btnSample">例をいれる</button><button id="btnShuffle">符号を振りなおす</button><button id="btnClear">消す</button></div>
   </div>
   <div class="cell">
     <div class="cell-head"><h2 id="outLabel">暗号文</h2><span class="count" id="outCount">0字</span></div>
@@ -327,9 +339,25 @@ footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);
   </div>
 </div>
 
+<div class="sheet-head">
+  <h2>特殊符号</h2><span>Служебные числа · 49—99</span>
+</div>
+<div class="codes">
+  <dl>
+    <dt>01 — 48</dt><dd><b>いろは</b>のかな（濁点・半濁点・小書きは頭文字で示す）</dd>
+    <dt>49</dt><dd>未使用</dd>
+    <dt>50 / 51 ⟶ 52 / 53</dt><dd><b>英字</b>のはじめとおわり。あいだは A=01 … Z=26<br><span class="ex">AI → Одуванчик Бодяк · Бодяк Ветреница · Бодяк Эрмания · Одуванчик Гвоздика</span></dd>
+    <dt>54 / 55 / 56 ⟶ 57 / 58 / 59</dt><dd><b>キリル文字</b>のはじめとおわり。あいだは А=01 … Я=33（ロシア語33字順、Ёを含む）</dd>
+    <dt>60 — 69</dt><dd><b>読点</b>「、」下一桁は任意</dd>
+    <dt>70 — 79</dt><dd><b>句点</b>「。」下一桁は任意</dd>
+    <dt>80 — 89</dt><dd><b>長音</b>「ー」下一桁は任意</dd>
+    <dt>90 — 99</dt><dd><b>数字</b> 0—9。頭は必ず Эрмания<br><span class="ex">10 → Эрмания Ветреница · Эрмания Бодяк</span></dd>
+  </dl>
+</div>
+
 <footer>
   <span>花いろは暗号 · 変換台</span>
-  <span>いろは47字 + ん = 48</span>
+  <span>いろは47字 + ん = 48 · 服務符号 50—99</span>
 </footer>
 
 </div>
@@ -348,6 +376,24 @@ const FLOWERS = [
 
 const JP_NAME = ["アザミ","イチリンソウ","ナデシコ","キンバイソウ","フキタンポポ","タンポポ","キキョウ科の一属","ノコギリソウ","キクニガナ","アブラナ科の一属"];
 
+/* 服務符号 ── 49は未使用 */
+const ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const CYR   = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ";
+const OPEN_LAT = [50,51], CLOSE_LAT = [52,53];
+const OPEN_CYR = [54,55,56], CLOSE_CYR = [57,58,59];
+const PUNCT_BASE  = {"、":60, "。":70, "ー":80};
+const PUNCT_LABEL = {"、":"読点", "。":"句点", "ー":"長音"};
+
+/* 下一桁の任意の数は、打っている途中で暴れないよう順に貯めておく */
+const POOL = [];
+let poolIdx = 0;
+function nextR(){
+  if (POOL.length <= poolIdx) POOL.push(Math.floor(Math.random()*10));
+  return POOL[poolIdx++];
+}
+const rndTail = base => base + nextR();
+const pick = arr => arr[nextR() % arr.length];
+
 const DAKU = {"が":"か","ぎ":"き","ぐ":"く","げ":"け","ご":"こ","ざ":"さ","じ":"し","ず":"す","ぜ":"せ","ぞ":"そ","だ":"た","ぢ":"ち","づ":"つ","で":"て","ど":"と","ば":"は","び":"ひ","ぶ":"ふ","べ":"へ","ぼ":"ほ","ゔ":"う"};
 const HANDAKU = {"ぱ":"は","ぴ":"ひ","ぷ":"ふ","ぺ":"へ","ぽ":"ほ"};
 const SMALL = {"ぁ":"あ","ぃ":"い","ぅ":"う","ぇ":"え","ぉ":"お","ゃ":"や","ゅ":"ゆ","ょ":"よ","っ":"つ","ゎ":"わ"};
@@ -362,6 +408,17 @@ const BY_LEN = FLOWERS.map((n,i)=>({n,i})).sort((a,b)=>b.n.length-a.n.length);
 const irohaIndex = ch => { const i = IROHA.indexOf(ch); return i<0 ? -1 : i+1; };
 
 /* ── 正規化 ───────────────────────────── */
+const ALIAS = {"｡":"。","．":"。",".":"。","､":"、","，":"、",",":"、","ｰ":"ー","―":"ー","—":"ー","－":"ー"};
+function normChar(ch){
+  const c = ch.codePointAt(0);
+  if (c>=0xFF10 && c<=0xFF19) return String.fromCodePoint(c-0xFEE0); // ０-９
+  if (c>=0xFF21 && c<=0xFF3A) return String.fromCodePoint(c-0xFEE0); // Ａ-Ｚ
+  if (c>=0xFF41 && c<=0xFF5A) return String.fromCodePoint(c-0xFEE0); // ａ-ｚ
+  return ALIAS[ch] || ch;
+}
+const isLat = c => /^[A-Za-z]$/.test(c);
+const isCyr = c => CYR.indexOf(c.toUpperCase()) >= 0;
+
 function toHira(ch){
   const c = ch.codePointAt(0);
   if (c>=0x30A1 && c<=0x30F6) return String.fromCodePoint(c-0x60);
@@ -381,6 +438,7 @@ function encodeChar(raw){
 
   const num = irohaIndex(base);
   if (num < 0) return { kind:"raw", ch:raw, text:raw };
+  const cat = "kana";
 
   const d1 = Math.floor(num/10), d2 = num%10;
   const a = { d:d1, init: (mod==="daku"||mod==="small") };
@@ -389,15 +447,53 @@ function encodeChar(raw){
   const sb = b.init ? INITIALS[d2] : FLOWERS[d2];
   const dot = (mod !== "none");
   return {
-    kind:"ok", ch, base, num, mod, parts:[a,b], dot,
+    kind:"ok", cat, ch, base, num, mod, parts:[a,b], dot,
     text: dot ? sa + "." + sb : sa + sb,
     sa, sb
   };
 }
 
+/* 濁点などのつかない、数だけの一標本 */
+function fromNum(num, ch, cat, label){
+  const d1 = Math.floor(num/10), d2 = num%10;
+  const sa = FLOWERS[d1], sb = FLOWERS[d2];
+  return { kind:"ok", cat, label, ch, base:ch, num, mod:"none",
+           parts:[{d:d1,init:false},{d:d2,init:false}], dot:false, sa, sb, text: sa+sb };
+}
+
 function encode(str){
+  const s = str.normalize("NFC");
   const items = [];
-  for (const raw of str.normalize("NFC")) items.push(encodeChar(raw));
+  poolIdx = 0;
+  let i = 0;
+  while (i < s.length){
+    const ch = normChar(s[i]);
+
+    /* 英字・キリル文字は、ひと続きをはじめとおわりの符号ではさむ */
+    if (isLat(ch) || isCyr(ch)){
+      const lat = isLat(ch), tbl = lat ? ALPHA : CYR;
+      const run = [];
+      while (i < s.length){
+        const c = normChar(s[i]);
+        if (!(lat ? isLat(c) : isCyr(c))) break;
+        run.push(c.toUpperCase()); i++;
+      }
+      items.push(fromNum(pick(lat?OPEN_LAT:OPEN_CYR), lat?"［":"《", "mark", lat?"英字はじめ":"キリルはじめ"));
+      for (const c of run) items.push(fromNum(tbl.indexOf(c)+1, c, "letter", lat?"英字":"キリル"));
+      items.push(fromNum(pick(lat?CLOSE_LAT:CLOSE_CYR), lat?"］":"》", "mark", lat?"英字おわり":"キリルおわり"));
+      continue;
+    }
+
+    /* 数字は 9x */
+    if (/^[0-9]$/.test(ch)){ items.push(fromNum(90+Number(ch), ch, "digit", "数字")); i++; continue; }
+
+    /* 読点・句点・長音は下一桁が任意 */
+    if (PUNCT_BASE[ch] !== undefined){
+      items.push(fromNum(rndTail(PUNCT_BASE[ch]), ch, "punct", PUNCT_LABEL[ch])); i++; continue;
+    }
+
+    items.push(encodeChar(s[i])); i++;
+  }
   return items;
 }
 
@@ -413,6 +509,7 @@ function decode(str){
   const s = str.normalize("NFC");
   const items = [];
   let i = 0;
+  let letters = null;                 // null / "lat" / "cyr"
   while (i < s.length){
     if (s[i] === "."){ i++; continue; }
     const a = readElement(s, i);
@@ -422,6 +519,8 @@ function decode(str){
     const b = readElement(s, j);
     if (!b){ items.push({kind:"err", ch:s.slice(i, j), text:s.slice(i, j), why:"花が一つしかありません"}); i = j; continue; }
     const end = j + b.len;
+    const src = s.slice(i, end);
+    i = end;
 
     let mod = "none";
     if ( a.init && !b.init) mod = "daku";
@@ -429,10 +528,38 @@ function decode(str){
     if ( a.init &&  b.init) mod = "small";
 
     const num = a.d*10 + b.d;
-    const src = s.slice(i, end);
+    const parts = [{d:a.d,init:a.init},{d:b.d,init:b.init}];
+    const sa = a.init?INITIALS[a.d]:FLOWERS[a.d];
+    const sb = b.init?INITIALS[b.d]:FLOWERS[b.d];
+    const put = (ch, cat, label) => items.push({kind:"ok", cat, label, ch, num, mod:"none",
+      parts, sa, sb, dot:false, src, text: cat==="mark" ? "" : ch});
+    const bad = why => items.push({kind:"err", ch:src, text:"□", num, why});
+
+    /* 英字・キリル文字のあいだ */
+    if (letters){
+      const lat = letters === "lat", tbl = lat ? ALPHA : CYR;
+      if (mod !== "none"){ bad("欧文には濁点などをつけられません"); continue; }
+      if ((lat?CLOSE_LAT:CLOSE_CYR).includes(num)){
+        put(lat?"］":"》", "mark", lat?"英字おわり":"キリルおわり"); letters = null; continue;
+      }
+      if (num >= 1 && num <= tbl.length){ put(tbl[num-1], "letter", lat?"英字":"キリル"); continue; }
+      bad(num + " は" + (lat?"英字26字":"キリル33字") + "の外です");
+      continue;
+    }
+
+    if (mod === "none"){
+      if (OPEN_LAT.includes(num)){ put("［","mark","英字はじめ");  letters = "lat"; continue; }
+      if (OPEN_CYR.includes(num)){ put("《","mark","キリルはじめ"); letters = "cyr"; continue; }
+      if (CLOSE_LAT.includes(num) || CLOSE_CYR.includes(num)){ bad(num+" にあたるはじめの符号がありません"); continue; }
+      if (num >= 60 && num <= 69){ put("、","punct","読点"); continue; }
+      if (num >= 70 && num <= 79){ put("。","punct","句点"); continue; }
+      if (num >= 80 && num <= 89){ put("ー","punct","長音"); continue; }
+      if (num >= 90 && num <= 99){ put(String(num-90),"digit","数字"); continue; }
+    }
+
     if (num < 1 || num > 48){
-      items.push({kind:"err", ch:src, text:"□", why:num+" はいろはの外です"});
-      i = end; continue;
+      items.push({kind:"err", ch:src, text:"□", num, why:num+" はいろはの外です"});
+      continue;
     }
     const base = IROHA[num-1];
     let out = base, ok = true;
@@ -442,14 +569,12 @@ function decode(str){
     if (!ok){
       const label = mod==="daku"?"濁点":mod==="handaku"?"半濁点":"小書き";
       items.push({kind:"err", ch:src, text:"□", num, base, mod, why:"「"+base+"」に"+label+"はつきません"});
-      i = end; continue;
+      continue;
     }
-    items.push({kind:"ok", ch:out, base, num, mod, src,
-      parts:[{d:a.d,init:a.init},{d:b.d,init:b.init}],
-      sa: a.init?INITIALS[a.d]:FLOWERS[a.d], sb: b.init?INITIALS[b.d]:FLOWERS[b.d],
+    items.push({kind:"ok", cat:"kana", ch:out, base, num, mod, src, parts, sa, sb,
       dot: mod!=="none", text: out});
-    i = end;
   }
+  if (letters) items.push({kind:"err", ch:"", text:"□", why:"欧文のおわりの符号がありません"});
   return items;
 }
 
@@ -486,7 +611,7 @@ function render(){
     .filter(c => !/\s/.test(c) && c !== "。" && c !== "、");
   const errs = items.filter(x => x.kind === "err");
   const msgs = [];
-  if (rawChars.length) msgs.push("<b>" + esc(rawChars.join(" ")) + "</b> は対応表にないので、そのまま置いてあります。漢字やカタカナ表記の語は、かなに開いてください。長音符「ー」も未定義です。");
+  if (rawChars.length) msgs.push("<b>" + esc(rawChars.join(" ")) + "</b> は対応表にないので、そのまま置いてあります。漢字は、かなに開いてください。");
   if (errs.length) msgs.push("<b>" + errs.length + "か所</b>が読み解けません（" + esc(errs[0].why || "花の並びが不正です") + " ほか）。");
   el.notice.innerHTML = msgs.join("<br>");
   el.notice.classList.toggle("on", msgs.length > 0);
@@ -508,8 +633,11 @@ function render(){
     const [a,b] = x.parts;
     const mark = p => '<svg viewBox="0 0 48 64" class="'+(p.init?"initonly":"")+'"><use href="#fl-'+p.d+'"/></svg>';
     const nm = (s,p) => p.init ? '<em>'+esc(s)+'</em>' : esc(s);
-    return '<article class="card" style="'+delay+'">'
-      + (x.mod !== "none" ? '<span class="tag">'+MODLABEL[x.mod]+'</span>' : '')
+    const cat = x.cat || "kana";
+    const tag = cat === "kana" ? MODLABEL[x.mod] : (x.label || "");
+    const cls = cat === "mark" ? " mk" : cat === "kana" ? "" : " sp";
+    return '<article class="card'+cls+'" style="'+delay+'">'
+      + (tag ? '<span class="tag">'+esc(tag)+'</span>' : '')
       + '<div class="no">'+no+'</div>'
       + '<div class="top"><span class="kana">'+esc(x.ch)+'</span><span class="num">'+String(x.num).padStart(2,"0")+'</span></div>'
       + '<div class="marks">'+mark(a)+mark(b)+'</div>'
@@ -538,8 +666,10 @@ $("mDec").onclick = () => setMode("dec");
 el.spaced.onchange = render;
 el.input.addEventListener("input", render);
 $("btnClear").onclick = () => { el.input.value = ""; el.input.focus(); render(); };
+$("btnShuffle").onclick = () => { POOL.length = 0; render(); };
+const SAMPLE = "こんにちわ、AI2026ー。";
 $("btnSample").onclick = () => {
-  el.input.value = mode === "enc" ? "こんにちわ" : encode("こんにちわ").map(x=>x.text).join("");
+  el.input.value = mode === "enc" ? SAMPLE : encode(SAMPLE).map(x=>x.text).join("");
   render();
 };
 $("btnSwap").onclick = () => {
@@ -566,7 +696,7 @@ $("irohaTable").innerHTML = [...IROHA].map((k,i) =>
   '<div'+(i===47?' class="last"':'')+'><span class="k">'+k+'</span><span class="i">'+String(i+1).padStart(2,"0")+'</span></div>'
 ).join("");
 
-el.input.value = "こんにちわ";
+el.input.value = SAMPLE;
 setMode("enc");
 })();
 </script>
