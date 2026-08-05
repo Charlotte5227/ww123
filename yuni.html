@@ -9,7 +9,7 @@
   --washi:#EFF1F0; --washi2:#F8F9F9; --sumi:#1A1E20; --sumi2:#5C6669;
   --rule:#D4D9D8; --rule2:#E3E7E6;
   --yoru:#131C2C; --yoru2:#1D2A3D;
-  --yuki:#F4F8FB; --kori:#8FC3E8; --kin:#DAC58D;
+  --yuki:#F4F8FB; --kori:#8FC3E8; --kin:#DAC58D; --wakaba:#9FD6B4;
   --mincho:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP","MS PMincho",serif;
   --gothic:"Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,-apple-system,sans-serif;
   --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
@@ -46,6 +46,12 @@ h1{
 .modes button[aria-selected="true"]{background:var(--sumi);color:var(--washi2)}
 .modes button:focus-visible{outline:2px solid var(--yoru);outline-offset:2px}
 
+.styleRow{display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap}
+.styleRow select{
+  font-family:var(--mincho); font-size:15px; letter-spacing:.08em; padding:9px 13px;
+  background:var(--washi2); border:1px solid var(--rule); border-radius:0; color:var(--sumi); cursor:pointer;
+}
+.styleRow select:focus{outline:none;border-color:var(--yoru);box-shadow:0 0 0 3px rgba(19,28,44,.09)}
 label.fld{display:block;font-size:11px;letter-spacing:.2em;color:var(--sumi2);margin-bottom:9px}
 textarea{
   width:100%; min-height:120px; padding:15px; resize:vertical;
@@ -94,7 +100,9 @@ textarea:focus{outline:none;border-color:var(--yoru);box-shadow:0 0 0 3px rgba(1
 .cipher.tate .blk{margin-block-end:.34em}
 .cipher:not(.tate) .blk{margin-inline-end:.34em}
 .cipher .mk{color:var(--kori)}
-.cipher .pf{color:var(--kin)}
+.cipher .es{color:var(--kin)}
+.cipher .fg{color:var(--wakaba);font-size:1.06em}
+.cipher .ah{opacity:.72}
 .cipher .empty{color:rgba(244,248,251,.3);font-size:16px;letter-spacing:.2em}
 .tzbar{
   position:relative; z-index:2; display:flex; gap:8px; flex-wrap:wrap; align-items:center;
@@ -117,6 +125,7 @@ textarea:focus{outline:none;border-color:var(--yoru);box-shadow:0 0 0 3px rgba(1
 .legend .l1::before{background:var(--kin)}
 .legend .l2::before{background:var(--kori)}
 .legend .l3::before{background:#93A2AE}
+.legend .l4::before{background:#4E8C68}
 
 /* ── 折畳 ── */
 details{margin-top:14px;border-top:1px solid var(--rule)}
@@ -143,7 +152,13 @@ td .jp{font-family:var(--mincho);font-size:16px;letter-spacing:.05em}
 .tables ol{list-style:none;font-family:var(--mono);font-size:12px}
 .tables li{display:flex;align-items:baseline;gap:11px;padding:5px 0;border-bottom:1px solid var(--rule2)}
 .tables li span{font-family:var(--mincho);font-size:20px;line-height:1.3}
-.tables .unused{opacity:.42}
+.tables li em{margin-left:auto;font-family:var(--gothic);font-size:10px;font-style:normal;letter-spacing:.1em;color:#2B4C7E}
+.tables .flagrow{background:#E8EEF3;padding-left:7px;padding-right:7px}
+tr.arow{background:#F2F1EB}
+tr.erow{background:#F5EFE0}
+tr.erow td{color:#7A5F24;font-family:var(--gothic);font-size:11px}
+tr.frow{background:#E4EFE7}
+tr.frow td{color:#2F6647;font-family:var(--gothic);font-size:11px}
 .steps{counter-reset:s;font-size:13.5px}
 .steps li{list-style:none;position:relative;padding:0 0 13px 34px;line-height:1.7}
 .steps li::before{
@@ -151,6 +166,9 @@ td .jp{font-family:var(--mincho);font-size:16px;letter-spacing:.05em}
   font-family:var(--mono); font-size:10px; color:var(--sumi2);
   border:1px solid var(--rule); width:21px; height:21px; display:grid; place-items:center;
 }
+.subh{font-family:var(--mincho);font-size:14px;letter-spacing:.16em;font-weight:600;margin:26px 0 10px;padding-left:34px}
+.note b{font-family:var(--mincho);font-size:15px;color:var(--sumi)}
+.nohang{margin-top:0}
 .note{font-size:12px;color:var(--sumi2);margin-top:10px;padding-left:34px;line-height:1.7}
 footer{margin-top:44px;padding-top:22px;border-top:1px solid var(--rule);font-size:11px;color:var(--sumi2);letter-spacing:.08em}
 
@@ -174,12 +192,21 @@ footer{margin-top:44px;padding-top:22px;border-top:1px solid var(--rule);font-si
 <header>
   <h1>雪日暗号</h1>
   <div class="romaji">Setsujitsu cipher</div>
-  <p class="thesis">表Ⅰの字は<b>数</b>を、表Ⅱの字は<b>区切り</b>を示す。<br>同じに見える二つの字を、見分けることが鍵になる。</p>
+  <p class="thesis">表Ⅰの字は<b>数</b>を、表Ⅱの字は<b>区切り</b>を示す。<br>一区は三字。同じに見える二つの字を、見分けることが鍵になる。</p>
 </header>
 
 <div class="modes" role="tablist">
   <button role="tab" id="m-enc" aria-selected="true" onclick="setMode('enc')">暗号化</button>
   <button role="tab" id="m-dec" aria-selected="false" onclick="setMode('dec')">復号</button>
+</div>
+
+<div class="styleRow" id="styleRow">
+  <label class="fld" for="style" style="margin:0">組み方</label>
+  <select id="style" onchange="run()">
+    <option value="auto">漢字は㤨・記号は𦤳で区切る</option>
+    <option value="short">短くなる方を選ぶ</option>
+    <option value="marker">マーカーだけで組む</option>
+  </select>
 </div>
 
 <label class="fld" id="inlabel" for="input">原文</label>
@@ -202,7 +229,8 @@ footer{margin-top:44px;padding-top:22px;border-top:1px solid var(--rule);font-si
 </div>
 
 <div class="legend">
-  <span class="l1">先頭＝一字の長さ</span>
+  <span class="l4">㤨𦤳＝区間の標識</span>
+  <span class="l1">曰＋数＝マーカーの字数</span>
   <span class="l2">表Ⅱの字＝マーカー</span>
   <span class="l3">表Ⅰの字＝本文</span>
 </div>
@@ -222,7 +250,7 @@ footer{margin-top:44px;padding-top:22px;border-top:1px solid var(--rule);font-si
     </div>
     <div>
       <h3>表Ⅱ　マーカー</h3>
-      <p>マーカー区の中央の一字にだけ用いる。8進数のため、8と9は現れない。</p>
+      <p>マーカー区の中央の一字に用いる。0〜7は8進数の桁を表す。8と9は桁には現れないため、標識式の目印として使う。</p>
       <ol id="tbl2"></ol>
     </div>
   </div>
@@ -233,23 +261,42 @@ footer{margin-top:44px;padding-top:22px;border-top:1px solid var(--rule);font-si
   <div class="dbody">
     <ol class="steps">
       <li>その文字のUnicodeを取得する。</li>
-      <li>その16進数を前半2文字(A)と後半2文字(B)に分ける。</li>
+      <li>その16進数を、下位2桁(B)と、それより上(A)に分ける。</li>
       <li>A、Bそれぞれを8進数に変換する。</li>
       <li>Aが同一のものはひとまとめにし、その塊の先頭にマーカーとして置く。</li>
-      <li>Bを16進数として捉えて10進数に直し、桁を揃える。</li>
+      <li>Bを16進数として捉えて10進数に直し、先頭に0を足して3桁にする。</li>
       <li>それぞれの値を表Ⅰに照らして変換する。</li>
-      <li>マーカーの桁数を揃えて変換する。ただし中央の一字だけは表Ⅱを用いる。</li>
-      <li>最終的な文字数を揃えて、完成。</li>
+      <li>マーカーも3桁に揃えて変換する。ただし中央の一字だけは表Ⅱを用いる。</li>
     </ol>
     <p class="note">
-      桁を揃えるときは先頭に0を足す。一字の長さは文章内で統一し、文章の先頭に表Ⅰで示す。<br>
-      中央が二字に分かれる場合は、先に出る側を表Ⅱにする。<br>
-      Unicodeが5桁になる文字は扱わない。
+      一区は常に三字。文章の長さや中身によらず変わらないため、長さを先頭で示す必要はない。<br>
+      中央は常に真ん中の一字なので、区切りの偏りを決める但し書きも要らない。
+    </p>
+    <h3 class="subh">区間の標識</h3>
+    <p class="note nohang">
+      漢字や記号は、続いてもAが同じにならない。そこでその塊の先頭に標識を一字だけ置き、
+      そこから先はAとBを交互に並べる。このときAはBと同じ処理を行う。<br>
+      漢字の塊なら表Ⅱの8、すなわち <b>㤨</b>。記号の塊なら表Ⅱの9、すなわち <b>𦤳</b>。<br>
+      標識の効き目は、次のマーカーが出るまで続く。マーカーが出た時点で、ふたたびマーカー式に戻る。
+    </p>
+    <h3 class="subh">マーカーの桁の切替</h3>
+    <p class="note nohang">
+      Unicodeが5桁になる文字は、Aを上位3桁として扱う。<br>
+      このときAの8進数は、第1面（絵文字など U+10000–1FFFF）ならちょうど3桁に収まるので、何もしなくてよい。<br>
+      第2面以降（漢字拡張Bなど U+20000–）だけは4桁になる。そこで <b>曰</b> と、続く字数を表Ⅰで表した一字を組にして置き、
+      そこから先のマーカーをその字数で書く。もとに戻すときは <b>曰捧</b> を置く。<br>
+      本文の区は、どこでも常に三字のまま変わらない。
+    </p>
+    <h3 class="subh">取り違えが起きない理由</h3>
+    <p class="note nohang">
+      区の切れ目に表Ⅱの字が来るのは、標識か桁の切替のときだけ。マーカーの表Ⅱの字は必ず中央にあり、
+      先頭には来ないため、区の始まりを見ればどれなのか一意に決まる。<br>
+      8と9は8進数の桁に現れないので、標識とマーカーが混じることもない。
     </p>
   </div>
 </details>
 
-<footer>基本多言語面（U+0000–U+FFFF）の文字に対応</footer>
+<footer>U+0000–U+FFFFF に対応（絵文字・漢字拡張を含む）</footer>
 
 </div>
 
@@ -259,31 +306,77 @@ const T2 = Array.from('曰⺝𧘻捀讚䞇紳𡬭㤨𦤳');
 const T1i = new Map(T1.map((c,i)=>[c,i]));
 const T2i = new Map(T2.map((c,i)=>[c,i]));
 const midIndex = L => (L%2===1) ? (L-1)/2 : L/2-1;
-const U = cp => 'U+'+cp.toString(16).toUpperCase().padStart(4,'0');
+const U = cp => 'U+'+cp.toString(16).toUpperCase().padStart(cp>0xFFFF?5:4,'0');
+
+const octVal = n => parseInt(n.toString(8),16).toString(10);   // 8進を16進として読み10進へ
+const DATA = 3;                                                // 本文の区は常に3字
+
+/* 字の種別: 漢字 / 記号 / その他（5桁はマーカー式に任せる） */
+function charClass(cp){
+  if(cp > 0xFFFF) return 'other';
+  if((cp>=0x3400&&cp<=0x4DBF)||(cp>=0x4E00&&cp<=0x9FFF)||(cp>=0xF900&&cp<=0xFAFF)) return 'kanji';
+  if(cp>=0x2000 && /[\p{P}\p{S}\p{No}]/u.test(String.fromCodePoint(cp))) return 'symbol';
+  return 'other';
+}
+const FLAGNAME = {8:'漢字', 9:'記号'};
 
 /* ───── 暗号化 ───── */
-function encode(text){
+function encode(text, style){
+  style = style || 'auto';
   const chars = Array.from(text);
   if(!chars.length) throw new Error('原文を入力してください。');
-  const blocks = []; let prevA = null;
-  for(const ch of chars){
+  const units = chars.map(ch=>{
     const cp = ch.codePointAt(0);
-    if(cp > 0xFFFF) throw new Error('「'+ch+'」('+U(cp)+') は基本多言語面の外にあるため扱えません。');
-    const A = cp>>8, B = cp&0xFF;
-    const Aoct = A.toString(8), Boct = B.toString(8);
-    const val = parseInt(Boct,16).toString(10);
-    if(Aoct !== prevA){ blocks.push({kind:'marker',digits:Aoct,A,Aoct}); prevA = Aoct; }
-    blocks.push({kind:'data',digits:val,ch,cp,A,B,Aoct,Boct,val});
+    if(cp > 0xFFFFF) throw new Error('「'+ch+'」('+U(cp)+') は扱える範囲 U+0000–FFFFF を超えています。');
+    return {ch, cp, A:cp>>8, B:cp&0xFF, cls:charClass(cp)};
+  });
+  const runs = [];
+  for(const u of units){
+    const last = runs[runs.length-1];
+    if(last && last.cls===u.cls) last.units.push(u); else runs.push({cls:u.cls, units:[u]});
   }
-  const L = Math.max.apply(null, blocks.map(b=>b.digits.length));
-  const mid = midIndex(L);
-  let cipher = T1[L];
+  const blocks = []; let mlen = 3, prevA = null;
+  for(const r of runs){
+    const f = r.cls==='kanji' ? 8 : r.cls==='symbol' ? 9 : null;
+    let useFlag = false;
+    if(f!==null && style!=='marker'){
+      if(style==='auto') useFlag = true;
+      else {
+        let m=0, p=null;
+        for(const u of r.units){ const o=u.A.toString(8); if(o!==p){ m++; p=o; } }
+        useFlag = (1 + 2*r.units.length*DATA) <= ((m + r.units.length)*DATA);
+      }
+    }
+    r.flag = useFlag ? f : null;
+    if(useFlag){
+      blocks.push({kind:'flag', flag:f}); prevA = null;
+      for(const u of r.units){
+        blocks.push(Object.assign({kind:'ahalf', digits:octVal(u.A), len:DATA, oct:u.A.toString(8)}, u));
+        blocks.push(Object.assign({kind:'bhalf', digits:octVal(u.B), len:DATA, oct:u.B.toString(8)}, u));
+      }
+    } else {
+      for(const u of r.units){
+        const o = u.A.toString(8);
+        if(o !== prevA){
+          const need = Math.max(3, o.length);
+          if(need !== mlen){ blocks.push({kind:'esc', n:need}); mlen = need; }
+          blocks.push({kind:'marker', digits:o, len:mlen, A:u.A, Aoct:o});
+          prevA = o;
+        }
+        blocks.push(Object.assign({kind:'data', digits:octVal(u.B), len:DATA, oct:u.B.toString(8)}, u));
+      }
+    }
+  }
+  let cipher = '';
   for(const b of blocks){
-    b.padded = b.digits.padStart(L,'0');
+    if(b.kind==='esc'){  b.text = T2[0] + T1[b.n];  cipher += b.text; continue; }
+    if(b.kind==='flag'){ b.text = T2[b.flag];       cipher += b.text; continue; }
+    const mid = midIndex(b.len);
+    b.padded = b.digits.padStart(b.len,'0');
     b.text = Array.from(b.padded).map((n,i)=>(b.kind==='marker'&&i===mid)?T2[+n]:T1[+n]).join('');
     cipher += b.text;
   }
-  return {cipher, L, mid, blocks, prefix:T1[L]};
+  return {cipher, blocks, runs};
 }
 
 /* ───── 復号 ───── */
@@ -292,41 +385,62 @@ function decode(cipher){
   if(!chars.length) throw new Error('暗号文を入力してください。');
   for(const c of chars) if(!T1i.has(c) && !T2i.has(c))
     throw new Error('「'+c+'」は表Ⅰ・表Ⅱのどちらにもありません。');
-  const L = T1i.get(chars[0]);
-  if(L === undefined) throw new Error('先頭は一字の長さを示す表Ⅰの字である必要があります。');
-  if(L < 1) throw new Error('先頭が示す一字の長さが0です。');
-  const body = chars.slice(1);
-  if(!body.length) throw new Error('先頭の一字しかありません。');
-  if(body.length % L !== 0)
-    throw new Error('本体'+body.length+'字が、一字の長さ'+L+'で割り切れません。');
-  const mid = midIndex(L);
-  const blocks = []; let A = null, out = '';
-  for(let i=0;i<body.length;i+=L){
-    const blk = body.slice(i,i+L), n = i/L+1, s = blk.join('');
-    const isM = T2i.has(blk[mid]);
-    const digits = blk.map((c,j)=>{
-      if(j===mid && isM) return T2i.get(c);
-      if(!T1i.has(c)) throw new Error('第'+n+'区「'+s+'」の'+(j+1)+'字目に表Ⅱの字があります。位置が合っていません。');
+  const blocks = []; let out='', A=null, pair=null, mlen=3, i=0, n=0;
+  const toVal = blk => {
+    const s = blk.join('');
+    const d = blk.map(c=>{
+      if(!T1i.has(c)) throw new Error('第'+n+'区「'+s+'」に表Ⅱの字があります。位置が合っていません。');
       return T1i.get(c);
     });
-    const ds = digits.join('');
-    if(isM){
-      if(digits.some(d=>d>7)) throw new Error('マーカー「'+s+'」に、8進数にない数字があります。');
-      const a = parseInt(ds,8);
-      if(a>255) throw new Error('マーカー「'+s+'」の値が範囲を超えています。');
-      A = a; blocks.push({kind:'marker',text:s,digits:ds,A:a});
-    }else{
-      if(A===null) throw new Error('最初のマーカーが見つかりません。暗号文の先頭が欠けている可能性があります。');
-      const dec = parseInt(ds,10), hex = dec.toString(16);
-      if(!/^[0-7]+$/.test(hex)) throw new Error('第'+n+'区「'+s+'」('+dec+') は8進数に戻せません。');
-      const B = parseInt(hex,8);
-      if(B>255) throw new Error('第'+n+'区「'+s+'」の値が範囲を超えています。');
-      const cp = A*256+B;
-      out += String.fromCodePoint(cp);
-      blocks.push({kind:'data',text:s,digits:ds,dec,hex,B,cp,ch:String.fromCodePoint(cp),A});
+    const dec = parseInt(d.join(''),10), hex = dec.toString(16);
+    if(!/^[0-7]+$/.test(hex)) throw new Error('第'+n+'区「'+s+'」('+dec+') は8進数に戻せません。');
+    return {text:s, dec, hex, v:parseInt(hex,8)};
+  };
+  while(i < chars.length){
+    const t2 = T2i.get(chars[i]);
+    if(t2 === 0){                                    // 曰＋字数: マーカーの字数を切り替える
+      const nx = T1i.get(chars[i+1]);
+      if(nx === undefined) throw new Error('曰の次は、マーカーの字数を表Ⅰで示す必要があります。');
+      if(nx < 3) throw new Error('マーカーの字数は3以上です（'+nx+'が指定されました）。');
+      mlen = nx; pair = null;
+      blocks.push({kind:'esc', n:nx, text:chars[i]+chars[i+1]}); i += 2; continue;
     }
+    if(t2===8 || t2===9){ pair=t2; blocks.push({kind:'flag',flag:t2,text:chars[i]}); i++; continue; }
+    const mid = midIndex(mlen);
+    if(i+mid < chars.length && T2i.has(chars[i+mid])){        // マーカー
+      if(chars.length-i < mlen) throw new Error('マーカーの字数が足りません。');
+      const blk = chars.slice(i, i+mlen);
+      const d = blk.map((c,j)=>{
+        if(j===mid) return T2i.get(c);
+        if(!T1i.has(c)) throw new Error('マーカー「'+blk.join('')+'」の'+(j+1)+'字目に表Ⅱの字があります。');
+        return T1i.get(c);
+      });
+      if(d.some(x=>x>7)) throw new Error('マーカー「'+blk.join('')+'」に、8進数にない数字があります。');
+      A = parseInt(d.join(''),8); pair = null;
+      blocks.push({kind:'marker', text:blk.join(''), digits:d.join(''), A}); i += mlen; continue;
+    }
+    if(chars.length-i < DATA) throw new Error('末尾に'+(chars.length-i)+'字の余りがあります。');
+    const blk = chars.slice(i, i+DATA); n++;
+    if(pair !== null){                                        // 標識区: 上位・下位の対
+      if(chars.length-i < 2*DATA) throw new Error('標識区の対が揃っていません。');
+      const a = toVal(blk); n++;
+      const b = toVal(chars.slice(i+DATA, i+2*DATA));
+      if(a.v > 0xFFF || b.v > 0xFF) throw new Error('値が範囲を超えています。');
+      const cp = a.v*256 + b.v;
+      out += String.fromCodePoint(cp);
+      blocks.push(Object.assign({kind:'ahalf', A:a.v}, a));
+      blocks.push(Object.assign({kind:'bhalf', A:a.v, B:b.v, cp, ch:String.fromCodePoint(cp)}, b));
+      i += 2*DATA; continue;
+    }
+    if(A === null) throw new Error('最初のマーカーが見つかりません。暗号文の先頭が欠けている可能性があります。');
+    const b = toVal(blk);
+    if(b.v > 0xFF) throw new Error('第'+n+'区「'+b.text+'」の値が範囲を超えています。');
+    const cp = A*256 + b.v;
+    out += String.fromCodePoint(cp);
+    blocks.push(Object.assign({kind:'data', A, B:b.v, cp, ch:String.fromCodePoint(cp)}, b));
+    i += DATA;
   }
-  return {text:out, L, mid, blocks};
+  return {text:out, blocks};
 }
 
 /* ───── 画面 ───── */
@@ -340,6 +454,7 @@ function setMode(m){
   $('inlabel').textContent = m==='enc' ? '原文' : '暗号文';
   $('input').placeholder = m==='enc' ? 'こんにちは' : '捧日紳日祈至月贄讃尊捧捧至捧祈月捧讃捧';
   $('runbtn').textContent = m==='enc' ? '変換する' : '読み解く';
+  $('styleRow').style.display = m==='enc' ? 'flex' : 'none';
   clear();
 }
 
@@ -360,61 +475,88 @@ function run(){
   $('msg').textContent = '';
   try{
     if(mode==='enc'){
-      const r = encode(src);
+      const r = encode(src, $('style').value);
       plain = r.cipher;
-      let html = '<span class="blk pf">'+r.prefix+'</span>';
+      let html = '';
       for(const b of r.blocks){
-        html += '<span class="blk">' + Array.from(b.text).map((c,i)=>
-          (b.kind==='marker' && i===r.mid) ? '<span class="mk">'+c+'</span>' : c
-        ).join('') + '</span>';
+        if(b.kind==='esc'){  html += '<span class="blk es">'+b.text+'</span>'; continue; }
+        if(b.kind==='flag'){ html += '<span class="blk fg">'+b.text+'</span>'; continue; }
+        const mid = midIndex(b.len);
+        html += '<span class="blk'+(b.kind==='ahalf'?' ah':'')+'">' + Array.from(b.text).map((c,i)=>
+          (b.kind==='marker' && i===mid) ? '<span class="mk">'+c+'</span>' : c).join('') + '</span>';
       }
       $('out').className = 'cipher' + (tate?' tate':'');
       $('out').innerHTML = html;
       const back = decode(r.cipher).text;
-      $('stat').innerHTML = '一字'+r.L+'字 / 全'+Array.from(r.cipher).length+'字'
-        + (back===src ? ' <span class="ok">・往復一致</span>' : ' <span style="color:#E39">・不一致</span>');
+      const cnt = k => r.blocks.filter(k).length;
+      const parts = [];
+      const k8=cnt(b=>b.kind==='flag'&&b.flag===8), k9=cnt(b=>b.kind==='flag'&&b.flag===9);
+      const mk=cnt(b=>b.kind==='marker'), es=cnt(b=>b.kind==='esc');
+      if(k8) parts.push('㤨'+k8); if(k9) parts.push('𦤳'+k9);
+      if(mk) parts.push('マーカー'+mk); if(es) parts.push('桁切替'+es);
+      $('stat').innerHTML = (parts.join('・')||'—') + ' / 全'+Array.from(r.cipher).length+'字'
+        + (back===src ? ' <span class="ok">・往復一致</span>' : ' <span style="color:#E88">・不一致</span>');
       encTrace(r);
     }else{
       const r = decode(src);
       plain = r.text;
       $('out').className = 'cipher';
       $('out').textContent = r.text;
-      $('stat').innerHTML = '一字'+r.L+'字 / 全'+Array.from(r.text).length+'字';
+      $('stat').innerHTML = '全'+Array.from(r.text).length+'字';
       decTrace(r);
     }
     $('tracewrap').open = true;
   }catch(e){ fail(e.message); }
 }
 
+const hx = n => n.toString(16).toUpperCase().padStart(2,'0');
+const hx3 = n => n.toString(16).toUpperCase().padStart(n>0xFF?3:2,'0');
+
 function encTrace(r){
-  let h = '<tr><th>区分</th><th>字</th><th>Unicode</th><th>A</th><th>B</th><th>8進</th><th>値</th><th>変換</th></tr>';
+  let h = '<tr><th>区分</th><th>字</th><th>Unicode</th><th>もとの値</th><th>8進</th><th>10進</th><th>変換</th></tr>';
   for(const b of r.blocks){
-    if(b.kind==='marker'){
-      h += '<tr class="mrow"><td>マーカー</td><td>—</td><td>—</td><td>'
-        + b.A.toString(16).toUpperCase().padStart(2,'0') + '</td><td>—</td><td>'
-        + b.Aoct + '</td><td>' + b.padded + '</td><td class="jp">' + b.text + '</td></tr>';
-    }else{
-      h += '<tr><td>本文</td><td class="jp">' + esc(b.ch) + '</td><td>' + U(b.cp) + '</td><td>'
-        + b.A.toString(16).toUpperCase().padStart(2,'0') + '</td><td>'
-        + b.B.toString(16).toUpperCase().padStart(2,'0') + '</td><td>'
-        + b.Boct + '</td><td>0x' + b.Boct + '=' + b.padded + '</td><td class="jp">' + b.text + '</td></tr>';
+    if(b.kind==='esc'){
+      h += '<tr class="erow"><td>桁切替</td><td colspan="5">ここから先、マーカーは'+b.n
+        + '字で書く。</td><td class="jp">'+b.text+'</td></tr>';
+    } else if(b.kind==='flag'){
+      h += '<tr class="frow"><td>標識</td><td colspan="5">ここから先は'+FLAGNAME[b.flag]
+        + 'の区間。上位・下位を交互に並べる。</td><td class="jp">'+b.text+'</td></tr>';
+    } else if(b.kind==='marker'){
+      h += '<tr class="mrow"><td>マーカー</td><td>—</td><td>—</td><td>A '+hx3(b.A)
+        + '</td><td>'+b.Aoct+'</td><td>'+b.padded+'</td><td class="jp">'+b.text+'</td></tr>';
+    } else if(b.kind==='ahalf'){
+      h += '<tr class="arow"><td>上位</td><td class="jp">'+esc(b.ch)+'</td><td>'+U(b.cp)
+        + '</td><td>A '+hx3(b.A)+'</td><td>'+b.oct+'</td><td>'+b.padded
+        + '</td><td class="jp">'+b.text+'</td></tr>';
+    } else {
+      const half = b.kind==='bhalf';
+      h += '<tr><td>'+(half?'下位':'本文')+'</td><td class="jp">'+(half?'〃':esc(b.ch))+'</td><td>'
+        + (half?'〃':U(b.cp))+'</td><td>B '+hx(b.B)+'</td><td>'+b.oct+'</td><td>'
+        + b.padded+'</td><td class="jp">'+b.text+'</td></tr>';
     }
   }
   $('trace').innerHTML = h;
 }
 
 function decTrace(r){
-  let h = '<tr><th>区分</th><th>区</th><th>値</th><th>16進</th><th>A</th><th>B</th><th>Unicode</th><th>字</th></tr>';
+  let h = '<tr><th>区分</th><th>区</th><th>10進</th><th>16進</th><th>もどした値</th><th>Unicode</th><th>字</th></tr>';
   for(const b of r.blocks){
-    if(b.kind==='marker'){
-      h += '<tr class="mrow"><td>マーカー</td><td class="jp">' + b.text + '</td><td>' + b.digits
-        + '</td><td>8進</td><td>' + b.A.toString(16).toUpperCase().padStart(2,'0')
-        + '</td><td>—</td><td>—</td><td>—</td></tr>';
-    }else{
-      h += '<tr><td>本文</td><td class="jp">' + b.text + '</td><td>' + b.dec + '</td><td>' + b.hex
-        + '</td><td>' + b.A.toString(16).toUpperCase().padStart(2,'0') + '</td><td>'
-        + b.B.toString(16).toUpperCase().padStart(2,'0') + '</td><td>' + U(b.cp)
-        + '</td><td class="jp">' + esc(b.ch) + '</td></tr>';
+    if(b.kind==='esc'){
+      h += '<tr class="erow"><td>桁切替</td><td class="jp">'+b.text
+        + '</td><td colspan="5">ここから先、マーカーは'+b.n+'字</td></tr>';
+    } else if(b.kind==='flag'){
+      h += '<tr class="frow"><td>標識</td><td class="jp">'+b.text+'</td><td colspan="5">ここから先は'
+        + FLAGNAME[b.flag]+'の区間</td></tr>';
+    } else if(b.kind==='marker'){
+      h += '<tr class="mrow"><td>マーカー</td><td class="jp">'+b.text+'</td><td>'+b.digits
+        + '</td><td>8進読み</td><td>A '+hx3(b.A)+'</td><td>—</td><td>—</td></tr>';
+    } else if(b.kind==='ahalf'){
+      h += '<tr class="arow"><td>上位</td><td class="jp">'+b.text+'</td><td>'+b.dec+'</td><td>'
+        + b.hex+'</td><td>A '+hx3(b.A)+'</td><td>—</td><td>—</td></tr>';
+    } else {
+      h += '<tr><td>'+(b.kind==='bhalf'?'下位':'本文')+'</td><td class="jp">'+b.text+'</td><td>'
+        + b.dec+'</td><td>'+b.hex+'</td><td>B '+hx(b.B)+'</td><td>'+U(b.cp)
+        + '</td><td class="jp">'+esc(b.ch)+'</td></tr>';
     }
   }
   $('trace').innerHTML = h;
@@ -424,7 +566,11 @@ const esc = s => s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))
                   .replace(/\n/g,'⏎').replace(/ /g,'␣');
 
 function sample(){
-  $('input').value = mode==='enc' ? 'こんにちは' : '捧日紳日祈至月贄讃尊捧捧至捧祈月捧讃捧';
+  if(mode==='enc'){
+    $('input').value = '私は雪が好き。😀';
+  } else {
+    $('input').value = '㤨贄贄日供贄日日紳日捧祈日𦤳日至神日日祈';
+  }
   run();
 }
 function swap(){
@@ -454,7 +600,8 @@ function copyOut(){
 /* 表の描画 */
 (function(){
   $('tbl1').innerHTML = T1.map((c,i)=>'<li>'+i+'<span>'+c+'</span></li>').join('');
-  $('tbl2').innerHTML = T2.map((c,i)=>'<li'+(i>7?' class="unused"':'')+'>'+i+'<span>'+c+'</span></li>').join('');
+  $('tbl2').innerHTML = T2.map((c,i)=>'<li'+(i>7?' class="flagrow"':'')+'>'+i+'<span>'+c+'</span>'
+    +(i===8?'<em>標識・漢字</em>':i===9?'<em>標識・記号</em>':'')+'</li>').join('');
 })();
 
 /* 雪 */
