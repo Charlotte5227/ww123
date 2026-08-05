@@ -166,6 +166,16 @@ tr.frow td{color:#2F6647;font-family:var(--gothic);font-size:11px}
   font-family:var(--mono); font-size:10px; color:var(--sumi2);
   border:1px solid var(--rule); width:21px; height:21px; display:grid; place-items:center;
 }
+.ex{margin:0 0 8px 34px;padding:16px 0 4px;border-top:1px solid var(--rule2)}
+.exsrc{font-family:var(--mincho);font-size:19px;letter-spacing:.06em;margin-bottom:14px}
+.extbl{font-family:var(--gothic);font-size:11.5px;width:100%}
+.extbl td{padding:6px 10px 6px 0;border-bottom:1px solid var(--rule2);white-space:normal;vertical-align:top}
+.extbl td:nth-child(2){color:var(--sumi2);white-space:nowrap}
+.extbl td:last-child{color:var(--sumi2);font-family:var(--mono);font-size:10.5px}
+.extbl .ec{font-family:var(--mincho);font-size:16px;letter-spacing:.04em;white-space:nowrap}
+.exout{font-family:var(--mincho);font-size:15px;line-height:1.9;letter-spacing:.05em;margin-top:14px;
+  padding:13px 15px;background:var(--washi2);border:1px solid var(--rule);word-break:break-all}
+@media(max-width:600px){.ex{margin-left:0}.extbl .ec{font-size:14px}}
 .subh{font-family:var(--mincho);font-size:14px;letter-spacing:.16em;font-weight:600;margin:26px 0 10px;padding-left:34px}
 .note b{font-family:var(--mincho);font-size:15px;color:var(--sumi)}
 .nohang{margin-top:0}
@@ -203,9 +213,8 @@ footer{margin-top:44px;padding-top:22px;border-top:1px solid var(--rule);font-si
 <div class="styleRow" id="styleRow">
   <label class="fld" for="style" style="margin:0">組み方</label>
   <select id="style" onchange="run()">
-    <option value="auto">漢字は㤨・記号は𦤳で区切る</option>
-    <option value="short">短くなる方を選ぶ</option>
-    <option value="marker">マーカーだけで組む</option>
+    <option value="auto">Aが続かない所に標識を置く</option>
+    <option value="marker">マーカーだけで組む（最短）</option>
   </select>
 </div>
 
@@ -274,10 +283,12 @@ footer{margin-top:44px;padding-top:22px;border-top:1px solid var(--rule);font-si
     </p>
     <h3 class="subh">区間の標識</h3>
     <p class="note nohang">
-      漢字や記号は、続いてもAが同じにならない。そこでその塊の先頭に標識を一字だけ置き、
-      そこから先はAとBを交互に並べる。このときAはBと同じ処理を行う。<br>
-      漢字の塊なら表Ⅱの8、すなわち <b>㤨</b>。記号の塊なら表Ⅱの9、すなわち <b>𦤳</b>。<br>
-      標識の効き目は、次のマーカーが出るまで続く。マーカーが出た時点で、ふたたびマーカー式に戻る。
+      標識を置くのは、<b>Aが連続しない所</b>。Aが揃うならマーカーがまとめてくれるので、そのままマーカー式でよい。
+      一字ごとにマーカーが出てしまう区間にだけ、先頭に標識を一字置き、そこから先はAとBを交互に並べる。
+      このときAはBと同じ処理を行う。<br>
+      その区間が漢字なら表Ⅱの8、すなわち <b>㤨</b>。記号なら表Ⅱの9、すなわち <b>𦤳</b>。字種は、どちらの標識を使うかを決めるだけ。<br>
+      標識の効き目は、次のマーカーが出るまで続く。マーカーが出た時点で、ふたたびマーカー式に戻る。<br>
+      字数は標識の一字ぶんだけ増えるが、そのぶんマーカーが消えるので、表Ⅱの字が区間にひとつで済む。
     </p>
     <h3 class="subh">マーカーの桁の切替</h3>
     <p class="note nohang">
@@ -287,6 +298,29 @@ footer{margin-top:44px;padding-top:22px;border-top:1px solid var(--rule);font-si
       そこから先のマーカーをその字数で書く。もとに戻すときは <b>曰捧</b> を置く。<br>
       本文の区は、どこでも常に三字のまま変わらない。
     </p>
+    <h3 class="subh">実例</h3>
+    <div class="ex">
+      <p class="exsrc">雪日暗号で𧘻と書く。★</p>
+      <table class="extbl">
+        <tr><td class="ec jp">㤨</td><td>標識</td><td>ここから漢字の区間。Aが続かないので上位・下位を交互に置く</td></tr>
+        <tr><td class="ec jp">贄贄日 供贄日</td><td>雪</td><td>A=96 → 8進226 → 550 ／ B=EA → 8進352 → 850</td></tr>
+        <tr><td class="ec jp">捧祈贄 供捧尊</td><td>日</td><td>A=65 ／ B=E5</td></tr>
+        <tr><td class="ec jp">捧祈神 贄贄月</td><td>暗</td><td>A=66 ／ B=97</td></tr>
+        <tr><td class="ec jp">祈至月 供尊月</td><td>号</td><td>A=53 ／ B=F7</td></tr>
+        <tr><td class="ec jp">日紳日</td><td>マーカー</td><td>標識の区間はここで終わる。A=30</td></tr>
+        <tr><td class="ec jp">捧祈尊</td><td>で</td><td>B=67</td></tr>
+        <tr><td class="ec jp">曰讃</td><td>桁切替</td><td>𧘻はU+2763B。Aが4桁になるので、マーカーを4字にする</td></tr>
+        <tr><td class="ec jp">月⺝神神 月月贄</td><td>𧘻</td><td>A=276 → 8進1166 ／ B=3B</td></tr>
+        <tr><td class="ec jp">曰捧</td><td>桁切替</td><td>マーカーを3字に戻す</td></tr>
+        <tr><td class="ec jp">日紳日 捧捧神</td><td>と</td><td>A=30 ／ B=68</td></tr>
+        <tr><td class="ec jp">月讚神 供供日</td><td>書</td><td>漢字だが一字だけなので標識は置かない。A=66 ／ B=F8</td></tr>
+        <tr><td class="ec jp">日紳日 祈尊至</td><td>く</td><td>A=30 ／ B=4F</td></tr>
+        <tr><td class="ec jp">𦤳</td><td>標識</td><td>ここから記号の区間。。とAが揃わないので標識を置く</td></tr>
+        <tr><td class="ec jp">日至神 日日祈</td><td>。</td><td>A=30 ／ B=02</td></tr>
+        <tr><td class="ec jp">日尊日 日日贄</td><td>★</td><td>A=26 ／ B=05</td></tr>
+      </table>
+      <p class="exout">㤨贄贄日供贄日捧祈贄供捧尊捧祈神贄贄月祈至月供尊月日紳日捧祈尊曰讃月⺝神神月月贄曰捧日紳日捧捧神月讚神供供日日紳日祈尊至𦤳日至神日日祈日尊日日日贄</p>
+    </div>
     <h3 class="subh">取り違えが起きない理由</h3>
     <p class="note nohang">
       区の切れ目に表Ⅱの字が来るのは、標識か桁の切替のときだけ。マーカーの表Ⅱの字は必ず中央にあり、
@@ -336,37 +370,56 @@ function encode(text, style){
     if(last && last.cls===u.cls) last.units.push(u); else runs.push({cls:u.cls, units:[u]});
   }
   const blocks = []; let mlen = 3, prevA = null;
+
+  const putMarker = u => {
+    const o = u.A.toString(8);
+    if(o === prevA) return;
+    const need = Math.max(3, o.length);
+    if(need !== mlen){ blocks.push({kind:'esc', n:need}); mlen = need; }
+    blocks.push({kind:'marker', digits:o, len:mlen, A:u.A, Aoct:o});
+    prevA = o;
+  };
+  const putMarkerSeg = us => {
+    for(const u of us){
+      putMarker(u);
+      blocks.push(Object.assign({kind:'data', digits:octVal(u.B), len:DATA, oct:u.B.toString(8)}, u));
+    }
+  };
+  const putFlagSeg = (us,f) => {
+    blocks.push({kind:'flag', flag:f}); prevA = null;
+    for(const u of us){
+      blocks.push(Object.assign({kind:'ahalf', digits:octVal(u.A), len:DATA, oct:u.A.toString(8)}, u));
+      blocks.push(Object.assign({kind:'bhalf', digits:octVal(u.B), len:DATA, oct:u.B.toString(8)}, u));
+    }
+    prevA = null;   // 標識区のあとは必ずマーカーから
+  };
+
   for(const r of runs){
     const f = r.cls==='kanji' ? 8 : r.cls==='symbol' ? 9 : null;
-    let useFlag = false;
-    if(f!==null && style!=='marker'){
-      if(style==='auto') useFlag = true;
-      else {
-        let m=0, p=null;
-        for(const u of r.units){ const o=u.A.toString(8); if(o!==p){ m++; p=o; } }
-        useFlag = (1 + 2*r.units.length*DATA) <= ((m + r.units.length)*DATA);
-      }
+    if(f === null || style === 'marker'){ putMarkerSeg(r.units); continue; }
+
+    // Aが同じものを塊にまとめる
+    const groups = [];
+    for(const u of r.units){
+      const g = groups[groups.length-1];
+      if(g && g[0].A === u.A) g.push(u); else groups.push([u]);
     }
-    r.flag = useFlag ? f : null;
-    if(useFlag){
-      blocks.push({kind:'flag', flag:f}); prevA = null;
-      for(const u of r.units){
-        blocks.push(Object.assign({kind:'ahalf', digits:octVal(u.A), len:DATA, oct:u.A.toString(8)}, u));
-        blocks.push(Object.assign({kind:'bhalf', digits:octVal(u.B), len:DATA, oct:u.B.toString(8)}, u));
-      }
-    } else {
-      for(const u of r.units){
-        const o = u.A.toString(8);
-        if(o !== prevA){
-          const need = Math.max(3, o.length);
-          if(need !== mlen){ blocks.push({kind:'esc', n:need}); mlen = need; }
-          blocks.push({kind:'marker', digits:o, len:mlen, A:u.A, Aoct:o});
-          prevA = o;
-        }
-        blocks.push(Object.assign({kind:'data', digits:octVal(u.B), len:DATA, oct:u.B.toString(8)}, u));
-      }
+    // Aが連続しない（塊の大きさが1の）ところが続く区間に標識を置く
+    let seg = [], run1 = [];
+    const flushSeg  = () => { if(seg.length){ putMarkerSeg(seg); seg = []; } };
+    const flushRun1 = () => {
+      if(!run1.length) return;
+      if(run1.length >= 2){ flushSeg(); putFlagSeg(run1, f); }
+      else seg = seg.concat(run1);
+      run1 = [];
+    };
+    for(const g of groups){
+      if(g.length === 1) run1.push(g[0]);
+      else { flushRun1(); seg = seg.concat(g); }
     }
+    flushRun1(); flushSeg();
   }
+
   let cipher = '';
   for(const b of blocks){
     if(b.kind==='esc'){  b.text = T2[0] + T1[b.n];  cipher += b.text; continue; }
@@ -452,7 +505,7 @@ function setMode(m){
   $('m-enc').setAttribute('aria-selected', m==='enc');
   $('m-dec').setAttribute('aria-selected', m==='dec');
   $('inlabel').textContent = m==='enc' ? '原文' : '暗号文';
-  $('input').placeholder = m==='enc' ? 'こんにちは' : '捧日紳日祈至月贄讃尊捧捧至捧祈月捧讃捧';
+  $('input').placeholder = m==='enc' ? '雪日暗号で𧘻と書く。★' : '㤨贄贄日供贄日捧祈贄供捧尊捧祈神贄贄月祈至月供尊月日紳日捧祈尊曰讃月⺝神神月月贄曰捧日紳日捧捧神月讚神供供日日紳日祈尊至𦤳日至神日日祈日尊日日日贄';
   $('runbtn').textContent = m==='enc' ? '変換する' : '読み解く';
   $('styleRow').style.display = m==='enc' ? 'flex' : 'none';
   clear();
@@ -567,9 +620,9 @@ const esc = s => s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))
 
 function sample(){
   if(mode==='enc'){
-    $('input').value = '私は雪が好き。😀';
+    $('input').value = '雪日暗号で𧘻と書く。★';
   } else {
-    $('input').value = '㤨贄贄日供贄日日紳日捧祈日𦤳日至神日日祈';
+    $('input').value = '㤨贄贄日供贄日捧祈贄供捧尊捧祈神贄贄月祈至月供尊月日紳日捧祈尊曰讃月⺝神神月月贄曰捧日紳日捧捧神月讚神供供日日紳日祈尊至𦤳日至神日日祈日尊日日日贄';
   }
   run();
 }
