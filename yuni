@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>雪日暗号</title>
+<style>
+:root{
+  --washi:#EFF1F0; --washi2:#F8F9F9; --sumi:#1A1E20; --sumi2:#5C6669;
+  --rule:#D4D9D8; --rule2:#E3E7E6;
+  --yoru:#131C2C; --yoru2:#1D2A3D;
+  --yuki:#F4F8FB; --kori:#8FC3E8; --kin:#DAC58D;
+  --mincho:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP","MS PMincho",serif;
+  --gothic:"Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,-apple-system,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--washi); color:var(--sumi); font-family:var(--gothic);
+  font-size:15px; line-height:1.75; padding:0 20px 72px;
+  background-image:radial-gradient(circle at 1px 1px,rgba(26,30,32,.045) 1px,transparent 0);
+  background-size:4px 4px;
+}
+.wrap{max-width:760px;margin:0 auto}
+
+/* ── 標題 ── */
+header{padding:56px 0 30px;border-bottom:1px solid var(--rule)}
+h1{
+  font-family:var(--mincho); font-size:clamp(38px,10vw,58px); font-weight:600;
+  letter-spacing:.24em; text-indent:.24em; line-height:1.15;
+}
+.romaji{font-size:10px;letter-spacing:.42em;color:var(--sumi2);margin-top:14px;text-transform:uppercase}
+.thesis{
+  font-family:var(--mincho); font-size:14px; color:var(--sumi2); margin-top:22px;
+  padding-left:14px; border-left:2px solid var(--rule);
+}
+.thesis b{color:var(--sumi);font-weight:600}
+
+/* ── 操作 ── */
+.modes{display:flex;gap:2px;margin:34px 0 20px;border:1px solid var(--rule);width:fit-content}
+.modes button{
+  font-family:var(--mincho); font-size:16px; letter-spacing:.14em;
+  padding:10px 26px; background:none; border:none; color:var(--sumi2); cursor:pointer;
+}
+.modes button[aria-selected="true"]{background:var(--sumi);color:var(--washi2)}
+.modes button:focus-visible{outline:2px solid var(--yoru);outline-offset:2px}
+
+label.fld{display:block;font-size:11px;letter-spacing:.2em;color:var(--sumi2);margin-bottom:9px}
+textarea{
+  width:100%; min-height:120px; padding:15px; resize:vertical;
+  background:var(--washi2); border:1px solid var(--rule); border-radius:0;
+  font-family:var(--mincho); font-size:17px; line-height:1.9; color:var(--sumi);
+}
+textarea:focus{outline:none;border-color:var(--yoru);box-shadow:0 0 0 3px rgba(19,28,44,.09)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+.btn{
+  font-family:var(--mincho); font-size:16px; letter-spacing:.16em;
+  padding:12px 32px; background:var(--sumi); color:var(--washi2);
+  border:1px solid var(--sumi); cursor:pointer;
+}
+.btn:hover{background:var(--yoru);border-color:var(--yoru)}
+.btn.ghost{background:none;color:var(--sumi2);border-color:var(--rule);font-size:13px;padding:12px 20px}
+.btn.ghost:hover{background:none;color:var(--sumi);border-color:var(--sumi2)}
+.btn:focus-visible{outline:2px solid var(--yoru);outline-offset:2px}
+
+/* ── 短冊 ── */
+.tanzaku{
+  position:relative; margin-top:30px; background:var(--yoru); overflow:hidden;
+  box-shadow:0 12px 34px -16px rgba(19,28,44,.55);
+}
+.tanzaku::before{
+  content:""; position:absolute; inset:9px; border:1px solid rgba(244,248,251,.14); pointer-events:none; z-index:3;
+}
+.snow{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+.snow i{
+  position:absolute; top:-14px; display:block; border-radius:50%;
+  background:#fff; opacity:.5; animation:fall linear infinite;
+}
+@keyframes fall{
+  0%{transform:translate(0,-14px)}
+  100%{transform:translate(var(--dx,14px),var(--fh,460px))}
+}
+.cipher{
+  position:relative; z-index:2; padding:38px 30px; color:var(--yuki);
+  font-family:var(--mincho); font-size:23px; line-height:2.05; letter-spacing:.1em;
+  word-break:break-all; min-height:118px;
+}
+.cipher.tate{
+  writing-mode:vertical-rl; text-orientation:upright;
+  max-height:min(58vh,460px); overflow-x:auto; overflow-y:hidden; word-break:normal;
+}
+.cipher .blk{display:inline-block}
+.cipher.tate .blk{margin-block-end:.34em}
+.cipher:not(.tate) .blk{margin-inline-end:.34em}
+.cipher .mk{color:var(--kori)}
+.cipher .pf{color:var(--kin)}
+.cipher .empty{color:rgba(244,248,251,.3);font-size:16px;letter-spacing:.2em}
+.tzbar{
+  position:relative; z-index:2; display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+  padding:0 30px 24px; font-size:12px; color:rgba(244,248,251,.55);
+}
+.tzbar button{
+  font-family:var(--gothic); font-size:12px; letter-spacing:.1em; padding:7px 15px; cursor:pointer;
+  background:none; border:1px solid rgba(244,248,251,.24); color:rgba(244,248,251,.8);
+}
+.tzbar button:hover{border-color:rgba(244,248,251,.6);color:#fff}
+.tzbar .stat{margin-left:auto;font-family:var(--mono);font-size:11px;letter-spacing:.04em}
+.tzbar .ok{color:var(--kori)}
+
+.msg{margin-top:16px;padding:13px 16px;border-left:3px solid #A8453B;background:#F7EFEE;font-size:13.5px;color:#7A322A}
+.msg:empty{display:none}
+
+/* ── 凡例 ── */
+.legend{display:flex;gap:22px;flex-wrap:wrap;margin-top:16px;font-size:11.5px;color:var(--sumi2)}
+.legend span::before{content:"";display:inline-block;width:9px;height:9px;margin-right:7px;vertical-align:middle}
+.legend .l1::before{background:var(--kin)}
+.legend .l2::before{background:var(--kori)}
+.legend .l3::before{background:#93A2AE}
+
+/* ── 折畳 ── */
+details{margin-top:14px;border-top:1px solid var(--rule)}
+summary{
+  font-family:var(--mincho); font-size:15px; letter-spacing:.14em; padding:16px 0;
+  cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between;
+}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"＋";font-size:13px;color:var(--sumi2)}
+details[open] summary::after{content:"−"}
+.dbody{padding-bottom:26px}
+
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+th,td{padding:8px 9px;text-align:left;border-bottom:1px solid var(--rule2);white-space:nowrap}
+th{font-family:var(--gothic);font-size:10px;letter-spacing:.14em;color:var(--sumi2);font-weight:500}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+tr.mrow{background:#E8EEF3}
+tr.mrow td{color:#2B4C7E}
+td .jp{font-family:var(--mincho);font-size:16px;letter-spacing:.05em}
+
+.tables{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.tables h3{font-family:var(--mincho);font-size:14px;letter-spacing:.16em;font-weight:600;margin-bottom:4px}
+.tables p{font-size:11px;color:var(--sumi2);margin-bottom:12px;line-height:1.6}
+.tables ol{list-style:none;font-family:var(--mono);font-size:12px}
+.tables li{display:flex;align-items:baseline;gap:11px;padding:5px 0;border-bottom:1px solid var(--rule2)}
+.tables li span{font-family:var(--mincho);font-size:20px;line-height:1.3}
+.tables .unused{opacity:.42}
+.steps{counter-reset:s;font-size:13.5px}
+.steps li{list-style:none;position:relative;padding:0 0 13px 34px;line-height:1.7}
+.steps li::before{
+  counter-increment:s; content:counter(s); position:absolute; left:0; top:.2em;
+  font-family:var(--mono); font-size:10px; color:var(--sumi2);
+  border:1px solid var(--rule); width:21px; height:21px; display:grid; place-items:center;
+}
+.note{font-size:12px;color:var(--sumi2);margin-top:10px;padding-left:34px;line-height:1.7}
+footer{margin-top:44px;padding-top:22px;border-top:1px solid var(--rule);font-size:11px;color:var(--sumi2);letter-spacing:.08em}
+
+@media(max-width:600px){
+  body{padding:0 16px 56px}
+  header{padding:40px 0 24px}
+  .cipher{padding:30px 22px;font-size:20px}
+  .tzbar{padding:0 22px 20px}
+  .tables{grid-template-columns:1fr;gap:22px}
+  .btn{flex:1;text-align:center;padding:13px 18px}
+}
+@media(prefers-reduced-motion:reduce){
+  .snow{display:none}
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>雪日暗号</h1>
+  <div class="romaji">Setsujitsu cipher</div>
+  <p class="thesis">表Ⅰの字は<b>数</b>を、表Ⅱの字は<b>区切り</b>を示す。<br>同じに見える二つの字を、見分けることが鍵になる。</p>
+</header>
+
+<div class="modes" role="tablist">
+  <button role="tab" id="m-enc" aria-selected="true" onclick="setMode('enc')">暗号化</button>
+  <button role="tab" id="m-dec" aria-selected="false" onclick="setMode('dec')">復号</button>
+</div>
+
+<label class="fld" id="inlabel" for="input">原文</label>
+<textarea id="input" placeholder="こんにちは"></textarea>
+<div class="row">
+  <button class="btn" onclick="run()" id="runbtn">変換する</button>
+  <button class="btn ghost" onclick="sample()">例文を入れる</button>
+  <button class="btn ghost" onclick="swap()">結果を入力に移す</button>
+</div>
+<div class="msg" id="msg"></div>
+
+<div class="tanzaku">
+  <div class="snow" id="snow" aria-hidden="true"></div>
+  <div class="cipher tate" id="out"><span class="empty">変換すると、ここに出ます</span></div>
+  <div class="tzbar">
+    <button onclick="copyOut()" id="copybtn">写し取る</button>
+    <button onclick="toggleTate()" id="tatebtn">横に組む</button>
+    <span class="stat" id="stat"></span>
+  </div>
+</div>
+
+<div class="legend">
+  <span class="l1">先頭＝一字の長さ</span>
+  <span class="l2">表Ⅱの字＝マーカー</span>
+  <span class="l3">表Ⅰの字＝本文</span>
+</div>
+
+<details id="tracewrap">
+  <summary>工程を見る</summary>
+  <div class="dbody scroll"><table id="trace"></table></div>
+</details>
+
+<details>
+  <summary>変換表</summary>
+  <div class="dbody tables">
+    <div>
+      <h3>表Ⅰ　本文</h3>
+      <p>各桁の数を表す。先頭の一字も、この表で一字の長さを示す。</p>
+      <ol id="tbl1"></ol>
+    </div>
+    <div>
+      <h3>表Ⅱ　マーカー</h3>
+      <p>マーカー区の中央の一字にだけ用いる。8進数のため、8と9は現れない。</p>
+      <ol id="tbl2"></ol>
+    </div>
+  </div>
+</details>
+
+<details>
+  <summary>手順</summary>
+  <div class="dbody">
+    <ol class="steps">
+      <li>その文字のUnicodeを取得する。</li>
+      <li>その16進数を前半2文字(A)と後半2文字(B)に分ける。</li>
+      <li>A、Bそれぞれを8進数に変換する。</li>
+      <li>Aが同一のものはひとまとめにし、その塊の先頭にマーカーとして置く。</li>
+      <li>Bを16進数として捉えて10進数に直し、桁を揃える。</li>
+      <li>それぞれの値を表Ⅰに照らして変換する。</li>
+      <li>マーカーの桁数を揃えて変換する。ただし中央の一字だけは表Ⅱを用いる。</li>
+      <li>最終的な文字数を揃えて、完成。</li>
+    </ol>
+    <p class="note">
+      桁を揃えるときは先頭に0を足す。一字の長さは文章内で統一し、文章の先頭に表Ⅰで示す。<br>
+      中央が二字に分かれる場合は、先に出る側を表Ⅱにする。<br>
+      Unicodeが5桁になる文字は扱わない。
+    </p>
+  </div>
+</details>
+
+<footer>基本多言語面（U+0000–U+FFFF）の文字に対応</footer>
+
+</div>
+
+<script>
+const T1 = Array.from('日月祈捧讃贄神尊供至');
+const T2 = Array.from('曰⺝𧘻捀讚䞇紳𡬭㤨𦤳');
+const T1i = new Map(T1.map((c,i)=>[c,i]));
+const T2i = new Map(T2.map((c,i)=>[c,i]));
+const midIndex = L => (L%2===1) ? (L-1)/2 : L/2-1;
+const U = cp => 'U+'+cp.toString(16).toUpperCase().padStart(4,'0');
+
+/* ───── 暗号化 ───── */
+function encode(text){
+  const chars = Array.from(text);
+  if(!chars.length) throw new Error('原文を入力してください。');
+  const blocks = []; let prevA = null;
+  for(const ch of chars){
+    const cp = ch.codePointAt(0);
+    if(cp > 0xFFFF) throw new Error('「'+ch+'」('+U(cp)+') は基本多言語面の外にあるため扱えません。');
+    const A = cp>>8, B = cp&0xFF;
+    const Aoct = A.toString(8), Boct = B.toString(8);
+    const val = parseInt(Boct,16).toString(10);
+    if(Aoct !== prevA){ blocks.push({kind:'marker',digits:Aoct,A,Aoct}); prevA = Aoct; }
+    blocks.push({kind:'data',digits:val,ch,cp,A,B,Aoct,Boct,val});
+  }
+  const L = Math.max.apply(null, blocks.map(b=>b.digits.length));
+  const mid = midIndex(L);
+  let cipher = T1[L];
+  for(const b of blocks){
+    b.padded = b.digits.padStart(L,'0');
+    b.text = Array.from(b.padded).map((n,i)=>(b.kind==='marker'&&i===mid)?T2[+n]:T1[+n]).join('');
+    cipher += b.text;
+  }
+  return {cipher, L, mid, blocks, prefix:T1[L]};
+}
+
+/* ───── 復号 ───── */
+function decode(cipher){
+  const chars = Array.from(cipher).filter(c=>!/\s/.test(c));
+  if(!chars.length) throw new Error('暗号文を入力してください。');
+  for(const c of chars) if(!T1i.has(c) && !T2i.has(c))
+    throw new Error('「'+c+'」は表Ⅰ・表Ⅱのどちらにもありません。');
+  const L = T1i.get(chars[0]);
+  if(L === undefined) throw new Error('先頭は一字の長さを示す表Ⅰの字である必要があります。');
+  if(L < 1) throw new Error('先頭が示す一字の長さが0です。');
+  const body = chars.slice(1);
+  if(!body.length) throw new Error('先頭の一字しかありません。');
+  if(body.length % L !== 0)
+    throw new Error('本体'+body.length+'字が、一字の長さ'+L+'で割り切れません。');
+  const mid = midIndex(L);
+  const blocks = []; let A = null, out = '';
+  for(let i=0;i<body.length;i+=L){
+    const blk = body.slice(i,i+L), n = i/L+1, s = blk.join('');
+    const isM = T2i.has(blk[mid]);
+    const digits = blk.map((c,j)=>{
+      if(j===mid && isM) return T2i.get(c);
+      if(!T1i.has(c)) throw new Error('第'+n+'区「'+s+'」の'+(j+1)+'字目に表Ⅱの字があります。位置が合っていません。');
+      return T1i.get(c);
+    });
+    const ds = digits.join('');
+    if(isM){
+      if(digits.some(d=>d>7)) throw new Error('マーカー「'+s+'」に、8進数にない数字があります。');
+      const a = parseInt(ds,8);
+      if(a>255) throw new Error('マーカー「'+s+'」の値が範囲を超えています。');
+      A = a; blocks.push({kind:'marker',text:s,digits:ds,A:a});
+    }else{
+      if(A===null) throw new Error('最初のマーカーが見つかりません。暗号文の先頭が欠けている可能性があります。');
+      const dec = parseInt(ds,10), hex = dec.toString(16);
+      if(!/^[0-7]+$/.test(hex)) throw new Error('第'+n+'区「'+s+'」('+dec+') は8進数に戻せません。');
+      const B = parseInt(hex,8);
+      if(B>255) throw new Error('第'+n+'区「'+s+'」の値が範囲を超えています。');
+      const cp = A*256+B;
+      out += String.fromCodePoint(cp);
+      blocks.push({kind:'data',text:s,digits:ds,dec,hex,B,cp,ch:String.fromCodePoint(cp),A});
+    }
+  }
+  return {text:out, L, mid, blocks};
+}
+
+/* ───── 画面 ───── */
+let mode='enc', tate=true, plain='';
+const $ = id => document.getElementById(id);
+
+function setMode(m){
+  mode = m;
+  $('m-enc').setAttribute('aria-selected', m==='enc');
+  $('m-dec').setAttribute('aria-selected', m==='dec');
+  $('inlabel').textContent = m==='enc' ? '原文' : '暗号文';
+  $('input').placeholder = m==='enc' ? 'こんにちは' : '捧日紳日祈至月贄讃尊捧捧至捧祈月捧讃捧';
+  $('runbtn').textContent = m==='enc' ? '変換する' : '読み解く';
+  clear();
+}
+
+function clear(){
+  plain=''; $('msg').textContent=''; $('stat').innerHTML=''; $('trace').innerHTML='';
+  $('out').innerHTML = '<span class="empty">変換すると、ここに出ます</span>';
+  $('out').classList.toggle('tate', tate && mode==='enc');
+  $('tracewrap').open = false;
+}
+
+function fail(m){
+  plain=''; $('msg').textContent = m; $('stat').innerHTML=''; $('trace').innerHTML='';
+  $('out').innerHTML = '<span class="empty">—</span>';
+}
+
+function run(){
+  const src = $('input').value;
+  $('msg').textContent = '';
+  try{
+    if(mode==='enc'){
+      const r = encode(src);
+      plain = r.cipher;
+      let html = '<span class="blk pf">'+r.prefix+'</span>';
+      for(const b of r.blocks){
+        html += '<span class="blk">' + Array.from(b.text).map((c,i)=>
+          (b.kind==='marker' && i===r.mid) ? '<span class="mk">'+c+'</span>' : c
+        ).join('') + '</span>';
+      }
+      $('out').className = 'cipher' + (tate?' tate':'');
+      $('out').innerHTML = html;
+      const back = decode(r.cipher).text;
+      $('stat').innerHTML = '一字'+r.L+'字 / 全'+Array.from(r.cipher).length+'字'
+        + (back===src ? ' <span class="ok">・往復一致</span>' : ' <span style="color:#E39">・不一致</span>');
+      encTrace(r);
+    }else{
+      const r = decode(src);
+      plain = r.text;
+      $('out').className = 'cipher';
+      $('out').textContent = r.text;
+      $('stat').innerHTML = '一字'+r.L+'字 / 全'+Array.from(r.text).length+'字';
+      decTrace(r);
+    }
+    $('tracewrap').open = true;
+  }catch(e){ fail(e.message); }
+}
+
+function encTrace(r){
+  let h = '<tr><th>区分</th><th>字</th><th>Unicode</th><th>A</th><th>B</th><th>8進</th><th>値</th><th>変換</th></tr>';
+  for(const b of r.blocks){
+    if(b.kind==='marker'){
+      h += '<tr class="mrow"><td>マーカー</td><td>—</td><td>—</td><td>'
+        + b.A.toString(16).toUpperCase().padStart(2,'0') + '</td><td>—</td><td>'
+        + b.Aoct + '</td><td>' + b.padded + '</td><td class="jp">' + b.text + '</td></tr>';
+    }else{
+      h += '<tr><td>本文</td><td class="jp">' + esc(b.ch) + '</td><td>' + U(b.cp) + '</td><td>'
+        + b.A.toString(16).toUpperCase().padStart(2,'0') + '</td><td>'
+        + b.B.toString(16).toUpperCase().padStart(2,'0') + '</td><td>'
+        + b.Boct + '</td><td>0x' + b.Boct + '=' + b.padded + '</td><td class="jp">' + b.text + '</td></tr>';
+    }
+  }
+  $('trace').innerHTML = h;
+}
+
+function decTrace(r){
+  let h = '<tr><th>区分</th><th>区</th><th>値</th><th>16進</th><th>A</th><th>B</th><th>Unicode</th><th>字</th></tr>';
+  for(const b of r.blocks){
+    if(b.kind==='marker'){
+      h += '<tr class="mrow"><td>マーカー</td><td class="jp">' + b.text + '</td><td>' + b.digits
+        + '</td><td>8進</td><td>' + b.A.toString(16).toUpperCase().padStart(2,'0')
+        + '</td><td>—</td><td>—</td><td>—</td></tr>';
+    }else{
+      h += '<tr><td>本文</td><td class="jp">' + b.text + '</td><td>' + b.dec + '</td><td>' + b.hex
+        + '</td><td>' + b.A.toString(16).toUpperCase().padStart(2,'0') + '</td><td>'
+        + b.B.toString(16).toUpperCase().padStart(2,'0') + '</td><td>' + U(b.cp)
+        + '</td><td class="jp">' + esc(b.ch) + '</td></tr>';
+    }
+  }
+  $('trace').innerHTML = h;
+}
+
+const esc = s => s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))
+                  .replace(/\n/g,'⏎').replace(/ /g,'␣');
+
+function sample(){
+  $('input').value = mode==='enc' ? 'こんにちは' : '捧日紳日祈至月贄讃尊捧捧至捧祈月捧讃捧';
+  run();
+}
+function swap(){
+  if(!plain){ $('msg').textContent='先に変換してください。'; return; }
+  $('input').value = plain;
+  setMode(mode==='enc'?'dec':'enc');
+  run();
+}
+function toggleTate(){
+  tate = !tate;
+  $('tatebtn').textContent = tate ? '横に組む' : '縦に組む';
+  if(mode==='enc' && plain) $('out').classList.toggle('tate', tate);
+}
+function copyOut(){
+  if(!plain) return;
+  const done = () => { const b=$('copybtn'); b.textContent='写しました'; setTimeout(()=>b.textContent='写し取る',1600); };
+  if(navigator.clipboard) navigator.clipboard.writeText(plain).then(done, fallback);
+  else fallback();
+  function fallback(){
+    const t=document.createElement('textarea'); t.value=plain;
+    t.style.position='fixed'; t.style.opacity='0'; document.body.appendChild(t);
+    t.select(); try{document.execCommand('copy'); done();}catch(e){}
+    document.body.removeChild(t);
+  }
+}
+
+/* 表の描画 */
+(function(){
+  $('tbl1').innerHTML = T1.map((c,i)=>'<li>'+i+'<span>'+c+'</span></li>').join('');
+  $('tbl2').innerHTML = T2.map((c,i)=>'<li'+(i>7?' class="unused"':'')+'>'+i+'<span>'+c+'</span></li>').join('');
+})();
+
+/* 雪 */
+(function(){
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const s = $('snow'); let h='';
+  for(let i=0;i<16;i++){
+    const sz=(Math.random()*2+1.4).toFixed(1);
+    h += '<i style="left:'+(Math.random()*100).toFixed(1)+'%;width:'+sz+'px;height:'+sz+'px;'
+       + '--dx:'+(Math.random()*44-22).toFixed(0)+'px;--fh:520px;'
+       + 'opacity:'+(Math.random()*.4+.25).toFixed(2)+';'
+       + 'animation-duration:'+(Math.random()*9+9).toFixed(1)+'s;'
+       + 'animation-delay:-'+(Math.random()*14).toFixed(1)+'s"></i>';
+  }
+  s.innerHTML = h;
+})();
+
+setMode('enc');
+</script>
+</body>
+</html>
