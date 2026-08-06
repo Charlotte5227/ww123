@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アルファベンティア暗号化・復号ツール</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f9; }
+        .container { max-width: 800px; margin: auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #ccc; padding-bottom: 10px; }
+        textarea { width: 100%; height: 150px; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        button { background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-right: 10px; transition: background-color 0.3s; }
+        button:hover { background-color: #0056b3; }
+        #output { margin-top: 20px; padding: 15px; background-color: #e9ecef; border: 1px solid #ced4da; border-radius: 4px; overflow-wrap: break-word; font-size: 1.1em; }
+        .note { margin-top: 15px; padding: 10px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; color: #155724; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 アルファベンティア暗号化・復号ツール</h1>
+
+        <label for="plainText">日本語の文章を入力 / 暗号文を入力:</label>
+        <textarea id="plainText" placeholder="例: 12じぱっがんすくろーれんにしゅうごう / あいうえおやゆよつ"></textarea>
+
+        <button onclick="encrypt()">日本語を暗号化</button>
+        <button onclick="decrypt()" style="background-color: #28a745;">暗号文を復号</button>
+
+        <h2>結果:</h2>
+        <div id="output"></div>
+        
+        <div class="note">
+            ✅ **最終決定版 v5.0**: 拗音/促音の換字テーブルの定義を修正し、清音（F記号）の復号時に小文字化されないようにロジックを確立しました。
+        </div>
+    </div>
+
+    <script>
+        // --- 1. 定数と換字表 ---
+        // **修正点: 小文字の定義を削除し、清音のみに限定**
+        const ROW_MAP = {
+            'あ': 'U', 'い': 'U', 'う': 'U', 'え': 'U', 'お': 'U', 'か': 'O', 'き': 'O', 'く': 'O', 'け': 'O', 'こ': 'O',
+            'さ': 'D', 'し': 'D', 'す': 'D', 'せ': 'D', 'そ': 'D', 'た': 'J', 'ち': 'J', 'つ': 'J', 'て': 'J', 'と': 'J',
+            'な': 'W', 'に': 'W', 'ぬ': 'W', 'ね': 'Y', 'の': 'W', 'は': 'P', 'ひ': 'P', 'ふ': 'P', 'へ': 'P', 'ほ': 'P',
+            'ま': 'Q', 'み': 'Q', 'む': 'Q', 'め': 'Q', 'も': 'Q', 'や': 'A', 'ゆ': 'A', 'よ': 'A',
+            'ら': 'X', 'り': 'X', 'る': 'X', 'れ': 'X', 'ろ': 'X', 'わ': 'M', 'を': 'M', 
+            'ん': 'M', 
+            // 拗音・促音はZ記号が付くため、清音の換字に導く
+            'っ': 'J', 'ぁ': 'U', 'ぃ': 'U', 'ぅ': 'U', 'ぇ': 'U', 'ぉ': 'U', 'ゃ': 'A', 'ゅ': 'A', 'ょ': 'A',
+        };
+
+        const COL_MAP = {
+            'あ': 'I', 'か': 'I', 'さ': 'I', 'た': 'I', 'な': 'I', 'は': 'I', 'ま': 'I', 'や': 'I', 'ら': 'I', 'わ': 'I',
+            'い': 'N', 'き': 'N', 'し': 'N', 'ち': 'N', 'に': 'N', 'ひ': 'N', 'み': 'N', 'り': 'N',
+            'う': 'S', 'く': 'S', 'す': 'S', 'つ': 'S', 'ぬ': 'S', 'ふ': 'S', 'む': 'S', 'ゆ': 'S', 'る': 'S',
+            'え': 'Y', 'け': 'Y', 'せ': 'Y', 'て': 'Y', 'ね': 'Y', 'へ': 'Y', 'め': 'Y', 'れ': 'Y',
+            'お': 'G', 'こ': 'G', 'そ': 'G', 'と': 'G', 'の': 'G', 'ほ': 'G', 'も': 'G', 'よ': 'G', 'ろ': 'G', 'を': 'G',
+            
+            'ん': 'G',
+            // 拗音・促音はZ記号が付くため、清音の換字に導く
+            'っ': 'S', 'ぁ': 'I', 'ぃ': 'N', 'ぅ': 'S', 'ぇ': 'Y', 'ぉ': 'G', 'ゃ': 'I', 'ゅ': 'S', 'ょ': 'G',
+        };
+
+        const NUM_MAP = [
+            { row: 'U', col: 'I', num: 0 }, { row: 'U', col: 'N', num: 1 }, { row: 'U', col: 'S', num: 2 }, { row: 'U', col: 'Y', num: 3 }, { row: 'U', col: 'G', num: 4 }, 
+            { row: 'O', col: 'I', num: 5 }, { row: 'O', col: 'N', num: 6 }, { row: 'O', col: 'S', num: 7 }, { row: 'O', col: 'Y', num: 8 }, { row: 'O', col: 'G', num: 9 },
+        ];
+        
+        const SYMBOL_CHARS = { 'L': 'L', 'H': 'H', 'Z': 'Z', 'F': 'F', 'V': 'V', 'C': 'C' };
+
+        // 復号用の逆引きマップ
+        const REVERSE_COL_MAP = {};
+        // 逆引きマップには、清音の「あいうえおやゆよつ」のみが含まれるように構築し直す
+        const BASE_CHARS = [
+            'あ','い','う','え','お','か','き','く','け','こ',
+            'さ','し','す','せ','そ','た','ち','つ','て','と',
+            'な','に','ぬ','ね','の','は','ひ','ふ','へ','ほ',
+            'ま','み','む','め','も','や','ゆ','よ',
+            'ら','り','る','れ','ろ','わ','を','ん',
+        ];
+        BASE_CHARS.forEach(char => {
+            const row = ROW_MAP[char];
+            const col = COL_MAP[char];
+            if (row && col) {
+                if (!REVERSE_COL_MAP[col]) {
+                    REVERSE_COL_MAP[col] = {};
+                }
+                REVERSE_COL_MAP[col][row] = char;
+            }
+        });
+        
+        // --- 2. 独立したカウンター管理 (変更なし) ---
+        let counters = { 'L': 0, 'H': 0, 'Z': 0, 'F': 0, 'V': 0 };
+
+        function getAndAdvancePosition(symbol) {
+            const currentCycle = counters[symbol];
+            counters[symbol] = (counters[symbol] + 1) % 3; 
+            if (currentCycle === 0) return 2;
+            if (currentCycle === 1) return 1;
+            return 0;
+        }
+
+        function create3CharBlock(base, symbol, positionIndex) {
+            const chars = ['','',''];
+            let baseIndex = 0;
+            chars[positionIndex] = symbol;
+            for (let i = 0; i < 3; i++) {
+                if (chars[i] === '') {
+                    chars[i] = base[baseIndex];
+                    baseIndex++;
+                }
+            }
+            return chars.join('');
+        }
+
+        // --- 3. 暗号化ロジック (変更なし) ---
+        function encrypt() {
+            let plainText = document.getElementById('plainText').value.trim();
+            plainText = plainText.replace(/[\u30a1-\u30f6]/g, function(match) { return String.fromCharCode(match.charCodeAt(0) - 0x60); });
+            plainText = plainText.replace(/[０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 0xFEE0); });
+            
+            let encryptedText = '';
+            counters = { 'L': 0, 'H': 0, 'Z': 0, 'F': 0, 'V': 0 };
+
+            function createChouonBlock() {
+                const patterns = ['CFF', 'FCF', 'FFC'];
+                return patterns[Math.floor(Math.random() * 3)];
+            }
+            function handleNumberEncryption(num) {
+                const numMap = NUM_MAP[num];
+                const base = numMap.row + numMap.col; 
+                const symbolV = SYMBOL_CHARS['V']; 
+                const positionV = getAndAdvancePosition(symbolV); 
+                return create3CharBlock(base, symbolV, positionV);
+            }
+
+            for (let i = 0; i < plainText.length; i++) {
+                const char = plainText[i];
+                let baseChar = char;
+                let symbol = '';
+                
+                if (char === 'ー') {
+                    encryptedText += createChouonBlock();
+                    continue;
+                }
+                if (/[0-9]/.test(char)) {
+                    encryptedText += handleNumberEncryption(parseInt(char));
+                    continue;
+                }
+
+                if (/[がぎぐげござじずぜぞだぢづでどばびぶべぼ]/.test(char)) {
+                    symbol = SYMBOL_CHARS['L']; 
+                    baseChar = char.normalize('NFD').slice(0, 1); 
+                } else if (/[ぱぴぷぺぽ]/.test(char)) {
+                    symbol = SYMBOL_CHARS['H'];
+                    baseChar = char.normalize('NFD').slice(0, 1);
+                } else if (/[ぁぃぅぇぉゃゅょっ]/.test(char)) {
+                    symbol = SYMBOL_CHARS['Z'];
+                    // Z記号の場合、基本文字として清音の親文字を使うように設定（例：ぁ->あ, ゅ->ゆ）
+                    baseChar = baseChar.normalize('NFD').slice(0, 1); 
+                }
+
+                const row = ROW_MAP[baseChar];
+                const col = COL_MAP[baseChar];
+                let base = row + col;
+
+                if (!row || !col) continue;
+
+                if (symbol) {
+                    const position = getAndAdvancePosition(symbol);
+                    encryptedText += create3CharBlock(base, symbol, position);
+                } else {
+                    const symbolF = SYMBOL_CHARS['F'];
+                    const positionF = getAndAdvancePosition(symbolF);
+                    encryptedText += create3CharBlock(base, symbolF, positionF);
+                }
+            }
+
+            document.getElementById('output').textContent = encryptedText;
+        }
+
+        // --- 4. 復号ロジック ---
+        
+        /**
+         * 復号の逆引き関数
+         */
+        function charFromBase(row, col, symbol) {
+            
+            // 1. 基本換字の取得 (清音)
+            let baseChar = REVERSE_COL_MAP[col] ? REVERSE_COL_MAP[col][row] : null;
+            if (!baseChar) return '?';
+
+            // 2. 記号ごとの排他的処理
+            
+            if (symbol === 'C') return 'ー';
+
+            if (symbol === 'V') {
+                const found = NUM_MAP.find(map => map.row === row && map.col === col);
+                return found ? found.num.toString() : '?'; 
+            }
+            
+            // 濁音・半濁音・小文字マップ
+            const dakuonMap = {
+                'か': 'が', 'き': 'ぎ', 'く': 'ぐ', 'け': 'げ', 'こ': 'ご',
+                'さ': 'ざ', 'し': 'じ', 'す': 'ず', 'せ': 'ぜ', 'そ': 'ぞ',
+                'た': 'だ', 'ち': 'ぢ', 'つ': 'づ', 'て': 'で', 'と': 'ど',
+                'は': 'ば', 'ひ': 'び', 'ふ': 'ぶ', 'へ': 'べ', 'ほ': 'ぼ',
+            };
+            const handakuonMap = {
+                'は': 'ぱ', 'ひ': 'ぴ', 'ふ': 'ぷ', 'へ': 'ぺ', 'ほ': 'ぽ',
+            };
+            const smallMap = {
+                'つ': 'っ', 
+                'や': 'ゃ', 'ゆ': 'ゅ', 'よ': 'ょ',
+                'あ': 'ぁ', 'い': 'ぃ', 'う': 'ぅ', 'え': 'ぇ', 'お': 'ぉ'
+            };
+
+            if (symbol === 'L') {
+                if (row === 'M' && col === 'G') return 'ん'; // 'ん'の特例
+                return dakuonMap[baseChar] || baseChar;
+            } 
+            else if (symbol === 'H') {
+                return handakuonMap[baseChar] || baseChar;
+            } 
+            else if (symbol === 'Z') {
+                // **Zが検出された場合のみ、小文字に変換**
+                return smallMap[baseChar] || baseChar;
+            }
+            else if (symbol === 'F') {
+                // **Fが検出された場合は、基本換字で得られた清音をそのまま返す**
+                return baseChar;
+            }
+            
+            return baseChar;
+        }
+        
+        /**
+         * 復号メイン関数 (変更なし)
+         */
+        function decrypt() {
+            const encryptedText = document.getElementById('plainText').value.trim().toUpperCase();
+            if (encryptedText.length % 3 !== 0) {
+                document.getElementById('output').textContent = "エラー: 暗号文の長さが3の倍数ではありません。";
+                return;
+            }
+
+            let decryptedText = '';
+            counters = { 'L': 0, 'H': 0, 'Z': 0, 'F': 0, 'V': 0 };
+            
+            let tempCounters = { 'L': 0, 'H': 0, 'Z': 0, 'F': 0, 'V': 0 };
+            for (let i = 0; i < encryptedText.length; i += 3) {
+                const block = encryptedText.substring(i, i + 3);
+                let foundSymbol = null;
+                for (const char of ['V', 'L', 'H', 'Z', 'F']) {
+                    if (block.includes(char)) {
+                        foundSymbol = char;
+                        break;
+                    }
+                }
+                if (foundSymbol) {
+                    tempCounters[foundSymbol] = (tempCounters[foundSymbol] + 1) % 3;
+                }
+            }
+            counters = tempCounters;
+
+            for (let i = encryptedText.length; i > 0; i -= 3) {
+                const block = encryptedText.substring(i - 3, i);
+                let symbol = '';
+                let base = '';
+
+                if (block.includes('C')) {
+                    decryptedText = 'ー' + decryptedText;
+                    continue;
+                }
+
+                let foundSymbol = null;
+                for (const char of ['V', 'L', 'H', 'Z', 'F']) {
+                    if (block.includes(char)) {
+                        foundSymbol = char;
+                        break;
+                    }
+                }
+                
+                if (foundSymbol) {
+                    symbol = foundSymbol;
+                    
+                    const position = block.indexOf(symbol);
+                    counters[symbol] = (counters[symbol] - 1 + 3) % 3;
+                    
+                    let tempBase = '';
+                    for (let j = 0; j < 3; j++) {
+                        if (j !== position) {
+                            tempBase += block[j];
+                        }
+                    }
+                    base = tempBase;
+                    
+                } else {
+                    decryptedText = ' ' + decryptedText; 
+                    continue;
+                }
+
+                const row = base[0];
+                const col = base[1];
+
+                decryptedText = charFromBase(row, col, symbol) + decryptedText;
+            }
+
+            document.getElementById('output').textContent = decryptedText.trim();
+        }
+    </script>
+</body>
+</html>
