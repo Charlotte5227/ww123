@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>霧屡暗号</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --fog:#d5dde1;
+  --fog-deep:#bcc9cf;
+  --panel:#f1f4f5;
+  --panel-edge:#c8d2d7;
+  --ink:#16212a;
+  --ai:#24435f;
+  --ai-soft:#3a6183;
+  --sabi:#5f8a84;
+  --mute:#78868f;
+  --warn:#9a5b4a;
+  --mono:"Roboto Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --mincho:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --gothic:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--fog);
+  color:var(--ink);
+  font-family:var(--gothic);
+  font-size:16px;
+  line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+  position:relative;
+  overflow-x:hidden;
+}
+/* ambient fog */
+.haze{position:fixed;inset:-25%;pointer-events:none;z-index:0}
+.haze i{
+  position:absolute;border-radius:50%;filter:blur(60px);opacity:.5;display:block;
+}
+.haze i:nth-child(1){width:70vw;height:70vw;left:-10vw;top:-5vw;
+  background:radial-gradient(circle,#ffffff 0%,rgba(255,255,255,0) 70%);
+  animation:drift1 46s ease-in-out infinite alternate}
+.haze i:nth-child(2){width:60vw;height:60vw;right:-15vw;top:30vh;
+  background:radial-gradient(circle,#c3d2d8 0%,rgba(195,210,216,0) 70%);
+  animation:drift2 61s ease-in-out infinite alternate}
+@keyframes drift1{to{transform:translate3d(8vw,6vh,0) scale(1.15)}}
+@keyframes drift2{to{transform:translate3d(-7vw,-9vh,0) scale(1.1)}}
+
+.wrap{position:relative;z-index:1;max-width:920px;margin:0 auto;padding:56px 20px 96px}
+
+/* masthead */
+.mast{margin-bottom:44px}
+.mast h1{
+  font-family:var(--mincho);font-weight:700;
+  font-size:clamp(38px,10vw,68px);
+  letter-spacing:.24em;margin:0 0 6px;line-height:1.15;
+  text-indent:.24em;color:var(--ink);
+}
+.mast .lede{
+  font-family:var(--mincho);font-size:14px;letter-spacing:.14em;
+  color:var(--mute);margin:0;
+}
+.rule{height:1px;background:var(--panel-edge);margin:26px 0 0}
+
+/* mode */
+.modes{display:flex;gap:0;margin:34px 0 18px;border:1px solid var(--panel-edge);width:fit-content;background:rgba(255,255,255,.5)}
+.modes button{
+  font-family:var(--mincho);font-size:15px;letter-spacing:.18em;
+  padding:9px 26px;border:0;background:transparent;color:var(--mute);
+  cursor:pointer;transition:background .25s,color .25s;
+}
+.modes button+button{border-left:1px solid var(--panel-edge)}
+.modes button[aria-pressed="true"]{background:var(--ai);color:#eef3f5}
+.modes button:focus-visible{outline:2px solid var(--sabi);outline-offset:-2px}
+
+label.field{display:block;font-size:12px;letter-spacing:.16em;color:var(--mute);margin-bottom:8px}
+
+textarea{
+  width:100%;min-height:132px;resize:vertical;
+  background:var(--panel);border:1px solid var(--panel-edge);
+  padding:16px;color:var(--ink);font-family:var(--gothic);font-size:16px;line-height:1.8;
+  transition:border-color .2s;
+}
+textarea.digits{font-family:var(--mono);letter-spacing:.06em;word-break:break-all}
+textarea:focus{outline:0;border-color:var(--ai)}
+
+.bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:14px 0 0}
+.go{
+  font-family:var(--mincho);font-size:16px;letter-spacing:.2em;
+  background:var(--ai);color:#eef3f5;border:0;padding:12px 34px;cursor:pointer;
+  transition:background .25s;
+}
+.go:hover{background:var(--ai-soft)}
+.go:focus-visible{outline:2px solid var(--sabi);outline-offset:2px}
+.count{font-family:var(--mono);font-size:12px;color:var(--mute);letter-spacing:.08em}
+
+.msg{margin:16px 0 0;font-size:13.5px;color:var(--warn);min-height:1.2em}
+.msg:empty{margin:0}
+
+/* output */
+.out{margin-top:40px;display:none}
+.out.on{display:block}
+.outhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.outhead .field{margin:0}
+.tools{display:flex;gap:8px}
+.tool{
+  font-size:12px;letter-spacing:.12em;background:transparent;
+  border:1px solid var(--panel-edge);color:var(--mute);
+  padding:6px 14px;cursor:pointer;transition:border-color .2s,color .2s,background .2s;
+  font-family:var(--gothic);
+}
+.tool:hover{color:var(--ai);border-color:var(--ai)}
+.tool[aria-pressed="true"]{background:var(--sabi);border-color:var(--sabi);color:#f2f5f5}
+.tool:focus-visible{outline:2px solid var(--sabi);outline-offset:2px}
+
+/* the stream — signature element */
+#stream{
+  background:var(--panel);border:1px solid var(--panel-edge);
+  padding:18px;font-family:var(--mono);font-size:15px;line-height:2.05;
+  letter-spacing:.06em;word-break:break-all;white-space:pre-wrap;
+  color:var(--ink);
+}
+#stream.plain{color:#4a5a64}
+#stream .ck{transition:background-color .5s ease,box-shadow .5s ease,padding .5s ease}
+#stream .hdr,#stream .bse{transition:color .5s ease,font-weight .5s ease}
+
+/* fogged: everything looks the same */
+#stream.plain .ck{background:transparent}
+#stream.plain .hdr,#stream.plain .bse,#stream.plain .val{color:inherit;font-weight:400}
+
+/* cleared: structure condenses out */
+#stream.clear .ck{padding:1px 0}
+#stream.clear .ck:nth-child(odd){background:rgba(36,67,95,.075);box-shadow:0 0 0 2px rgba(36,67,95,.075)}
+#stream.clear .ck:nth-child(even){background:rgba(95,138,132,.11);box-shadow:0 0 0 2px rgba(95,138,132,.11)}
+#stream.clear .hdr{color:var(--ai);font-weight:500}
+#stream.clear .bse{color:#8a4a3a;font-weight:500}
+#stream.clear .val+.val{border-left:1px solid rgba(22,33,42,.18);margin-left:2px;padding-left:2px}
+
+/* ledger */
+.ledger{margin-top:26px;display:none}
+.ledger.on{display:block}
+.ledger h2{font-family:var(--mincho);font-size:14px;letter-spacing:.2em;color:var(--mute);font-weight:500;margin:0 0 12px}
+.row{border-top:1px solid var(--panel-edge);padding:12px 0;display:grid;grid-template-columns:76px 1fr;gap:14px;align-items:start}
+.row:last-child{border-bottom:1px solid var(--panel-edge)}
+.badge{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--sabi)}
+.badge b{display:block;font-family:var(--mincho);font-size:21px;color:var(--ai);font-weight:700;line-height:1.2;letter-spacing:.02em}
+.cells{display:flex;flex-wrap:wrap;gap:4px 6px}
+.cell{font-family:var(--mono);font-size:11.5px;color:var(--mute);border:1px solid var(--panel-edge);background:rgba(255,255,255,.55);padding:2px 7px;white-space:nowrap}
+.cell em{font-style:normal;font-family:var(--gothic);color:var(--ink);font-size:13px;margin-right:5px}
+
+.foot{margin-top:60px;padding-top:22px;border-top:1px solid var(--panel-edge);font-size:12.5px;color:var(--mute);line-height:2}
+.foot code{font-family:var(--mono);font-size:11.5px;color:var(--ai)}
+
+@media (max-width:560px){
+  .wrap{padding:38px 16px 72px}
+  .row{grid-template-columns:64px 1fr;gap:10px}
+  #stream{font-size:13.5px;padding:14px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="haze" aria-hidden="true"><i></i><i></i></div>
+
+<div class="wrap">
+  <header class="mast">
+    <h1>霧屡暗号</h1>
+    <p class="lede">文字を数の霧に沈める</p>
+    <div class="rule"></div>
+  </header>
+
+  <div class="modes" role="group" aria-label="変換の向き">
+    <button id="mEnc" aria-pressed="true">暗号化</button>
+    <button id="mDec" aria-pressed="false">復号</button>
+  </div>
+
+  <label class="field" for="src" id="srcLabel">原文</label>
+  <textarea id="src" spellcheck="false" placeholder="文章を入力してください"></textarea>
+
+  <div class="bar">
+    <button class="go" id="run">変換する</button>
+    <span class="count" id="count">0 文字</span>
+  </div>
+  <p class="msg" id="msg" role="status"></p>
+
+  <section class="out" id="out">
+    <div class="outhead">
+      <label class="field" id="outLabel">暗号文</label>
+      <div class="tools">
+        <button class="tool" id="reveal" aria-pressed="false">霧を晴らす</button>
+        <button class="tool" id="copy">写す</button>
+      </div>
+    </div>
+    <div id="stream" class="plain"></div>
+
+    <div class="ledger" id="ledger">
+      <h2>塊の内訳</h2>
+      <div id="rows"></div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    末尾2桁が初期基数。そこから左へ、桁数と個数を読み、塊を切り出す。<br>
+    基数は1文字ごとに1増え、偶数なら基数÷2文字、奇数なら基数−16文字で塊が終わる。<br>
+    個数が10以上のときだけ、その左に <code>0</code> を置いて終端を示す。
+  </footer>
+</div>
+
+<script>
+'use strict';
+const MIN_BASE=16, MAX_BASE=32;
+const chunkLen=b=> b%2===0 ? b/2 : b-16;
+
+function cpDigits(cp){return cp.toString(16).split('').map(c=>parseInt(c,16));}
+function digitsToValue(d,base){let v=0;for(const x of d)v=v*base+x;return v;}
+function valueToDigits(v,base){if(v===0)return[0];const o=[];while(v>0){o.unshift(v%base);v=Math.floor(v/base);}return o;}
+
+function encode(text){
+  const chars=[...text];
+  for(const ch of chars){
+    const cp=ch.codePointAt(0);
+    if(cp>=0x100000) throw new Error('この文字は扱えません: '+ch);
+  }
+  let i=0,out='';const chunks=[];
+  while(i<chars.length){
+    const b=MIN_BASE+Math.floor(Math.random()*(MAX_BASE-MIN_BASE+1));
+    const part=chars.slice(i,i+chunkLen(b));
+    const vals=part.map((ch,k)=>String(digitsToValue(cpDigits(ch.codePointAt(0)),b+k)));
+    let s='',j=0;const runs=[];
+    while(j<vals.length){
+      const L=vals[j].length;
+      if(L>9) throw new Error('桁数が形式の範囲を超えました');
+      let c=0;while(j<vals.length&&vals[j].length===L){c++;j++;}
+      runs.push({L,c});
+      s+=vals.slice(j-c,j).join('')+((c>=10?'0':'')+c+L);
+    }
+    s+=String(b);
+    chunks.push({base:b,chars:part,vals,runs});
+    out+=s;i+=part.length;
+  }
+  return {cipher:out,chunks};
+}
+
+function valsToChars(vals,b){
+  const chars=[];
+  for(let k=0;k<vals.length;k++){
+    const base=b+k,v=Number(vals[k]);
+    if(!Number.isSafeInteger(v))return null;
+    let hex='';
+    for(const d of valueToDigits(v,base)){if(d>15)return null;hex+=d.toString(16);}
+    const cp=parseInt(hex,16);
+    if(!(cp>0&&cp<=0x10FFFF))return null;
+    if(cp>=0xD800&&cp<=0xDFFF)return null;
+    chars.push(String.fromCodePoint(cp));
+  }
+  return chars;
+}
+
+function* readRuns(s,q,b,expected,allowTrunc,acc,total){
+  if(total===expected||(allowTrunc&&total>0&&total<expected)){
+    const runs=acc.slice().reverse();
+    const vals=[].concat(...runs.map(r=>r.vals));
+    const chars=valsToChars(vals,b);
+    if(chars) yield {chars,start:q,base:b,vals,runs:runs.map(r=>({L:r.L,c:r.c}))};
+    if(total===expected) return;
+  }
+  if(total>=expected) return;
+  if(q-1<0) return;
+  const L=s.charCodeAt(q-1)-48;
+  if(L<1||L>9) return;
+  const qq=q-1,cands=[];
+  if(qq-1>=0){const d=s.charCodeAt(qq-1)-48;if(d>=1&&d<=9)cands.push({c:d,np:qq-1});}
+  if(qq-3>=0&&s[qq-3]==='0'){const c=parseInt(s.slice(qq-2,qq),10);if(c>=10)cands.push({c,np:qq-3});}
+  for(const cd of cands){
+    if(total+cd.c>expected) continue;
+    const need=cd.c*L;
+    if(cd.np-need<0) continue;
+    const seg=s.slice(cd.np-need,cd.np),vals=[];let ok=true;
+    for(let k=0;k<cd.c;k++){const v=seg.slice(k*L,(k+1)*L);if(v[0]==='0'){ok=false;break;}vals.push(v);}
+    if(!ok) continue;
+    yield* readRuns(s,cd.np-need,b,expected,allowTrunc,acc.concat([{L,c:cd.c,vals}]),total+cd.c);
+  }
+}
+
+function* parseChunk(s,p,allowTrunc){
+  if(p<2) return;
+  const b=parseInt(s.slice(p-2,p),10);
+  if(!(b>=MIN_BASE&&b<=MAX_BASE)) return;
+  yield* readRuns(s,p-2,b,chunkLen(b),allowTrunc,[],0);
+}
+
+function decode(s){
+  if(!/^[0-9]+$/.test(s)) throw new Error('暗号文は数字だけで構成されます');
+  const memo=new Map();
+  function from(p){
+    if(p===0) return [];
+    if(memo.has(p)) return memo.get(p);
+    let found=null;
+    for(const r of parseChunk(s,p,p===s.length)){
+      const rest=from(r.start);
+      if(rest){found=rest.concat([r]);break;}
+    }
+    memo.set(p,found);return found;
+  }
+  const chunks=from(s.length);
+  if(!chunks) throw new Error('復号できません。数列が途中で欠けているか、この形式ではありません');
+  return {text:chunks.map(c=>c.chars.join('')).join(''),chunks};
+}
+
+/* ---------- UI ---------- */
+const $=id=>document.getElementById(id);
+let mode='enc', lastCipher='', lastChunks=null;
+
+function setMode(m){
+  mode=m;
+  $('mEnc').setAttribute('aria-pressed',m==='enc');
+  $('mDec').setAttribute('aria-pressed',m==='dec');
+  $('srcLabel').textContent = m==='enc'?'原文':'暗号文';
+  $('outLabel').textContent = m==='enc'?'暗号文':'原文';
+  $('src').classList.toggle('digits',m==='dec');
+  $('src').placeholder = m==='enc'?'文章を入力してください':'数列を貼り付けてください';
+  $('src').value='';
+  $('out').classList.remove('on');
+  $('msg').textContent='';
+  updateCount();
+}
+$('mEnc').onclick=()=>setMode('enc');
+$('mDec').onclick=()=>setMode('dec');
+
+function updateCount(){
+  const n=[...$('src').value].length;
+  $('count').textContent = n+(mode==='enc'?' 文字':' 桁');
+}
+$('src').addEventListener('input',updateCount);
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+
+function renderStream(cipher,chunks){
+  let html='',pos=0;
+  for(const ck of chunks){
+    let inner='';
+    let vi=0;
+    for(const run of ck.runs){
+      for(let k=0;k<run.c;k++){
+        inner+='<span class="val">'+cipher.substr(pos,run.L)+'</span>';
+        pos+=run.L;vi++;
+      }
+      const h=(run.c>=10?'0':'')+run.c+run.L;
+      inner+='<span class="hdr">'+h+'</span>';
+      pos+=h.length;
+    }
+    inner+='<span class="bse">'+cipher.substr(pos,2)+'</span>';
+    pos+=2;
+    html+='<span class="ck">'+inner+'</span>';
+  }
+  $('stream').innerHTML=html;
+}
+
+function renderLedger(chunks){
+  let html='';
+  for(const ck of chunks){
+    let cells='';
+    for(let k=0;k<ck.chars.length;k++){
+      cells+='<span class="cell"><em>'+esc(ck.chars[k])+'</em>'+ck.vals[k]+'</span>';
+    }
+    html+='<div class="row"><div class="badge"><b>'+ck.base+'</b>基数</div><div class="cells">'+cells+'</div></div>';
+  }
+  $('rows').innerHTML=html;
+}
+
+$('run').onclick=()=>{
+  const src=$('src').value;
+  $('msg').textContent='';
+  if(!src.trim()){$('msg').textContent='変換するものがありません。上の欄に入力してください。';return;}
+  try{
+    if(mode==='enc'){
+      const r=encode(src);
+      lastCipher=r.cipher;lastChunks=r.chunks;
+      renderStream(r.cipher,r.chunks);
+      renderLedger(r.chunks);
+      $('out').classList.add('on');
+    }else{
+      const clean=src.replace(/\s+/g,'');
+      const r=decode(clean);
+      lastCipher=r.text;lastChunks=r.chunks;
+      $('stream').innerHTML='<span class="ck">'+esc(r.text).replace(/\n/g,'<br>')+'</span>';
+      renderLedger(r.chunks);
+      $('out').classList.add('on');
+    }
+    $('out').scrollIntoView({behavior:'smooth',block:'nearest'});
+  }catch(e){
+    $('msg').textContent=e.message;
+    $('out').classList.remove('on');
+  }
+};
+
+$('reveal').onclick=()=>{
+  const on=$('reveal').getAttribute('aria-pressed')==='true';
+  const next=!on;
+  $('reveal').setAttribute('aria-pressed',next);
+  $('reveal').textContent = next?'霧に戻す':'霧を晴らす';
+  $('stream').classList.toggle('clear',next);
+  $('stream').classList.toggle('plain',!next);
+  $('ledger').classList.toggle('on',next);
+};
+
+$('copy').onclick=async()=>{
+  const txt = mode==='enc'?lastCipher:lastCipher;
+  try{await navigator.clipboard.writeText(txt);}
+  catch(e){
+    const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);
+    ta.select();document.execCommand('copy');ta.remove();
+  }
+  $('copy').textContent='写した';
+  setTimeout(()=>{$('copy').textContent='写す';},1400);
+};
+
+setMode('enc');
+</script>
+</body>
+</html>
