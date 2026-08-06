@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔒 アルファベット暗号ジェネレーター</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f4f9; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+        h2 { color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 5px; margin-bottom: 20px; }
+        textarea { width: 100%; min-height: 120px; margin-bottom: 15px; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
+        button { padding: 10px 20px; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s; margin-right: 10px;}
+        #encryptBtn { background-color: #28a745; }
+        #decryptBtn { background-color: #ffc107; color: #333; }
+        #encryptBtn:hover { background-color: #218838; }
+        #decryptBtn:hover { background-color: #e0a800; }
+        .result-box { margin-top: 20px; padding: 15px; border: 2px dashed #007bff; background-color: #e9f7ff; border-radius: 4px; word-wrap: break-word; font-family: 'Courier New', Courier, monospace; font-size: 18px; font-weight: bold; }
+        .note { font-size: 14px; color: #666; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>🔒 アルファベット暗号ジェネレーター</h2>
+        <p class="note">暗号化は**単語ごと**に処理されます。復号結果にはパディング文字列がそのまま残ります。</p>
+        
+        <h3>入力エリア</h3>
+        <textarea id="ioText" placeholder="暗号化したい平文、または復号したい暗号文を入力してください。"></textarea>
+        
+        <button id="encryptBtn" onclick="runEncryption()">暗号化を実行 (平文 → 暗号文)</button>
+        <button id="decryptBtn" onclick="runDecryption()">復号を実行 (暗号文 → 平文)</button>
+        
+        <h3>結果</h3>
+        <div class="result-box" id="resultText">結果が表示されます。</div>
+
+        <p class="note">パディング文字列: DONOTFORGETTHEPRIDEOFENDYRIA</p>
+    </div>
+
+    <script>
+        // --- 定数定義 ---
+        const PADDING_STRING = "DONOTFORGETTHEPRIDEOFENDYRIA";
+        const BLOCK_SIZE = 10;
+        const TRANSPOSITION_MAPPING = [9, 2, 5, 8, 0, 1, 7, 4, 6, 3]; 
+        
+        const INVERSE_TRANSPOSITION_MAPPING = Array(BLOCK_SIZE);
+        for (let i = 0; i < BLOCK_SIZE; i++) {
+            INVERSE_TRANSPOSITION_MAPPING[TRANSPOSITION_MAPPING[i]] = i;
+        }
+
+        let sharedPaddingIndex = 0; // 暗号化の全体で共有するパディングインデックス
+
+        // ------------------------------------
+        // --- 暗号化ロジック (単語ごと) ---
+        // ------------------------------------
+
+        function processBlock(block) {
+            let transposedBlock = Array(BLOCK_SIZE).fill('');
+            
+            // ステップ4: 転置
+            for (let k = 0; k < BLOCK_SIZE; k++) {
+                let originalIndex = TRANSPOSITION_MAPPING[k];
+                transposedBlock[k] = block[originalIndex];
+            }
+            
+            // ステップ5: 換字
+            let currentEncryptedBlock = '';
+            for (let l = 0; l < BLOCK_SIZE; l++) {
+                let char = transposedBlock[l];
+                let charCode = char.charCodeAt(0);
+                let newCharCode;
+                
+                // 奇数番目 -> 1文字前へ
+                if ((l + 1) % 2 !== 0) { 
+                    newCharCode = charCode - 1;
+                    if (newCharCode < 'A'.charCodeAt(0)) { newCharCode = 'Z'.charCodeAt(0); }
+                } 
+                // 偶数番目 -> 1文字後ろへ
+                else { 
+                    newCharCode = charCode + 1;
+                    if (newCharCode > 'Z'.charCodeAt(0)) { newCharCode = 'A'.charCodeAt(0); }
+                }
+                currentEncryptedBlock += String.fromCharCode(newCharCode);
+            }
+            return currentEncryptedBlock;
+        }
+
+        function encrypt(plainText) {
+            // 入力値を単語に分割し、非アルファベットをクリーンアップ
+            let words = plainText
+                .split(/\s+/) 
+                .filter(word => word.length > 0)
+                .map(word => word.toUpperCase().replace(/[^A-Z]/g, ''));
+            
+            if (words.length === 0) { return ""; }
+
+            let finalEncryptedText = '';
+            sharedPaddingIndex = 0; // リセット
+
+            // 単語ごとに処理
+            for (const cleanedWord of words) {
+                if (cleanedWord.length === 0) continue; 
+
+                // 10文字ブロック処理とパディング
+                for (let i = 0; i < cleanedWord.length; i += BLOCK_SIZE) {
+                    let block = cleanedWord.substring(i, i + BLOCK_SIZE);
+                    
+                    // パディングの適用
+                    if (block.length < BLOCK_SIZE) {
+                        let needed = BLOCK_SIZE - block.length;
+                        for (let j = 0; j < needed; j++) {
+                            // カスタムパディング（連続/循環）
+                            block += PADDING_STRING[sharedPaddingIndex % PADDING_STRING.length];
+                            sharedPaddingIndex++;
+                        }
+                    }
+                    
+                    finalEncryptedText += processBlock(block); 
+                }
+            }
+            return finalEncryptedText;
+        }
+
+        // ------------------------------------
+        // --- 復号ロジック (パディング除去なし) ---
+        // ------------------------------------
+
+        function processDecryptBlock(block) {
+            // 1. 逆換字
+            let inverseSubstitutedBlock = '';
+            for (let l = 0; l < BLOCK_SIZE; l++) {
+                let char = block[l];
+                let charCode = char.charCodeAt(0);
+                let newCharCode;
+                
+                // 奇数番目 -> +1
+                if ((l + 1) % 2 !== 0) { 
+                    newCharCode = charCode + 1;
+                    if (newCharCode > 'Z'.charCodeAt(0)) { newCharCode = 'A'.charCodeAt(0); }
+                } 
+                // 偶数番目 -> -1
+                else { 
+                    newCharCode = charCode - 1;
+                    if (newCharCode < 'A'.charCodeAt(0)) { newCharCode = 'Z'.charCodeAt(0); }
+                }
+                inverseSubstitutedBlock += String.fromCharCode(newCharCode);
+            }
+
+            // 2. 逆転置
+            let originalBlock = Array(BLOCK_SIZE).fill('');
+            for (let k = 0; k < BLOCK_SIZE; k++) {
+                let originalIndex = INVERSE_TRANSPOSITION_MAPPING[k];
+                originalBlock[k] = inverseSubstitutedBlock[originalIndex];
+            }
+            
+            return originalBlock.join('');
+        }
+
+        function decrypt(cipherText) {
+            let cleanedCipher = cipherText.trim().toUpperCase().replace(/[^A-Z]/g, '');
+            
+            if (cleanedCipher.length === 0 || cleanedCipher.length % BLOCK_SIZE !== 0) {
+                return "エラー: 無効な暗号文の長さです。長さは10の倍数である必要があります。";
+            }
+
+            let finalPlainText = '';
+            
+            // パディング除去ロジックを完全にスキップし、全ブロックを復号して結合する
+            for (let i = 0; i < cleanedCipher.length; i += BLOCK_SIZE) {
+                let block = cleanedCipher.substring(i, i + BLOCK_SIZE);
+                let decryptedBlock = processDecryptBlock(block);
+                
+                // 復号された10文字ブロックをそのまま結合
+                finalPlainText += decryptedBlock;
+            }
+
+            return finalPlainText;
+        }
+
+        // --- HTML連携関数 ---
+
+        function runEncryption() {
+            const plainText = document.getElementById('ioText').value;
+            const encryptedText = encrypt(plainText);
+            document.getElementById('resultText').textContent = encryptedText;
+        }
+
+        function runDecryption() {
+            const cipherText = document.getElementById('ioText').value;
+            const decryptedText = decrypt(cipherText);
+            document.getElementById('resultText').textContent = decryptedText;
+        }
+    </script>
+</body>
+</html>
