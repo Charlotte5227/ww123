@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>活心暗号</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --konshi:#131A2E; --konshi-deep:#090D1A; --konshi-line:#2B3557;
+  --kindei:#C9A961; --kindei-bright:#EBCD8B; --kindei-dim:#8A7440;
+  --gofun:#E8E3D5; --shu:#B8323C; --muted:#727D9E;
+  --disp:"Shippori Mincho B1",serif;
+  --body:"Zen Kaku Gothic New",sans-serif;
+  --mono:"IBM Plex Mono",monospace;
+}
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  margin:0;background:var(--konshi-deep);color:var(--gofun);
+  font-family:var(--body);line-height:1.85;font-size:16px;overflow-x:hidden;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 90% 55% at 50% 0%, rgba(201,169,97,.10), transparent 65%),
+    radial-gradient(ellipse 70% 50% at 8% 88%, rgba(43,53,87,.55), transparent 70%);
+}
+.wrap{position:relative;z-index:1;max-width:1000px;margin:0 auto;padding:0 24px;}
+
+/* hero */
+.hero{min-height:88vh;display:flex;flex-direction:column;justify-content:center;padding:96px 0 56px;position:relative;}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.34em;color:var(--kindei-dim);text-transform:uppercase;margin:0 0 34px;}
+.title{font-family:var(--disp);font-weight:800;font-size:clamp(60px,15.5vw,152px);line-height:.92;margin:0;letter-spacing:.02em;color:var(--kindei);text-shadow:0 0 44px rgba(201,169,97,.24);}
+.romaji{font-family:var(--mono);font-size:clamp(11px,2.4vw,15px);letter-spacing:.62em;color:var(--muted);margin:22px 0 0;padding-left:.3em;}
+.lede{max-width:44ch;margin:42px 0 0;color:#B9C0D6;font-size:15.5px;}
+.gloss{margin:48px 0 0;display:flex;flex-wrap:wrap;gap:14px 40px;align-items:center;}
+.chain{display:flex;align-items:center;gap:11px;}
+.chain b{font-family:var(--disp);font-weight:600;font-size:29px;line-height:1;color:var(--muted);}
+.chain b:last-child{color:var(--shu);}
+.chain i{color:var(--konshi-line);font-style:normal;font-size:13px;}
+.gloss-eq{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--kindei-dim);}
+.seal{position:absolute;top:100px;right:24px;width:76px;height:76px;border:2.5px solid var(--shu);border-radius:3px;display:flex;align-items:center;justify-content:center;transform:rotate(-7deg);opacity:.82;}
+.seal span{font-family:var(--disp);font-weight:800;font-size:23px;color:var(--shu);writing-mode:vertical-rl;letter-spacing:.05em;}
+
+/* sections */
+section{padding:76px 0;border-top:1px solid var(--konshi-line);}
+.sec-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.3em;color:var(--kindei-dim);text-transform:uppercase;margin:0 0 12px;}
+h2{font-family:var(--disp);font-weight:600;font-size:clamp(26px,5.2vw,38px);margin:0 0 18px;letter-spacing:.03em;line-height:1.35;}
+.sec-intro{max-width:56ch;color:#AEB6CE;margin:0 0 38px;font-size:15px;}
+h3{font-family:var(--disp);font-weight:600;font-size:19px;margin:0 0 4px;color:var(--kindei-bright);letter-spacing:.04em;}
+
+/* panel */
+.panel{background:var(--konshi);border:1px solid var(--konshi-line);border-radius:2px;padding:26px 24px;}
+.modes{display:flex;gap:0;margin:0 0 24px;border:1px solid var(--konshi-line);border-radius:2px;width:fit-content;overflow:hidden;}
+.modes button{border:0;border-radius:0;padding:9px 26px;background:transparent;color:var(--muted);font-size:14px;}
+.modes button.on{background:var(--kindei);color:var(--konshi-deep);font-weight:700;}
+.field{margin-bottom:20px;}
+.flabel{font-family:var(--mono);font-size:10.5px;letter-spacing:.24em;color:var(--kindei-dim);text-transform:uppercase;display:block;margin-bottom:9px;}
+textarea{
+  width:100%;background:var(--konshi-deep);color:var(--gofun);
+  border:1px solid var(--konshi-line);border-radius:2px;padding:14px 15px;
+  font-family:var(--body);font-size:15.5px;line-height:1.75;resize:vertical;min-height:92px;
+}
+textarea.ct{font-family:var(--mono);letter-spacing:.09em;word-break:break-all;font-size:14.5px;}
+textarea:focus{outline:none;border-color:var(--kindei-dim);}
+button{font-family:var(--body);font-weight:500;font-size:14px;background:transparent;color:var(--kindei);border:1px solid var(--kindei-dim);border-radius:2px;padding:9px 20px;cursor:pointer;transition:background .18s,color .18s,border-color .18s;}
+button:hover:not(:disabled){background:var(--kindei);color:var(--konshi-deep);}
+button:disabled{opacity:.3;cursor:default;}
+button:focus-visible,.pt:focus-visible,textarea:focus-visible{outline:2px solid var(--kindei-bright);outline-offset:2px;}
+.row{display:flex;gap:11px;align-items:center;flex-wrap:wrap;}
+.hint{font-size:13px;color:var(--muted);margin:9px 0 0;}
+.out{
+  font-family:var(--mono);font-size:clamp(13px,3.2vw,16px);letter-spacing:.08em;
+  background:var(--konshi-deep);border:1px solid var(--konshi-line);border-left:2px solid var(--kindei);
+  padding:17px 16px;word-break:break-all;line-height:2;min-height:60px;color:var(--kindei-bright);
+}
+.out.plain{font-family:var(--body);letter-spacing:0;color:var(--gofun);font-size:16px;line-height:1.8;}
+.out.err{color:#E06B72;border-left-color:var(--shu);font-family:var(--body);letter-spacing:0;}
+
+/* base point picker */
+.pts{display:flex;flex-wrap:wrap;gap:5px;}
+.pt{font-family:var(--mono);font-size:14px;width:32px;height:32px;background:transparent;border:1px solid var(--konshi-line);color:var(--muted);border-radius:2px;cursor:pointer;display:grid;place-items:center;transition:all .16s;padding:0;}
+.pt:hover{border-color:var(--kindei-dim);color:var(--kindei);}
+.pt.on{background:var(--kindei);border-color:var(--kindei);color:var(--konshi-deep);font-weight:600;}
+
+/* ladder */
+.ladder{margin-top:30px;border-top:1px solid var(--konshi-line);padding-top:26px;}
+.ladder-head{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:22px;}
+.stage-no{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--kindei-dim);}
+.stage-name{font-family:var(--disp);font-size:20px;color:var(--kindei-bright);letter-spacing:.05em;}
+.stage-note{font-size:13px;color:var(--muted);flex-basis:100%;margin-top:-2px;}
+.cells{display:flex;flex-wrap:wrap;gap:8px;min-height:96px;align-content:flex-start;}
+.cell{font-family:var(--mono);font-weight:500;font-size:clamp(13px,3.2vw,17px);background:var(--konshi-deep);border:1px solid var(--konshi-line);padding:10px 12px;border-radius:2px;color:#C3CBE4;letter-spacing:.05em;white-space:nowrap;animation:rise .4s cubic-bezier(.2,.7,.3,1) backwards;}
+.cell.wide{flex:1 1 100%;white-space:normal;word-break:break-all;line-height:1.8;}
+.cell em{font-style:normal;color:var(--kindei-bright);}
+.cell .more{color:var(--muted);border:0;background:none;}
+@keyframes rise{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+@media (prefers-reduced-motion:reduce){.cell{animation:none;}}
+.ladder-foot{display:flex;align-items:center;gap:12px;margin-top:22px;flex-wrap:wrap;}
+.pips{display:flex;gap:6px;margin-left:auto;}
+.pip{width:20px;height:2px;background:var(--konshi-line);transition:background .3s;}
+.pip.on{background:var(--kindei);}
+
+/* ruler */
+.strip{overflow-x:auto;background:var(--konshi);border:1px solid var(--konshi-line);border-radius:2px;margin-top:22px;}
+.strip-inner{display:flex;padding:18px 18px 6px;gap:3px;}
+.tick{min-width:34px;text-align:center;flex-shrink:0;}
+.tick .ch{font-family:var(--mono);font-size:17px;color:#98A2C0;padding:5px 0;border-radius:2px;display:block;}
+.tick .vl{font-family:var(--mono);font-size:10px;color:#4E587A;display:block;margin-top:3px;}
+.tick.zero .ch{background:var(--kindei);color:var(--konshi-deep);font-weight:600;}
+.tick.zero .vl{color:var(--kindei);}
+.strip-cap{font-size:13.5px;color:var(--muted);margin:14px 0 0;}
+
+/* steps */
+.phase{margin-bottom:48px;}
+.phase-hd{display:flex;align-items:baseline;gap:14px;padding-bottom:12px;margin-bottom:6px;border-bottom:1px solid var(--konshi-line);}
+.phase-hd .n{font-family:var(--mono);font-size:11px;color:var(--kindei-dim);letter-spacing:.2em;}
+.steps{list-style:none;margin:0;padding:0;counter-reset:s var(--start);}
+.steps li{counter-increment:s;display:flex;gap:20px;padding:15px 0;border-bottom:1px solid rgba(43,53,87,.45);}
+.steps li::before{content:counter(s);font-family:var(--mono);font-size:12px;color:var(--kindei);flex-shrink:0;width:22px;padding-top:5px;text-align:right;}
+.steps p{margin:0;font-size:15px;}
+.steps small{display:block;font-family:var(--mono);font-size:12.5px;color:var(--muted);margin-top:5px;letter-spacing:.03em;}
+
+/* anatomy */
+.anat{font-family:var(--mono);font-size:clamp(13px,3.3vw,18px);background:var(--konshi);border:1px solid var(--konshi-line);padding:24px 20px;border-radius:2px;word-break:break-all;line-height:2.3;letter-spacing:.06em;margin:0 0 24px;}
+.anat span{padding:5px 2px;border-bottom:2px solid;}
+.g-head{color:#E06B72;border-color:#E06B72;}
+.g-meta{color:var(--kindei-bright);border-color:var(--kindei-bright);}
+.g-share{color:#7FC6C0;border-color:#7FC6C0;}
+.g-rest{color:#A8B2D0;border-color:var(--konshi-line);}
+.key{display:grid;gap:11px;}
+.key div{display:flex;gap:13px;align-items:baseline;font-size:14px;}
+.key code{font-family:var(--mono);font-size:13px;flex-shrink:0;min-width:66px;letter-spacing:.08em;}
+
+.traits{display:grid;gap:1px;background:var(--konshi-line);border:1px solid var(--konshi-line);}
+.trait{background:var(--konshi-deep);padding:24px 22px;}
+.trait p{margin:8px 0 0;font-size:14.5px;color:#AEB6CE;}
+@media(min-width:720px){.traits{grid-template-columns:1fr 1fr;}}
+
+footer{border-top:1px solid var(--konshi-line);padding:48px 0 64px;display:flex;justify-content:space-between;align-items:flex-end;gap:22px;flex-wrap:wrap;}
+footer p{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.2em;color:var(--kindei-dim);}
+.foot-mark{font-family:var(--disp);font-size:26px;color:var(--shu);letter-spacing:.3em;opacity:.75;}
+.hide{display:none !important;}
+@media(max-width:600px){
+  .seal{width:58px;height:58px;top:86px;} .seal span{font-size:17px;}
+  .panel{padding:20px 16px;} section{padding:60px 0;}
+  .modes button{padding:9px 18px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="seal"><span>悪魔</span></div>
+  <p class="eyebrow">Unicode 全域 / 自己完結・自己回帰</p>
+  <h1 class="title">活心暗号</h1>
+  <p class="romaji">KASSHIN ANGO</p>
+  <p class="lede">全てのUnicode文字を受けつけ、どの段からも元に戻せる。一段ずつ剥がしていけば必ず解ける、それでいて素直には解けない暗号。</p>
+  <div class="gloss">
+    <div class="chain"><b>活</b><i>→</i><b>割</b><i>→</i><b>悪</b></div>
+    <div class="chain"><b>心</b><i>→</i><b>真</b><i>→</i><b>魔</b></div>
+    <span class="gloss-eq">名もまた一段ずつ変換される</span>
+  </div>
+</header>
+
+<!-- ═══ 変換機 ═══ -->
+<section>
+  <p class="sec-label">The machine</p>
+  <h2>変換機</h2>
+  <p class="sec-intro">文を入れれば暗号文が出る。暗号文を入れれば文が戻る。暗号化のときは、途中の段も全部見える。</p>
+
+  <div class="panel">
+    <div class="modes">
+      <button id="mEnc" class="on">暗号化</button>
+      <button id="mDec">復号</button>
+    </div>
+
+    <!-- ENCODE -->
+    <div id="encPane">
+      <div class="field">
+        <label class="flabel" for="plain">平文</label>
+        <textarea id="plain" spellcheck="false">こんにちは！</textarea>
+      </div>
+      <div class="field">
+        <span class="flabel">基準点</span>
+        <div class="pts" id="pts"></div>
+        <p class="hint">j〜a, A〜J の20通り。実際の運用ではランダムに決まる。</p>
+      </div>
+      <div class="row" style="margin-bottom:22px">
+        <button id="btnEnc">暗号化する</button>
+        <button id="btnRnd">基準点をランダムに</button>
+        <button id="btnCopyC">暗号文をコピー</button>
+      </div>
+      <div class="field">
+        <span class="flabel">暗号文</span>
+        <div class="out" id="cipherOut">—</div>
+      </div>
+
+      <div class="ladder" id="ladder">
+        <div class="ladder-head">
+          <div>
+            <div class="stage-no" id="sno">段 0 / 6</div>
+            <div class="stage-name" id="sname">—</div>
+          </div>
+          <div class="stage-note" id="snote"></div>
+        </div>
+        <div class="cells" id="cells"></div>
+        <div class="ladder-foot">
+          <button id="prev">戻る</button>
+          <button id="next">進む</button>
+          <div class="pips" id="pips"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DECODE -->
+    <div id="decPane" class="hide">
+      <div class="field">
+        <label class="flabel" for="cipher">暗号文</label>
+        <textarea id="cipher" class="ct" spellcheck="false">APAOFDCD35AIHECGCZCKBAEPW39</textarea>
+      </div>
+      <div class="row" style="margin-bottom:22px">
+        <button id="btnDec">復号する</button>
+        <button id="btnCopyP">平文をコピー</button>
+      </div>
+      <div class="field">
+        <span class="flabel">平文</span>
+        <div class="out plain" id="plainOut">—</div>
+      </div>
+      <p class="hint" id="decInfo"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 基準点 ═══ -->
+<section>
+  <p class="sec-label">The origin</p>
+  <h2>基準点</h2>
+  <p class="sec-intro">選んだ文字が 0 になり、そこから増える方向がプラス、減る方向がマイナス。A のあとは a で、以降小文字が減る方向へ続く。上の変換機で基準点を選ぶと、この目盛りも動く。</p>
+  <div class="strip"><div class="strip-inner" id="strip"></div></div>
+  <p class="strip-cap" id="cap"></p>
+</section>
+
+<!-- ═══ 手順 ═══ -->
+<section>
+  <p class="sec-label">The procedure</p>
+  <h2>手順</h2>
+
+  <div class="phase">
+    <div class="phase-hd"><span class="n">01 — 07</span><h3>変換</h3></div>
+    <ol class="steps" style="--start:0">
+      <li><p>入力された文字のUnicodeを16進で取得する。</p></li>
+      <li><p>各文字ごとに1文字目のみ選択する。</p></li>
+      <li><p>残りの文字が1文字目からどれくらい増減するかを、基準点を 0 としたアルファベットで保持する。<small>3053 → 1文字目 3、残り 0 5 3 は −3 +2 ±0 → cCA</small></p></li>
+      <li><p>1文字目は、基準点から16進の値ぶん増える方向に進めた文字で表す。<small>基準点 G・値 6 → M ／ 基準点 A・値 3 → D</small></p></li>
+      <li><p>1文字目と残りの文字との間に <code>-</code> を置く。</p></li>
+      <li><p>後半部分のアルファベットを62進数として扱い、36進数に変換する。<small>cCA → 146826 → 35AI</small></p></li>
+      <li><p>これを全ての文字に施す。</p></li>
+    </ol>
+  </div>
+
+  <div class="phase">
+    <div class="phase-hd"><span class="n">08 — 10</span><h3>圧縮</h3></div>
+    <ol class="steps" style="--start:7">
+      <li><p>後半部分で、桁数を含めて共有部分がある連続した文字をまとめ、まとめた個数をアルファベットで1文字目の前に書く。</p></li>
+      <li><p>その後ろに、まとめた部分の <code>-</code> を除いた文字数をアルファベットで書く。</p></li>
+      <li><p>続けて、まとめられていない部分の文字数をアルファベットで書く。</p></li>
+    </ol>
+  </div>
+
+  <div class="phase">
+    <div class="phase-hd"><span class="n">11 — 12</span><h3>仕上げ</h3></div>
+    <ol class="steps" style="--start:10">
+      <li><p>暗号文の一番初めに「選んだ基準点, プラス最大値, −1を表す数, 最低値」を全て大文字で置く。</p></li>
+      <li><p><code>-</code> を消す。</p></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ═══ 読み方 ═══ -->
+<section>
+  <p class="sec-label">The anatomy</p>
+  <h2>暗号文の読み方</h2>
+  <p class="sec-intro">頭から順に食べていける。個数・共有部の長さ・残りの長さが毎回先に来るので、どこで切るか迷う場所がない。</p>
+
+  <p class="anat">
+    <span class="g-head">APAO</span><span class="g-meta">FDC</span><span class="g-share">D35</span><span class="g-rest">AIHECGCZCK</span><span class="g-meta">BAE</span><span class="g-rest">PW39</span>
+  </p>
+  <div class="key">
+    <div><code class="g-head">APAO</code><span>ヘッダ。基準点 A、プラス最大値 P、−1 は A（=a）、最低値 O（=o）</span></div>
+    <div><code class="g-meta">FDC</code><span>F=5個をまとめた／共有部は D=3文字／残りは C=2文字ずつ</span></div>
+    <div><code class="g-share">D35</code><span>5文字が共有する頭。各文字の前に付け直す</span></div>
+    <div><code class="g-rest">AIHECGCZCK</code><span>2文字ずつに割ると AI HE CG CZ CK</span></div>
+    <div><code class="g-meta">BAE</code><span>B=1個／共有部 A=0文字／残り E=4文字</span></div>
+    <div><code class="g-rest">PW39</code><span>まとめる相手がいなかった「！」</span></div>
+  </div>
+</section>
+
+<!-- ═══ 性質 ═══ -->
+<section>
+  <p class="sec-label">The properties</p>
+  <h2>性質</h2>
+  <div class="traits">
+    <div class="trait"><h3>長いほど縮む</h3><p>日本語なら上位の桁が延々と共通するため、文が伸びるほど圧縮が効く。短文ではヘッダの分だけ逆に膨らむ。</p></div>
+    <div class="trait"><h3>桁数を問わない</h3><p>4桁でも6桁でも手順は同一。絵文字のような U+1F600 も同じ道を通る。</p></div>
+    <div class="trait"><h3>毎回ちがう顔</h3><p>基準点がランダムなので、同じ文からでも異なる暗号文が生まれる。</p></div>
+    <div class="trait"><h3>ヘッダが鍵を明かす</h3><p>基準点は大文字化されて曖昧になるが、3文字目の「−1を表す数」と組み合わせると20通りが一意に定まる。復号はここから始まる。</p></div>
+  </div>
+</section>
+
+<footer>
+  <p>活心暗号 — 自己完結・自己回帰</p>
+  <span class="foot-mark">悪魔</span>
+</footer>
+</div>
+
+<script>
+"use strict";
+/* ═══ core ═══ */
+const ORDER=[..."zyxwvutsrqponmlkjihgfedcba",..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
+const B62="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+const B36="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const BASES=ORDER.slice(16,36);              // j 〜 a, A 〜 J
+const MAXG=25;                               // 1グループ最大 Z=25
+const lv=c=>c.charCodeAt(0)-65;              // A=0 … Z=25
+const LV=n=>String.fromCharCode(65+n);
+
+function toVal(s,al){let v=0;for(const c of s){const i=al.indexOf(c);if(i<0)return NaN;v=v*al.length+i;}return v;}
+function fromVal(v,al){if(v===0)return al[0];let s="";while(v>0){s=al[v%al.length]+s;v=Math.floor(v/al.length);}return s;}
+
+/* ── encode ── */
+function encode(text,base){
+  const chars=[...text];
+  if(!chars.length) throw new Error("平文が空です。文字を入れてください。");
+  const tr={hex:[],s1:[],s2:[],s3:[],s4:[],items:[]};
+  let maxV=0,minV=0;
+  for(const ch of chars){
+    const hex=ch.codePointAt(0).toString(16).toUpperCase();
+    const d0=parseInt(hex[0],16);
+    maxV=Math.max(maxV,d0);
+    let inc="";
+    for(let i=1;i<hex.length;i++){
+      const d=parseInt(hex[i],16)-d0;
+      maxV=Math.max(maxV,d);minV=Math.min(minV,d);
+      inc+=ORDER[base+d];
+    }
+    const head=ORDER[base+d0];
+    const b36=inc?fromVal(toVal(inc,B62),B36):"";
+    tr.hex.push(hex); tr.s1.push(hex[0]+inc); tr.s2.push(head+inc);
+    tr.s3.push(head+"-"+inc); tr.s4.push(head+"-"+b36);
+    tr.items.push(head+b36);
+  }
+  tr.groups=compress(tr.items);
+  tr.body=tr.groups.map(g=>LV(g.cnt)+LV(g.p)+LV(g.r)+g.shared+g.rests.join("")).join("");
+  tr.header=(ORDER[base]+ORDER[base+maxV]+ORDER[base-1]+ORDER[base+minV]).toUpperCase();
+  tr.cipher=tr.header+tr.body;
+  return tr;
+}
+
+/* 最短になるまとめ方を選ぶ（連続かつ同桁数かつ共有頭ありのみ） */
+function compress(items){
+  const n=items.length, memo=new Array(n+1);
+  memo[n]={cost:0,parts:[]};
+  for(let i=n-1;i>=0;i--){
+    let best=null, pre=items[i];
+    for(let j=i;j<n&&j-i<MAXG;j++){
+      if(items[j].length!==items[i].length) break;
+      if(j>i){let k=0;while(k<pre.length&&pre[k]===items[j][k])k++;pre=pre.slice(0,k);}
+      const cnt=j-i+1;
+      if(cnt>1&&pre.length===0) break;
+      const p=cnt===1?0:pre.length, r=items[i].length-p;
+      if(p>25||r>25) continue;
+      const cost=3+p+cnt*r+memo[j+1].cost;
+      if(!best||cost<best.cost)
+        best={cost,next:j+1,part:{cnt,p,r,shared:items[i].slice(0,p),rests:items.slice(i,j+1).map(s=>s.slice(p))}};
+    }
+    memo[i]={cost:best.cost,parts:[best.part,...memo[best.next].parts]};
+  }
+  return memo[0].parts;
+}
+
+/* ── decode ── */
+function decode(ct){
+  const s=ct.replace(/[\s\-]/g,"").toUpperCase();
+  if(s.length<4) throw new Error("短すぎます。ヘッダ4文字と本体が必要です。");
+  if(!/^[0-9A-Z]+$/.test(s)) throw new Error("使えない文字が入っています。暗号文は 0–9 と A–Z だけでできています。");
+  let base=-1;
+  for(let k=16;k<=35;k++)
+    if(ORDER[k].toUpperCase()===s[0]&&ORDER[k-1].toUpperCase()===s[2]){base=k;break;}
+  if(base<0) throw new Error("ヘッダから基準点を特定できません。1文字目と3文字目の組み合わせが20通りのどれにも当たりません。");
+
+  const body=s.slice(4); let i=0, out="";
+  while(i<body.length){
+    if(i+3>body.length) throw new Error("本体の途中で終わっています。個数・共有長・残り長の3文字が揃っていません。");
+    const cnt=lv(body[i]), p=lv(body[i+1]), r=lv(body[i+2]); i+=3;
+    if(cnt<1||p<0||r<0) throw new Error("グループの個数か文字数が読めません。");
+    if(i+p+cnt*r>body.length) throw new Error("本体が足りません。宣言された文字数ぶんのデータがありません。");
+    const shared=body.slice(i,i+p); i+=p;
+    for(let q=0;q<cnt;q++){
+      const item=shared+body.slice(i,i+r); i+=r;
+      const d0=ORDER.indexOf(item[0])-base;
+      if(d0<0||d0>15) throw new Error("1文字目が16進の範囲（0〜15）から外れています。");
+      let hex=d0.toString(16);
+      const b36=item.slice(1);
+      if(b36){
+        const v=toVal(b36,B36);
+        if(!Number.isFinite(v)) throw new Error("36進部分が読めません。");
+        for(const c of fromVal(v,B62)){
+          const d=ORDER.indexOf(c)-base;
+          const dg=d0+d;
+          if(ORDER.indexOf(c)<0||dg<0||dg>15) throw new Error("増減値が16進の範囲から外れています。基準点が違うかもしれません。");
+          hex+=dg.toString(16);
+        }
+      }
+      const cp=parseInt(hex,16);
+      if(!(cp>=0&&cp<=0x10FFFF)) throw new Error("Unicodeに存在しないコードポイントが出てきました。");
+      out+=String.fromCodePoint(cp);
+    }
+  }
+  return {text:out,base:ORDER[base]};
+}
+
+/* ═══ UI ═══ */
+const $=id=>document.getElementById(id);
+let base=26, trace=null, stage=0;
+
+/* base picker */
+BASES.forEach(ch=>{
+  const b=document.createElement("button");
+  b.className="pt";b.textContent=ch;b.dataset.i=ORDER.indexOf(ch);
+  b.onclick=()=>{base=+b.dataset.i;paintPts();ruler();runEnc();};
+  $("pts").appendChild(b);
+});
+const paintPts=()=>[...$("pts").children].forEach(b=>b.classList.toggle("on",+b.dataset.i===base));
+
+function ruler(){
+  let h="";
+  for(let v=-16;v<=16;v++){
+    const ch=ORDER[base+v]; if(!ch)continue;
+    h+=`<div class="tick ${v===0?"zero":""}"><span class="ch">${ch}</span><span class="vl">${v>0?"+"+v:v}</span></div>`;
+  }
+  $("strip").innerHTML=h;
+  $("cap").textContent=`基準点 ${ORDER[base]} — 値 0 は ${ORDER[base]}、+15 は ${ORDER[base+15]}、−15 は ${ORDER[base-15]}。`;
+  const z=$("strip").querySelector(".zero");
+  if(z)z.scrollIntoView({block:"nearest",inline:"center",behavior:"smooth"});
+}
+
+/* stages */
+function stagesOf(t){
+  const g=t.groups.map(x=>`<em>${LV(x.cnt)}${LV(x.p)}${LV(x.r)}</em>${x.shared}${x.rests.join("")}`);
+  return [
+    {n:"コードポイント",d:"各文字のUnicodeを16進で取得する",c:t.hex},
+    {n:"増減値",d:"1文字目からの増減を、基準点を 0 としたアルファベットで表す",c:t.s1.map(s=>s[0]+"<em>"+s.slice(1)+"</em>")},
+    {n:"1文字目",d:"1文字目も基準点から数えた文字に置きかえる",c:t.s2.map(s=>"<em>"+s[0]+"</em>"+s.slice(1))},
+    {n:"区切り",d:"1文字目と残りの間に - を置く",c:t.s3.map(s=>s.replace("-","<em>-</em>"))},
+    {n:"62進 → 36進",d:"後半部分を62進数として読み、36進数に変換する",c:t.s4.map(s=>s.split("-")[0]+"-<em>"+s.split("-")[1]+"</em>")},
+    {n:"圧縮",d:"同じ桁数で頭を共有する連続部分をまとめ、個数・共有長・残り長を前に置く",c:g,wide:true},
+    {n:"完成",d:`ヘッダ ${t.header} を置き、- を消す`,c:["<em>"+t.header+"</em>"+t.body],wide:true}
+  ];
+}
+function drawStage(){
+  if(!trace)return;
+  const S=stagesOf(trace), s=S[stage], LIMIT=24;
+  $("sno").textContent=`段 ${stage} / ${S.length-1}`;
+  $("sname").textContent=s.n; $("snote").textContent=s.d;
+  const shown=s.c.slice(0,LIMIT);
+  let h=shown.map((c,i)=>`<div class="cell${s.wide?" wide":""}" style="animation-delay:${Math.min(i,14)*40}ms">${c}</div>`).join("");
+  if(s.c.length>LIMIT) h+=`<div class="cell more">…他 ${s.c.length-LIMIT} 個</div>`;
+  $("cells").innerHTML=h;
+  $("prev").disabled=stage===0; $("next").disabled=stage===S.length-1;
+  [...$("pips").children].forEach((p,n)=>p.classList.toggle("on",n<=stage));
+}
+for(let n=0;n<7;n++){const p=document.createElement("div");p.className="pip";$("pips").appendChild(p);}
+$("prev").onclick=()=>{if(stage>0){stage--;drawStage();}};
+$("next").onclick=()=>{if(stage<6){stage++;drawStage();}};
+
+/* actions */
+function runEnc(){
+  try{
+    trace=encode($("plain").value,base);
+    $("cipherOut").className="out";
+    $("cipherOut").textContent=trace.cipher;
+    drawStage();
+  }catch(e){
+    trace=null;
+    $("cipherOut").className="out err";
+    $("cipherOut").textContent=e.message;
+    $("cells").innerHTML="";
+  }
+}
+function runDec(){
+  try{
+    const r=decode($("cipher").value);
+    $("plainOut").className="out plain";
+    $("plainOut").textContent=r.text;
+    $("decInfo").textContent=`ヘッダから基準点 ${r.base} を特定し、${[...r.text].length} 文字を復元しました。`;
+  }catch(e){
+    $("plainOut").className="out err";
+    $("plainOut").textContent=e.message;
+    $("decInfo").textContent="";
+  }
+}
+$("btnEnc").onclick=runEnc;
+$("btnDec").onclick=runDec;
+$("plain").oninput=()=>{stage=0;runEnc();};
+$("cipher").oninput=runDec;
+$("btnRnd").onclick=()=>{
+  let i; do{i=ORDER.indexOf(BASES[Math.floor(Math.random()*BASES.length)]);}while(i===base);
+  base=i;paintPts();ruler();runEnc();
+};
+const copy=(txt,btn,label)=>{
+  navigator.clipboard.writeText(txt).then(()=>{
+    const o=btn.textContent;btn.textContent="コピーしました";
+    setTimeout(()=>btn.textContent=o,1400);
+  }).catch(()=>{btn.textContent="コピーできません";setTimeout(()=>btn.textContent=label,1400);});
+};
+$("btnCopyC").onclick=e=>{if(trace)copy(trace.cipher,e.target,"暗号文をコピー");};
+$("btnCopyP").onclick=e=>{const t=$("plainOut").textContent;if(t&&t!=="—")copy(t,e.target,"平文をコピー");};
+
+$("mEnc").onclick=()=>{$("mEnc").classList.add("on");$("mDec").classList.remove("on");$("encPane").classList.remove("hide");$("decPane").classList.add("hide");};
+$("mDec").onclick=()=>{$("mDec").classList.add("on");$("mEnc").classList.remove("on");$("decPane").classList.remove("hide");$("encPane").classList.add("hide");};
+
+paintPts();ruler();runEnc();runDec();
+</script>
+</body>
+</html>
