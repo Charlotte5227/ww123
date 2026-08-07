@@ -174,7 +174,7 @@ footer p{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.2em;c
       <div class="field">
         <span class="flabel">基準点</span>
         <div class="pts" id="pts"></div>
-        <p class="hint">j〜a, A〜J の20通り。実際の運用ではランダムに決まる。</p>
+        <p class="hint">A〜J の10通り。実際の運用ではランダムに決まる。</p>
       </div>
       <div class="row" style="margin-bottom:22px">
         <button id="btnEnc">暗号化する</button>
@@ -258,7 +258,7 @@ footer p{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.2em;c
 <section>
   <p class="sec-label">The origin</p>
   <h2>基準点</h2>
-  <p class="sec-intro">選んだ文字が 0 になり、そこから増える方向がプラス、減る方向がマイナス。A のあとは a で、以降小文字が減る方向へ続く。上の変換機で基準点を選ぶと、この目盛りも動く。</p>
+  <p class="sec-intro">A〜J の10通りから選ぶ。選んだ文字が 0 になり、そこから増える方向がプラス、減る方向がマイナス。A のあとは a で、以降小文字が減る方向へ続く。上の変換機で基準点を選ぶと、この目盛りも動く。</p>
   <div class="strip" id="strip"><div class="strip-inner" id="stripIn"></div></div>
   <p class="strip-cap" id="cap"></p>
 </section>
@@ -283,16 +283,16 @@ footer p{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.2em;c
   <div class="phase">
     <div class="phase-hd"><span class="n">07 — 09</span><h3>圧縮</h3></div>
     <ol class="steps" style="--start:6">
-      <li><p>桁数を含めて共有部分がある連続した文字をまとめ、まとめた個数をアルファベットで前に書く。</p></li>
-      <li><p>その後ろに、まとめた部分の文字数をアルファベットで書く。</p></li>
-      <li><p>続けて、まとめられていない部分の文字数をアルファベットで書く。</p></li>
+      <li><p>桁数を含めて共有部分がある連続した文字をまとめ、まとめた個数を基準点から数えた文字で前に書く。<small>基準点 H で5個 → M ／ 上限は基準点から Z までの歩数</small></p></li>
+      <li><p>その後ろに、まとめた部分の文字数を基準点から数えた文字で書く。</p></li>
+      <li><p>続けて、まとめられていない部分の文字数を基準点から数えた文字で書く。</p></li>
     </ol>
   </div>
 
   <div class="phase">
     <div class="phase-hd"><span class="n">10</span><h3>仕上げ</h3></div>
     <ol class="steps" style="--start:9">
-      <li><p>暗号文の一番初めに「選んだ基準点, プラス最大値, −1を表す数, 最低値」を全て大文字で置く。</p></li>
+      <li><p>暗号文の一番初めに「選んだ基準点, プラス最大値, −1を表す数, 最低値」を全て大文字で置く。この4文字は平文によらず、基準点だけで決まる。<small>基準点 A → A P A O ／ 基準点 H → H W G H</small></p></li>
     </ol>
   </div>
 </section>
@@ -307,8 +307,8 @@ footer p{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.2em;c
     <span class="g-head">APAO</span><span class="g-meta">FCD</span><span class="g-share">1X</span><span class="g-rest">JXEK4AJZCJZVJZG</span><span class="g-meta">BAF</span><span class="g-rest">3KLGT</span>
   </p>
   <div class="key">
-    <div><code class="g-head">APAO</code><span>ヘッダ。基準点 A、プラス最大値 P、−1 は A（=a）、最低値 O（=o）</span></div>
-    <div><code class="g-meta">FCD</code><span>F=5個をまとめた／共有部は C=2文字／残りは D=3文字ずつ</span></div>
+    <div><code class="g-head">APAO</code><span>ヘッダ。基準点 A、+15 は P、−1 は A（=a）、−15 は O（=o）。平文には依存しない</span></div>
+    <div><code class="g-meta">FCD</code><span>基準点 A から数えて F=5個をまとめた／共有部は C=2文字／残りは D=3文字ずつ</span></div>
     <div><code class="g-share">1X</code><span>5文字が共有する頭</span></div>
     <div><code class="g-rest">JXEK4A…</code><span>3文字ずつに割ると JXE K4A JZC JZV JZG</span></div>
     <div><code class="g-meta">BAF</code><span>B=1個／共有部 A=0文字／残り F=5文字</span></div>
@@ -321,10 +321,10 @@ footer p{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.2em;c
   <p class="sec-label">The properties</p>
   <h2>性質</h2>
   <div class="traits">
-    <div class="trait"><h3>小文字はどこにも残らない</h3><p>増減値は必ず小文字を含むが、1文字目ごと62進から36進へ通すことで大文字と数字だけに畳まれる。どこがマイナスだったかは桁の中に溶ける。</p></div>
+    <div class="trait"><h3>小文字はどこにも残らない</h3><p>増減値は必ず小文字を含むが、1文字目ごと62進から36進へ通すことで大文字と数字だけに畳まれる。基準点も A〜J に限るので、暗号文に小文字は一切現れない。</p></div>
     <div class="trait"><h3>桁数を問わない</h3><p>4桁でも6桁でも手順は同一。絵文字のような U+1F600 も同じ道を通る。全 1,112,064 文字 × 全20基準点で往復を確認済み。</p></div>
-    <div class="trait"><h3>同じ系統が続くほど縮む</h3><p>まとまるのは連続した同桁数の文字だけ。かな続きなら平文の約2.2倍、ASCIIなら約4.5倍。字種が交互に来るほど、まとめる相手を失って伸びる。</p></div>
-    <div class="trait"><h3>ヘッダが鍵を明かす</h3><p>基準点は大文字化されて曖昧になるが、3文字目の「−1を表す数」と組み合わせると20通りが一意に定まる。復号はここから始まる。</p></div>
+    <div class="trait"><h3>同じ系統が続くほど縮む</h3><p>まとまるのは連続した同桁数の文字だけ。かな続きなら平文の約2.2倍、ASCIIなら約4.5倍。まとめられる上限は基準点から Z までの歩数で、A なら25個、J なら16個。</p></div>
+    <div class="trait"><h3>ヘッダが取っかかりになる</h3><p>4文字は平文を漏らさず、基準点だけで決まる。暗号文を並べると2文字目と4文字目が基準点と連動してずれるので、そこから数の範囲だと気づける。1文字目と3文字目の組み合わせで10通りが一意に定まり、復号はここから始まる。</p></div>
   </div>
 </section>
 
@@ -340,23 +340,26 @@ footer p{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.2em;c
 const ORDER=[..."zyxwvutsrqponmlkjihgfedcba",..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
 const B62="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 const B36="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const BASES=ORDER.slice(16,36);
-const MAXG=25;
-const lv=c=>c.charCodeAt(0)-65, LV=n=>String.fromCharCode(65+n);
+const BASES=ORDER.slice(26,36);   // A 〜 J
+/* 個数・共有長・残り長も基準点から数える。上限は基準点から Z までの歩数 */
+const room=base=>ORDER.length-1-base;
+const lvB=(c,base)=>ORDER.indexOf(c)-base;
+const LVB=(n,base)=>ORDER[base+n];
 function toVal(s,al){let v=0;for(const c of s){const i=al.indexOf(c);if(i<0)return NaN;v=v*al.length+i;}return v;}
 function fromVal(v,al){if(v===0)return al[0];let s="";while(v>0){s=al[v%al.length]+s;v=Math.floor(v/al.length);}return s;}
 
-function compress(items){
+function compress(items,base){
+  const cap=room(base);
   const n=items.length,memo=new Array(n+1);memo[n]={cost:0,parts:[]};
   for(let i=n-1;i>=0;i--){
     let best=null,pre=items[i];
-    for(let j=i;j<n&&j-i<MAXG;j++){
+    for(let j=i;j<n&&j-i<cap;j++){
       if(items[j].length!==items[i].length)break;
       if(j>i){let k=0;while(k<pre.length&&pre[k]===items[j][k])k++;pre=pre.slice(0,k);}
       const cnt=j-i+1;
       if(cnt>1&&pre.length===0)break;
       const p=cnt===1?0:pre.length,r=items[i].length-p;
-      if(p>25||r>25)continue;
+      if(p>cap||r>cap)continue;
       const cost=3+p+cnt*r+memo[j+1].cost;
       if(!best||cost<best.cost)best={cost,next:j+1,part:{cnt,p,r,shared:items[i].slice(0,p),rests:items.slice(i,j+1).map(s=>s.slice(p))}};
     }
@@ -368,39 +371,39 @@ function compress(items){
 function encode(text,base){
   const chars=[...text];
   if(!chars.length) throw new Error("平文が空です。文字を入れてください。");
-  const tr={hex:[],s1:[],s2:[],s3:[],items:[]};let maxV=0,minV=0;
+  const tr={hex:[],s1:[],s2:[],s3:[],items:[]};
   for(const ch of chars){
     const hex=ch.codePointAt(0).toString(16).toUpperCase();
-    const d0=parseInt(hex[0],16);maxV=Math.max(maxV,d0);
+    const d0=parseInt(hex[0],16);
     let inc="";
     for(let i=1;i<hex.length;i++){
-      const d=parseInt(hex[i],16)-d0;
-      maxV=Math.max(maxV,d);minV=Math.min(minV,d);
-      inc+=ORDER[base+d];
+      inc+=ORDER[base+parseInt(hex[i],16)-d0];
     }
     const full=ORDER[base+d0]+inc;
     const b36=fromVal(toVal(full,B62),B36);
     tr.hex.push(hex);tr.s1.push(hex[0]+inc);tr.s2.push(full);tr.s3.push(b36);tr.items.push(b36);
   }
-  tr.groups=compress(tr.items);
-  tr.body=tr.groups.map(g=>LV(g.cnt)+LV(g.p)+LV(g.r)+g.shared+g.rests.join("")).join("");
-  tr.header=(ORDER[base]+ORDER[base+maxV]+ORDER[base-1]+ORDER[base+minV]).toUpperCase();
+  tr.base=base;
+  tr.groups=compress(tr.items,base);
+  tr.body=tr.groups.map(g=>LVB(g.cnt,base)+LVB(g.p,base)+LVB(g.r,base)+g.shared+g.rests.join("")).join("");
+  /* ヘッダは平文に依存しない固定値。基準点から +15 と −15 が常に並ぶ */
+  tr.header=(ORDER[base]+ORDER[base+15]+ORDER[base-1]+ORDER[base-15]).toUpperCase();
   tr.cipher=tr.header+tr.body;
   return tr;
 }
 
 function decode(ct){
-  const s=ct.replace(/[\s\-]/g,"").toUpperCase();
+  const s=ct.replace(/[\s\-]/g,"");
   if(s.length<4) throw new Error("短すぎます。ヘッダ4文字と本体が必要です。");
-  if(!/^[0-9A-Z]+$/.test(s)) throw new Error("使えない文字が入っています。暗号文は 0–9 と A–Z だけでできています。");
+  if(!/^[0-9A-Za-z]+$/.test(s)) throw new Error("使えない文字が入っています。暗号文は 0–9 と英字だけでできています。");
   let base=-1;
-  for(let k=16;k<=35;k++) if(ORDER[k].toUpperCase()===s[0]&&ORDER[k-1].toUpperCase()===s[2]){base=k;break;}
-  if(base<0) throw new Error("ヘッダから基準点を特定できません。1文字目と3文字目の組み合わせが20通りのどれにも当たりません。");
+  for(let k=26;k<=35;k++) if(ORDER[k]===s[0]&&ORDER[k-1].toUpperCase()===s[2]){base=k;break;}
+  if(base<0) throw new Error("ヘッダから基準点を特定できません。1文字目と3文字目の組み合わせが10通りのどれにも当たりません。");
   const body=s.slice(4);let i=0,out="";
   while(i<body.length){
     if(i+3>body.length) throw new Error("本体の途中で終わっています。個数・共有長・残り長の3文字が揃っていません。");
-    const cnt=lv(body[i]),p=lv(body[i+1]),r=lv(body[i+2]);i+=3;
-    if(cnt<1||p<0||r<0) throw new Error("グループの個数か文字数が読めません。");
+    const cnt=lvB(body[i],base),p=lvB(body[i+1],base),r=lvB(body[i+2],base);i+=3;
+    if(!(cnt>=1)||!(p>=0)||!(r>=0)) throw new Error("グループの個数か文字数が読めません。基準点より前の文字が来ています。");
     if(i+p+cnt*r>body.length) throw new Error("本体が足りません。宣言された文字数ぶんのデータがありません。");
     const shared=body.slice(i,i+p);i+=p;
     for(let q=0;q<cnt;q++){
@@ -452,7 +455,7 @@ function ruler(){
 
 /* 段 */
 function stagesOf(t){
-  const g=t.groups.map(x=>`<em>${LV(x.cnt)}${LV(x.p)}${LV(x.r)}</em>${x.shared}${x.rests.join("")}`);
+  const g=t.groups.map(x=>`<em>${LVB(x.cnt,t.base)}${LVB(x.p,t.base)}${LVB(x.r,t.base)}</em>${x.shared}${x.rests.join("")}`);
   return [
     {n:"コードポイント",d:"各文字のUnicodeを16進で取得する",c:t.hex},
     {n:"増減値",d:"1文字目からの増減を、基準点を 0 としたアルファベットで表す",c:t.s1.map(s=>s[0]+"<em>"+s.slice(1)+"</em>")},
