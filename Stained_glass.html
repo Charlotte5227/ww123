@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>彩色玻璃暗号</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --lead:#080a11;
+  --nave:#111826;
+  --nave-2:#0c111c;
+  --stone:#1a2233;
+  --cobalt:#2a6bbf;
+  --ruby:#b02a44;
+  --amber:#e0a52c;
+  --verdigris:#2f8878;
+  --violet:#6b4a9e;
+  --parchment:#ece5d7;
+  --parchment-dim:#9aa3b4;
+  --came:#05070c;
+  --display:"Shippori Mincho B1",'Hiragino Mincho ProN','Yu Mincho',serif;
+  --body:"Zen Kaku Gothic New",'Hiragino Sans','Yu Gothic',sans-serif;
+  --mono:"DM Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(900px 620px at 50% -6%, rgba(224,165,44,.16), transparent 62%),
+    radial-gradient(700px 500px at 12% 30%, rgba(42,107,191,.14), transparent 60%),
+    radial-gradient(700px 500px at 88% 62%, rgba(176,42,68,.11), transparent 60%),
+    linear-gradient(178deg,var(--nave) 0%,var(--nave-2) 55%,var(--lead) 100%);
+  background-attachment:fixed;
+  color:var(--parchment);
+  font-family:var(--body);
+  font-size:16px;line-height:1.85;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:940px;margin:0 auto;padding:0 22px 110px}
+
+/* ---------- hero ---------- */
+.hero{padding:60px 0 26px;text-align:center}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.42em;
+  text-transform:uppercase;color:var(--amber);opacity:.85;margin:0 0 20px;
+}
+.rose-stage{position:relative;width:min(430px,84vw);margin:0 auto}
+.rose-stage svg{
+  display:block;width:100%;height:auto;
+  filter:drop-shadow(0 0 46px rgba(224,165,44,.2)) drop-shadow(0 18px 40px rgba(0,0,0,.65));
+}
+.pane{
+  stroke:var(--came);stroke-width:2.4;stroke-linejoin:round;
+  transition:fill .75s cubic-bezier(.22,.7,.3,1);
+}
+h1{
+  font-family:var(--display);font-weight:700;
+  font-size:clamp(2.3rem,7.6vw,3.5rem);
+  letter-spacing:.14em;margin:34px 0 0;line-height:1.24;
+  background:linear-gradient(176deg,#fff6e2 8%,var(--amber) 52%,#a4701a 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.sub{
+  font-family:var(--display);font-size:.95rem;letter-spacing:.3em;
+  color:var(--parchment-dim);margin:14px 0 0;
+}
+.lede{max-width:600px;margin:26px auto 0;color:var(--parchment-dim);font-size:.94rem}
+
+/* ---------- lead rule ---------- */
+.rule{
+  height:3px;margin:60px 0;border-radius:2px;
+  background-image:linear-gradient(90deg,transparent,rgba(236,229,215,.3) 22%,rgba(236,229,215,.3) 78%,transparent);
+  box-shadow:0 1px 0 rgba(0,0,0,.6);
+}
+
+/* ---------- panels ---------- */
+.panel{
+  background:linear-gradient(168deg,rgba(26,34,51,.82),rgba(8,10,17,.72));
+  border:1px solid rgba(236,229,215,.13);
+  border-radius:4px 4px 22px 22px;
+  padding:30px 26px;
+  box-shadow:0 20px 50px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.06);
+}
+.panel + .panel{margin-top:24px}
+h2{
+  font-family:var(--display);font-weight:500;font-size:1.35rem;
+  letter-spacing:.2em;margin:0 0 6px;color:#fff3dc;
+}
+.hint{color:var(--parchment-dim);font-size:.86rem;margin:0 0 20px}
+
+textarea{
+  width:100%;min-height:96px;resize:vertical;
+  background:rgba(5,7,12,.72);
+  color:var(--parchment);
+  border:1px solid rgba(236,229,215,.2);border-radius:3px;
+  padding:15px 17px;
+  font-family:var(--body);font-size:1.12rem;line-height:1.8;letter-spacing:.06em;
+}
+textarea:focus{outline:2px solid var(--amber);outline-offset:2px;border-color:transparent}
+.controls{display:flex;flex-wrap:wrap;gap:11px;align-items:center;margin-top:16px}
+button{
+  font-family:var(--display);font-size:.95rem;letter-spacing:.22em;
+  color:#20160a;background:linear-gradient(172deg,#f6d68a,var(--amber) 55%,#b3801c);
+  border:none;border-radius:2px;padding:12px 26px;cursor:pointer;
+  box-shadow:0 6px 20px rgba(224,165,44,.3);
+}
+button:hover{filter:brightness(1.09)}
+button:focus-visible{outline:2px solid #fff3dc;outline-offset:3px}
+button.ghost{
+  background:transparent;color:var(--parchment-dim);
+  border:1px solid rgba(236,229,215,.24);box-shadow:none;
+}
+button.ghost:hover{color:var(--parchment);border-color:rgba(236,229,215,.5)}
+.samples{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chipbtn{
+  font-family:var(--body);font-size:.82rem;letter-spacing:.05em;
+  background:rgba(42,107,191,.14);border:1px solid rgba(42,107,191,.42);
+  color:#bcd4f0;border-radius:20px;padding:5px 14px;cursor:pointer;box-shadow:none;
+}
+.chipbtn:hover{background:rgba(42,107,191,.28)}
+
+/* ---------- output ribbon ---------- */
+.ribbon{
+  margin-top:4px;padding:22px 18px;
+  background:
+    linear-gradient(180deg,rgba(5,7,12,.9),rgba(5,7,12,.7)),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.02) 0 2px,transparent 2px 6px);
+  border:1px solid rgba(236,229,215,.16);border-radius:3px;
+  font-family:var(--mono);font-size:1.32rem;letter-spacing:.11em;
+  line-height:2.15;word-break:break-all;
+}
+.g-cipher{color:var(--amber);text-shadow:0 0 14px rgba(224,165,44,.45)}
+.g-key{color:#7fb6f2;text-shadow:0 0 14px rgba(42,107,191,.45)}
+.g-came{
+  color:#cfd6e2;font-weight:500;
+  padding:0 .18em;margin:0 .06em;
+  background:linear-gradient(90deg,transparent,rgba(207,214,226,.2),transparent);
+  border-left:1px solid rgba(207,214,226,.45);
+  border-right:1px solid rgba(207,214,226,.45);
+}
+.legend{display:flex;flex-wrap:wrap;gap:18px;margin-top:14px;font-size:.8rem;color:var(--parchment-dim)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:7px;vertical-align:-1px}
+
+/* ---------- sections ---------- */
+.sec{
+  margin-top:22px;padding:20px 18px;
+  border:1px solid rgba(236,229,215,.12);border-radius:3px;
+  background:rgba(5,7,12,.42);
+}
+.sec-head{display:flex;flex-wrap:wrap;gap:11px;align-items:baseline;margin-bottom:14px}
+.sec-no{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.2em;
+  color:var(--lead);background:var(--amber);border-radius:2px;padding:2px 9px;
+}
+.sec-txt{font-family:var(--display);font-size:1.3rem;letter-spacing:.16em}
+.badge{
+  font-size:.71rem;letter-spacing:.14em;padding:2px 10px;border-radius:20px;
+  border:1px solid currentColor;
+}
+.badge.normal{color:#79cbba}
+.badge.odd{color:#e08fa0}
+
+.glass-row{display:flex;flex-wrap:wrap;gap:14px;margin:6px 0 16px}
+.glass{
+  flex:0 0 auto;width:132px;
+  border:2px solid var(--came);border-radius:3px;overflow:hidden;
+  box-shadow:0 8px 22px rgba(0,0,0,.5);
+}
+.glass .half{
+  height:52px;display:flex;align-items:flex-end;justify-content:center;
+  font-family:var(--mono);font-size:.7rem;padding-bottom:4px;
+  text-shadow:0 1px 3px rgba(0,0,0,.6),0 0 8px rgba(255,255,255,.35);
+  background-image:linear-gradient(150deg,rgba(255,255,255,.34),rgba(255,255,255,0) 46%,rgba(0,0,0,.26));
+}
+.glass .half + .half{border-top:2px solid var(--came)}
+.glass .foot{
+  background:rgba(5,7,12,.9);font-family:var(--mono);font-size:.68rem;
+  color:var(--parchment-dim);text-align:center;padding:5px 2px;letter-spacing:.04em;
+}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:7px 16px;font-size:.86rem;align-items:baseline}
+.kv dt{font-family:var(--display);color:var(--parchment-dim);letter-spacing:.14em;white-space:nowrap}
+.kv dd{margin:0;font-family:var(--mono);word-break:break-all;letter-spacing:.06em}
+.err{color:#f0a0ae;font-size:.9rem;margin-top:12px}
+
+/* ---------- reference ---------- */
+ol.steps{counter-reset:s;list-style:none;padding:0;margin:0}
+ol.steps li{
+  counter-increment:s;position:relative;padding-left:46px;margin-bottom:15px;font-size:.9rem;
+}
+ol.steps li::before{
+  content:counter(s,decimal-leading-zero);position:absolute;left:0;top:.15em;
+  font-family:var(--mono);font-size:.74rem;letter-spacing:.1em;
+  color:var(--amber);border:1px solid rgba(224,165,44,.4);border-radius:2px;padding:1px 6px;
+}
+code{
+  font-family:var(--mono);font-size:.88em;
+  background:rgba(224,165,44,.13);color:#f2d38f;padding:1px 6px;border-radius:2px;
+}
+.note{
+  margin-top:22px;padding:16px 18px;font-size:.85rem;color:var(--parchment-dim);
+  border-left:2px solid var(--verdigris);background:rgba(47,136,120,.08);
+}
+.note b{color:#8fd6c6;font-weight:500}
+footer{text-align:center;margin-top:70px;font-size:.78rem;color:#5d6577;letter-spacing:.18em;font-family:var(--display)}
+
+@media (max-width:560px){
+  .ribbon{font-size:1.05rem}
+  .glass{width:calc(50% - 7px)}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important;animation:none !important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <p class="eyebrow">Shift-JIS &nbsp;/&nbsp; 4桁範囲内限定</p>
+    <div class="rose-stage"><svg id="rose" viewBox="0 0 400 400" role="img" aria-label="入力した文字から生成されるバラ窓"></svg></div>
+    <h1>彩色玻璃暗号</h1>
+    <p class="sub">S T A I N E D &nbsp; G L A S S &nbsp; C I P H E R</p>
+    <p class="lede">文字を Shift-JIS に開き、色として読み、光を透かして反転させる。上のバラ窓は飾りではなく、いま入力されている文そのものの色です。</p>
+  </header>
+
+  <div class="rule"></div>
+
+  <section class="panel">
+    <h2>文をガラスに変える</h2>
+    <p class="hint">全角文字（2バイトの Shift-JIS）のみを受け付けます。半角英数やスペースは対象外です。</p>
+    <textarea id="in" spellcheck="false" aria-label="変換する文">こんにちは</textarea>
+    <div class="controls">
+      <button id="go">光を通す</button>
+      <button class="ghost" id="copy">暗号文をコピー</button>
+    </div>
+    <div class="samples" id="samples"></div>
+    <div class="err" id="err" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="panel" id="outPanel" hidden>
+    <h2>完成した窓</h2>
+    <p class="hint">暗号部と鍵部が一文字ずつ交互に編まれ、区間の切れ目に鉛線 Z が立ちます。隣り合う区間は Z を共有するため、ZZ は決して現れません。</p>
+    <div class="ribbon" id="ribbon"></div>
+    <div class="legend">
+      <span><i style="background:var(--amber)"></i>暗号部</span>
+      <span><i style="background:#7fb6f2"></i>鍵部</span>
+      <span><i style="background:#cfd6e2"></i>鉛線 Z</span>
+    </div>
+  </section>
+
+  <section class="panel" id="stepPanel" hidden>
+    <h2>組み立ての記録</h2>
+    <p class="hint">Shift-JIS の前半が揃う一続きが 1 区間。揃わない文字は寄せ集めて例外区間になります。</p>
+    <div id="secs"></div>
+  </section>
+
+  <div class="rule"></div>
+
+  <section class="panel">
+    <h2>ガラスを割る</h2>
+    <p class="hint">暗号文を貼ると元の文に戻します。Z で囲まれた形のまま入れてください。</p>
+    <textarea id="dIn" spellcheck="false" aria-label="復号する暗号文" placeholder="Z52IFH8D231D1233122Z"></textarea>
+    <div class="controls">
+      <button id="dGo">読み解く</button>
+      <button class="ghost" id="dPipe">いま作った暗号文を入れる</button>
+    </div>
+    <div class="err" id="dErr" role="status" aria-live="polite"></div>
+    <div id="dOut" hidden>
+      <div class="ribbon" id="dText"></div>
+      <div id="dSecs"></div>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  <section class="panel">
+    <h2>手順</h2>
+    <ol class="steps">
+      <li>文字を Shift-JIS に変換し、16進数として扱う。</li>
+      <li>前半が同じ部分を先頭にまとめる。</li>
+      <li>後半3文字分を HEX カラーコードとして扱う。足りない箇所は <code>ff</code> で埋め、埋めた個数をまとめた前半部の後ろに置く。塊の総数は一番先頭に置き、前半部との間には必ず <code>F</code> を挟む。</li>
+      <li>RGB に変換し、255 から引く。各値の桁数から 1 を引いた三つの数を3桁の3進数と見なし、10進数に直して2桁で先頭の後ろに並べる。</li>
+      <li>鍵部と暗号部を分ける。</li>
+      <li>暗号部を「その2桁の数 + 文字数」を基数とする進数に変える。</li>
+      <li>鍵部と暗号部を交互に配置し、鍵部を Z で囲む。</li>
+      <li>揃う箇所が終わったらそこで打ち切り、次の区間で同じ処理をする。</li>
+      <li>合わせて完成。</li>
+    </ol>
+    <div class="note">
+      <b>前半が全く揃わない区間</b>は、前後半に分けず4桁まるごとを HEX カラーコードとして読み、鍵部の前半部にあたる位置へ <code>FF</code> を書きます。以降の処理は同じです。
+    </div>
+    <div class="note">
+      <b>FF が目印として効く理由</b> ── 2バイト Shift-JIS で実際に使われる前半バイトは <code>81-84</code> / <code>88-9F</code> / <code>E0-EA</code>（CP932 でも <code>F0-FC</code> まで）で、<code>FF</code> はどの環境でも空き番地です。本物の前半部と取り違えようがありません。2桁コードの取りうる値も 00〜26 なので、鍵部の中で FF は完全に一意です。<br>
+      この暗号ではもともと <code>ff</code> が「そこには何も無い」を意味しています。前半部が存在しない区間に <code>FF</code> を置くのは、新しい記号を足さずに同じ言葉で言い切っているだけです。
+    </div>
+    <div class="note">
+      <b>漢字でも揃えば標準ルート</b> ── 区間の分かれ目は字種ではなく前半バイトが一致するかどうかだけで決まります。たとえば <code>薔薇</code> は E54B / E54E で前半 <code>E5</code> が揃うので、ひらがなと同じ扱いです。
+    </div>
+    <div class="note">
+      <b>Z が安全な理由</b> ── 基数は最大でも 26 + 9 = 35。35進法の最大桁は <code>Y</code> なので、Z が数字として現れることが原理的にありません。区切り記号でありながら、ぱっと見は 36 進数の一文字にしか見えないのが、この鉛線の仕事です。
+    </div>
+  </section>
+
+  <footer>組み上がったガラスは、割らないと読めない</footer>
+</div>
+
+<script>
+"use strict";
+
+/* ========== Shift-JIS 表を TextDecoder から逆引きで組み立てる ========== */
+const SJIS = new Map();
+(function(){
+  let dec;
+  try{ dec = new TextDecoder('shift_jis',{fatal:true}); }catch(e){ return; }
+  for(let hi=0x81; hi<=0xfc; hi++){
+    if(hi>=0xa0 && hi<=0xdf) continue;
+    for(let lo=0x40; lo<=0xfc; lo++){
+      if(lo===0x7f) continue;
+      try{
+        const s = dec.decode(Uint8Array.of(hi,lo));
+        if(s.length===1 && !SJIS.has(s)) SJIS.set(s,[hi,lo]);
+      }catch(e){}
+    }
+  }
+})();
+
+const hx = n => n.toString(16).padStart(2,'0');
+
+/* ========== 本体 ========== */
+function encode(text){
+  const chars = Array.from(text).filter(c => !/\s/.test(c));
+  if(!chars.length) throw new Error('文字を入力してください。');
+
+  const items = chars.map(c=>{
+    const b = SJIS.get(c);
+    if(!b) throw new Error('「'+c+'」は Shift-JIS の2バイト文字ではありません。全角文字だけを入力してください。');
+    return {ch:c, hi:b[0], lo:b[1]};
+  });
+
+  // 前半バイトが等しい連続を run にまとめる
+  const runs = [];
+  for(const it of items){
+    const last = runs[runs.length-1];
+    if(last && last.hi===it.hi) last.items.push(it);
+    else runs.push({hi:it.hi, items:[it]});
+  }
+  // 長さ1の run どうしは寄せ集めて例外区間にする
+  const sections = [];
+  for(const r of runs){
+    if(r.items.length>=2){ sections.push({type:'normal', hi:r.hi, items:r.items}); }
+    else{
+      const last = sections[sections.length-1];
+      if(last && last.type==='odd') last.items.push(r.items[0]);
+      else sections.push({type:'odd', items:[r.items[0]]});
+    }
+  }
+
+  return sections.map(sec=>{
+    let hex, prefix, prefixLabel;
+    if(sec.type==='normal'){
+      prefix = hx(sec.hi).toUpperCase();
+      prefixLabel = prefix;
+      hex = sec.items.map(i=>hx(i.lo)).join('');
+    }else{
+      prefix = 'FF';
+      prefixLabel = 'FF（前半なし）';
+      hex = sec.items.map(i=>hx(i.hi)+hx(i.lo)).join('');
+    }
+
+    let pad = 0;
+    while(hex.length % 6 !== 0){ hex += 'ff'; pad++; }
+    const chunks = hex.match(/.{6}/g);
+
+    const glass = chunks.map(c=>{
+      const sr = parseInt(c.slice(0,2),16), sg = parseInt(c.slice(2,4),16), sb = parseInt(c.slice(4,6),16);
+      const r = 255-sr, g = 255-sg, b = 255-sb;
+      const dec = String(r)+String(g)+String(b);
+      const code = (String(r).length-1)*9 + (String(g).length-1)*3 + (String(b).length-1);
+      const base = code + dec.length;
+      return {
+        src:'#'+c, inv:'#'+hx(r)+hx(g)+hx(b),
+        srcRGB:[sr,sg,sb], invRGB:[r,g,b],
+        dec, code:String(code).padStart(2,'0'), base,
+        digits: parseInt(dec,10).toString(base).toUpperCase()
+      };
+    });
+
+    const key    = chunks.length + 'F' + prefix + pad + glass.map(g=>g.code).join('');
+    const cipher = glass.map(g=>g.digits).join('');
+
+    let body = '', n = Math.min(cipher.length, key.length);
+    for(let i=0;i<n;i++) body += cipher[i] + key[i];
+    body += cipher.slice(n) + key.slice(n);
+
+    return {...sec, prefix, prefixLabel, hex, pad, chunks, glass, key, cipher, body,
+            text: sec.items.map(i=>i.ch).join('')};
+  });
+}
+
+/* ========== バラ窓 ========== */
+const svgNS = 'http://www.w3.org/2000/svg';
+function arc(cx,cy,r1,r2,a1,a2,gap){
+  a1+=gap; a2-=gap;
+  const P=(r,a)=>[(cx+r*Math.cos(a)).toFixed(2),(cy+r*Math.sin(a)).toFixed(2)];
+  const A=P(r2,a1),B=P(r2,a2),C=P(r1,a2),D=P(r1,a1);
+  const lg = (a2-a1)>Math.PI?1:0;
+  return `M${A} A${r2} ${r2} 0 ${lg} 1 ${B} L${C} A${r1} ${r1} 0 ${lg} 0 ${D} Z`;
+}
+const RINGS=[{r1:150,r2:186,n:20},{r1:104,r2:146,n:16},{r1:58,r2:100,n:10}];
+const FALLBACK=['#2a6bbf','#b02a44','#e0a52c','#2f8878','#6b4a9e','#c9722c'];
+
+function drawRose(colors){
+  const svg = document.getElementById('rose');
+  svg.textContent = '';
+  const pal = (colors && colors.length) ? colors : FALLBACK;
+  let k = 0;
+  const outer = document.createElementNS(svgNS,'circle');
+  outer.setAttribute('cx',200); outer.setAttribute('cy',200); outer.setAttribute('r',193);
+  outer.setAttribute('fill','none'); outer.setAttribute('stroke','#05070c'); outer.setAttribute('stroke-width',9);
+  svg.appendChild(outer);
+  for(const ring of RINGS){
+    const step = Math.PI*2/ring.n;
+    for(let i=0;i<ring.n;i++){
+      const p = document.createElementNS(svgNS,'path');
+      p.setAttribute('d', arc(200,200,ring.r1,ring.r2,i*step,(i+1)*step,0.016));
+      p.setAttribute('class','pane');
+      p.setAttribute('fill', pal[k % pal.length]); k++;
+      p.style.transitionDelay = (k*22)+'ms';
+      svg.appendChild(p);
+    }
+  }
+  const oc = document.createElementNS(svgNS,'circle');
+  oc.setAttribute('cx',200); oc.setAttribute('cy',200); oc.setAttribute('r',48);
+  oc.setAttribute('class','pane'); oc.setAttribute('fill', pal[k % pal.length]);
+  svg.appendChild(oc);
+}
+
+/* ========== 描画 ========== */
+const esc = s => s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+
+function renderRibbon(secs){
+  let html = '<span class="g-came">Z</span>';
+  secs.forEach(sec=>{
+    const n = Math.min(sec.cipher.length, sec.key.length);
+    for(let i=0;i<n;i++){
+      html += '<span class="g-cipher">'+sec.cipher[i]+'</span><span class="g-key">'+sec.key[i]+'</span>';
+    }
+    html += '<span class="g-cipher">'+sec.cipher.slice(n)+'</span>';
+    html += '<span class="g-key">'+sec.key.slice(n)+'</span>';
+    html += '<span class="g-came">Z</span>';
+  });
+  document.getElementById('ribbon').innerHTML = html;
+}
+
+function renderSections(secs){
+  const box = document.getElementById('secs');
+  box.innerHTML = secs.map((sec,i)=>{
+    const panes = sec.glass.map(g=>`
+      <div class="glass">
+        <div class="half" style="background-color:${g.src};color:#fff">${g.src.slice(1)}</div>
+        <div class="half" style="background-color:${g.inv};color:#000">${g.invRGB.join('/')}</div>
+        <div class="foot">${g.dec} → ${g.base}進 ${g.digits}</div>
+      </div>`).join('');
+    return `
+    <div class="sec">
+      <div class="sec-head">
+        <span class="sec-no">区間 ${i+1}</span>
+        <span class="sec-txt">${esc(sec.text)}</span>
+        <span class="badge ${sec.type}">${sec.type==='normal'?'前半が揃う':'例外・揃わない'}</span>
+      </div>
+      <div class="glass-row">${panes}</div>
+      <dl class="kv">
+        <dt>まとめた前半</dt><dd>${sec.prefixLabel}</dd>
+        <dt>ff の補い</dt><dd>${sec.pad} 個</dd>
+        <dt>鍵部</dt><dd class="g-key">${sec.key}</dd>
+        <dt>暗号部</dt><dd class="g-cipher">${sec.cipher}</dd>
+        <dt>編んだ結果</dt><dd>Z${sec.body}Z</dd>
+      </dl>
+    </div>`;
+  }).join('');
+}
+
+let lastOut = '';
+function run(){
+  const errEl = document.getElementById('err');
+  errEl.textContent = '';
+  try{
+    const secs = encode(document.getElementById('in').value);
+    lastOut = 'Z' + secs.map(s=>s.body).join('Z') + 'Z';
+    document.getElementById('outPanel').hidden = false;
+    document.getElementById('stepPanel').hidden = false;
+    renderRibbon(secs);
+    renderSections(secs);
+    const cols = [];
+    secs.forEach(s=>s.glass.forEach(g=>{ cols.push(g.src); cols.push(g.inv); }));
+    drawRose(cols);
+  }catch(e){
+    errEl.textContent = e.message;
+    document.getElementById('outPanel').hidden = true;
+    document.getElementById('stepPanel').hidden = true;
+    drawRose(null);
+  }
+}
+
+['こんにちは','薔薇','薔薇の窓','進数変換','ステンドグラス'].forEach(s=>{
+  const b = document.createElement('button');
+  b.className='chipbtn'; b.textContent=s;
+  b.onclick=()=>{ document.getElementById('in').value=s; run(); };
+  document.getElementById('samples').appendChild(b);
+});
+
+document.getElementById('go').onclick = run;
+document.getElementById('in').addEventListener('input', run);
+function fallbackCopy(text){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly','');
+  ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+  document.body.appendChild(ta);
+  ta.select();
+  ta.setSelectionRange(0, text.length);
+  let ok = false;
+  try{ ok = document.execCommand('copy'); }catch(e){ ok = false; }
+  document.body.removeChild(ta);
+  return ok;
+}
+
+function selectRibbon(){
+  const el = document.getElementById('ribbon');
+  const sel = window.getSelection();
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+document.getElementById('copy').onclick = async ()=>{
+  const btn = document.getElementById('copy');
+  const say = m => { btn.textContent = m; setTimeout(()=>btn.textContent='暗号文をコピー',2200); };
+  if(!lastOut){ say('まだ何もありません'); return; }
+
+  if(navigator.clipboard && window.isSecureContext){
+    try{ await navigator.clipboard.writeText(lastOut); say('コピーしました'); return; }catch(e){}
+  }
+  if(fallbackCopy(lastOut)){ say('コピーしました'); return; }
+  selectRibbon();
+  say('選択しました。長押しでコピー');
+};
+
+/* ========== 復号 ========== */
+const DIG = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const toBase = (n,b)=>{ if(n===0) return '0'; let s=''; while(n>0){ s=DIG[n%b]+s; n=Math.floor(n/b); } return s; };
+const sjisDec = (()=>{ try{ return new TextDecoder('shift_jis'); }catch(e){ return null; } })();
+
+function decode(raw){
+  const s = String(raw).toUpperCase().replace(/\s/g,'');
+  if(!s) throw new Error('暗号文を入力してください。');
+  if(!/^[0-9A-Z]+$/.test(s)) throw new Error('暗号文に使えない文字が含まれています。');
+  const parts = s.split('Z').filter(x=>x.length);
+  if(!parts.length) throw new Error('Z で囲まれた区間が見つかりません。');
+
+  let text = '';
+  const detail = [];
+
+  parts.forEach((body, idx)=>{
+    const where = '区間 '+(idx+1);
+    /* 鍵部の先頭から塊数を読む（F の手前まで） */
+    let dg = '', i = 1;
+    while(true){
+      if(i >= body.length) throw new Error(where+'：塊数の区切り F が見つかりません。');
+      if(body[i] === 'F') break;
+      if(!/[0-9]/.test(body[i])) throw new Error(where+'：塊数の位置に数字以外があります。');
+      dg += body[i]; i += 2;
+    }
+    const cnt = parseInt(dg,10);
+    if(!cnt) throw new Error(where+'：塊数が 0 です。');
+    const keyLen = dg.length + 4 + 2*cnt;
+    const cipLen = body.length - keyLen;
+    if(cipLen <= 0) throw new Error(where+'：長さが足りません。途中で切れている可能性があります。');
+
+    /* ほどく */
+    const n = Math.min(cipLen, keyLen);
+    let cip = '', key = '';
+    for(let j=0;j<n;j++){ cip += body[2*j]; key += body[2*j+1]; }
+    const tail = body.slice(2*n);
+    if(cipLen > keyLen) cip += tail; else key += tail;
+
+    const p = dg.length + 1;
+    const pre = key.slice(p, p+2);
+    const pad = parseInt(key[p+2],10);
+    if(isNaN(pad)) throw new Error(where+'：ff の補い数が読めません。');
+    const codes = [];
+    for(let k=0;k<cnt;k++){
+      const c = parseInt(key.slice(p+3+2*k, p+5+2*k),10);
+      if(isNaN(c) || c>26) throw new Error(where+'：桁数コードが不正です。');
+      codes.push(c);
+    }
+
+    /* 各塊の桁構成と、取りうる長さの幅 */
+    const LOW = ['0','10','100'], HIGH = ['9','99','255'];
+    const specs = codes.map(co=>{
+      const L = [Math.floor(co/9)+1, Math.floor(co/3)%3+1, co%3+1];
+      const decLen = L[0]+L[1]+L[2], base = co + decLen;
+      const lo = parseInt(L.map(x=>LOW[x-1]).join(''),10);
+      const hi = parseInt(L.map(x=>HIGH[x-1]).join(''),10);
+      return {L, decLen, base, min:toBase(lo,base).length, max:toBase(hi,base).length};
+    });
+
+    /* 成立する分割を探す */
+    const sol = [];
+    (function walk(k,pos){
+      if(k===cnt) return pos===cip.length;
+      const sp = specs[k];
+      for(let len=sp.min; len<=sp.max; len++){
+        if(pos+len > cip.length) break;
+        const t = cip.slice(pos,pos+len);
+        if(t.length>1 && t[0]==='0') continue;
+        let v = 0, bad = false;
+        for(const ch of t){
+          const d = DIG.indexOf(ch);
+          if(d<0 || d>=sp.base){ bad = true; break; }
+          v = v*sp.base + d;
+        }
+        if(bad) continue;
+        const ds = String(v);
+        if(ds.length > sp.decLen) continue;
+        const dstr = ds.padStart(sp.decLen,'0');
+        let o = 0, ok = true; const comp = [];
+        for(const x of sp.L){
+          const seg = dstr.slice(o,o+x); o += x;
+          if(x>1 && seg[0]==='0'){ ok=false; break; }
+          const val = parseInt(seg,10);
+          if(val>255){ ok=false; break; }
+          comp.push(val);
+        }
+        if(!ok) continue;
+        sol.push(comp);
+        if(walk(k+1,pos+len)) return true;
+        sol.pop();
+      }
+      return false;
+    })(0,0) || (()=>{ throw new Error(where+'：塊の切れ目が定まりません。暗号文が壊れている可能性があります。'); })();
+
+    /* 色に戻して文字へ */
+    let hex = sol.map(c=>c.map(x=>hx(255-x)).join('')).join('');
+    if(pad) hex = hex.slice(0, hex.length - 2*pad);
+    const step = (pre==='FF') ? 4 : 2;
+    if(hex.length % step) throw new Error(where+'：バイト数が合いません。');
+    let seg = '';
+    for(let j=0;j<hex.length;j+=step){
+      const h = (step===4) ? hex.slice(j,j+4) : pre+hex.slice(j,j+2);
+      const bytes = Uint8Array.of(parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16));
+      if(!sjisDec) throw new Error('この環境では Shift-JIS を扱えません。');
+      const ch = sjisDec.decode(bytes);
+      if(!ch || ch==='\uFFFD') throw new Error(where+'：'+h.toUpperCase()+' に対応する文字がありません。');
+      seg += ch;
+    }
+    text += seg;
+    detail.push({no:idx+1, seg, pre, pad, cnt, key, cip, colors:sol});
+  });
+
+  return {text, detail};
+}
+
+function runDecode(){
+  const err = document.getElementById('dErr');
+  const box = document.getElementById('dOut');
+  err.textContent = '';
+  const raw = document.getElementById('dIn').value;
+  if(!raw.trim()){ box.hidden = true; return; }
+  try{
+    const {text, detail} = decode(raw);
+    box.hidden = false;
+    document.getElementById('dText').textContent = text;
+    document.getElementById('dSecs').innerHTML = detail.map(d=>`
+      <div class="sec">
+        <div class="sec-head">
+          <span class="sec-no">区間 ${d.no}</span>
+          <span class="sec-txt">${esc(d.seg)}</span>
+          <span class="badge ${d.pre==='FF'?'odd':'normal'}">${d.pre==='FF'?'例外・4桁読み':'前半 '+d.pre}</span>
+        </div>
+        <dl class="kv">
+          <dt>塊数</dt><dd>${d.cnt}</dd>
+          <dt>ff の補い</dt><dd>${d.pad} 個</dd>
+          <dt>鍵部</dt><dd class="g-key">${d.key}</dd>
+          <dt>暗号部</dt><dd class="g-cipher">${d.cip}</dd>
+          <dt>復元した色</dt><dd>${d.colors.map(c=>'#'+c.map(x=>hx(255-x)).join('').toUpperCase()).join(' ')}</dd>
+        </dl>
+      </div>`).join('');
+  }catch(e){
+    box.hidden = true;
+    err.textContent = e.message;
+  }
+}
+
+document.getElementById('dGo').onclick = runDecode;
+document.getElementById('dIn').addEventListener('input', runDecode);
+document.getElementById('dPipe').onclick = ()=>{
+  const btn = document.getElementById('dPipe');
+  if(!lastOut){ btn.textContent='まだ暗号文がありません'; setTimeout(()=>btn.textContent='いま作った暗号文を入れる',2000); return; }
+  document.getElementById('dIn').value = lastOut;
+  runDecode();
+};
+
+drawRose(null);
+run();
+</script>
+</body>
+</html>
