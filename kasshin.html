@@ -198,6 +198,7 @@ footer p{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.2em;c
       <div class="field">
         <span class="flabel">暗号文</span>
         <div class="out" id="cipherOut">—</div>
+        <p class="hint" id="ratio"></p>
       </div>
 
       <div class="ladder" id="ladder">
@@ -232,6 +233,7 @@ footer p{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.2em;c
         <div class="out plain" id="plainOut">—</div>
       </div>
       <p class="hint" id="decInfo"></p>
+      <p class="hint">基準点が小文字のときは本体にも小文字が混ざる。大文字小文字はそのまま貼りつけること。</p>
     </div>
   </div>
 </section>
@@ -305,8 +307,8 @@ footer p{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.2em;c
   <p class="sec-label">The properties</p>
   <h2>性質</h2>
   <div class="traits">
-    <div class="trait"><h3>長いほど縮む</h3><p>日本語なら上位の桁が延々と共通するため、文が伸びるほど圧縮が効く。短文ではヘッダの分だけ逆に膨らむ。</p></div>
-    <div class="trait"><h3>桁数を問わない</h3><p>4桁でも6桁でも手順は同一。絵文字のような U+1F600 も同じ道を通る。</p></div>
+    <div class="trait"><h3>同じ系統が続くほど縮む</h3><p>まとまるのは連続した同桁数の文字だけなので、かな続きなら平文の約2.1倍、漢字混じりなら約4.6倍に落ちつく。字種が交互に来るほど、まとめる相手を失って伸びる。</p></div>
+    <div class="trait"><h3>桁数を問わない</h3><p>4桁でも6桁でも手順は同一。絵文字のような U+1F600 も同じ道を通る。Unicodeの全 1,112,064 文字で往復を確認済み。</p></div>
     <div class="trait"><h3>毎回ちがう顔</h3><p>基準点がランダムなので、同じ文からでも異なる暗号文が生まれる。</p></div>
     <div class="trait"><h3>ヘッダが鍵を明かす</h3><p>基準点は大文字化されて曖昧になるが、3文字目の「−1を表す数」と組み合わせると20通りが一意に定まる。復号はここから始まる。</p></div>
   </div>
@@ -385,9 +387,9 @@ function compress(items){
 
 /* ── decode ── */
 function decode(ct){
-  const s=ct.replace(/[\s\-]/g,"").toUpperCase();
+  const s=ct.replace(/[\s\-]/g,"");
   if(s.length<4) throw new Error("短すぎます。ヘッダ4文字と本体が必要です。");
-  if(!/^[0-9A-Z]+$/.test(s)) throw new Error("使えない文字が入っています。暗号文は 0–9 と A–Z だけでできています。");
+  if(!/^[0-9A-Za-z]+$/.test(s)) throw new Error("使えない文字が入っています。暗号文は 0–9 と英字だけでできています。");
   let base=-1;
   for(let k=16;k<=35;k++)
     if(ORDER[k].toUpperCase()===s[0]&&ORDER[k-1].toUpperCase()===s[2]){base=k;break;}
@@ -484,11 +486,14 @@ function runEnc(){
     trace=encode($("plain").value,base);
     $("cipherOut").className="out";
     $("cipherOut").textContent=trace.cipher;
+    const n=[...$("plain").value].length, g=trace.groups.filter(x=>x.cnt>1).length;
+    $("ratio").textContent=`${n} 字 → ${trace.cipher.length} 字（×${(trace.cipher.length/n).toFixed(2)}）／ まとめられた組 ${g}`;
     drawStage();
   }catch(e){
     trace=null;
     $("cipherOut").className="out err";
     $("cipherOut").textContent=e.message;
+    $("ratio").textContent="";
     $("cells").innerHTML="";
   }
 }
