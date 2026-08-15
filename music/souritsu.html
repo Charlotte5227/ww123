@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>噪律暗号</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sumi:#0E1016; --ai:#161B29; --ai2:#1F2637; --line:#2C3448;
+  --kinu:#EDE4D2; --kincha:#C8A23C; --kincha-d:#8E7228; --shu:#C25A45; --nezu:#7C8496;
+  --disp:"Shippori Mincho B1",serif;
+  --body:"Zen Kaku Gothic New",system-ui,sans-serif;
+  --mono:"DM Mono","Zen Kaku Gothic New",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--sumi);color:var(--kinu);font-family:var(--body);font-size:15px;
+  line-height:1.75;-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(ellipse 120% 80% at 50% -10%,#1B2234 0%,transparent 60%);
+  background-attachment:fixed}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px 96px}
+
+header{padding:64px 0 36px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.34em;color:var(--kincha);
+  text-transform:uppercase;margin:0 0 20px}
+.eyebrow a{color:var(--nezu);text-decoration:none;margin-right:14px}
+.eyebrow a:hover{color:var(--kincha)}
+.eyebrow a[aria-current]{color:var(--kincha)}
+h1{font-family:var(--disp);font-weight:800;font-size:clamp(44px,9vw,80px);
+  letter-spacing:.16em;margin:0;line-height:1;text-indent:.16em}
+.yomi{font-family:var(--disp);font-size:13px;letter-spacing:.5em;color:var(--nezu);
+  margin:16px 0 0;text-indent:.5em}
+.lede{max-width:48ch;margin:24px 0 0;color:#C3BCAC;font-size:14.5px}
+
+.tabs{display:flex;gap:2px;margin:40px 0 0;border-bottom:1px solid var(--line)}
+.tab{background:none;border:0;border-bottom:2px solid transparent;color:var(--nezu);
+  font-family:var(--disp);font-size:16px;letter-spacing:.18em;padding:12px 22px;cursor:pointer;
+  transition:color .2s,border-color .2s}
+.tab:hover{color:var(--kinu)}
+.tab[aria-selected="true"]{color:var(--kincha);border-bottom-color:var(--kincha)}
+.tab:focus-visible{outline:2px solid var(--kincha);outline-offset:2px}
+.panel{display:none;padding-top:36px}
+.panel.on{display:block}
+
+.grid{display:grid;grid-template-columns:1fr 320px;gap:40px;align-items:start}
+@media(max-width:820px){.grid{grid-template-columns:1fr;gap:30px}}
+
+label.fld{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.24em;
+  color:var(--nezu);margin:0 0 10px;text-transform:uppercase}
+textarea{width:100%;min-height:140px;resize:vertical;background:var(--ai);color:var(--kinu);
+  border:1px solid var(--line);border-radius:2px;padding:16px 18px;font-family:var(--body);
+  font-size:16px;line-height:1.9;transition:border-color .2s}
+textarea:focus{outline:none;border-color:var(--kincha-d)}
+textarea::placeholder{color:#4E566B}
+
+.row{display:flex;gap:20px;flex-wrap:wrap;margin-top:20px;align-items:flex-end}
+.ctl{flex:1;min-width:150px}
+select{width:100%;background:var(--ai);color:var(--kinu);border:1px solid var(--line);
+  border-radius:2px;padding:10px 12px;font-family:var(--body);font-size:14px}
+input[type=range]{width:100%;height:30px;accent-color:var(--kincha);border:0;background:none;padding:0}
+select:focus,input:focus{outline:none;border-color:var(--kincha-d)}
+
+button{font-family:var(--disp);cursor:pointer;transition:all .18s}
+button:focus-visible{outline:2px solid var(--kincha);outline-offset:3px}
+.primary{background:var(--kincha);color:#12141B;border:0;border-radius:2px;font-size:17px;
+  letter-spacing:.3em;padding:15px 40px;font-weight:700;text-indent:.3em;margin-top:28px}
+.primary:hover{background:#DCB748}
+.primary:disabled{background:var(--ai2);color:#565E73;cursor:not-allowed}
+.ghost{background:none;color:var(--kinu);border:1px solid var(--line);border-radius:2px;
+  font-size:14px;letter-spacing:.2em;padding:11px 20px;text-indent:.2em}
+.ghost:hover{border-color:var(--kincha-d);color:var(--kincha)}
+.ghost[aria-pressed="true"]{border-color:var(--kincha);color:var(--kincha);background:#1B1B14}
+.mini{font-family:var(--mono);font-size:11px;letter-spacing:.14em;background:none;border:0;
+  color:var(--nezu);padding:6px 0;text-decoration:underline;text-underline-offset:4px}
+.mini:hover{color:var(--kincha)}
+
+.ring-box{background:var(--ai);border:1px solid var(--line);border-radius:2px;padding:20px 16px 14px}
+.ring-cap{font-family:var(--mono);font-size:10px;letter-spacing:.26em;color:var(--nezu);
+  text-align:center;margin:0 0 4px}
+svg.ring{display:block;width:100%;height:auto}
+.rn-dot{fill:var(--ai2);stroke:var(--line);stroke-width:1;transition:fill .12s,stroke .12s}
+.rn-name{font-family:var(--body);font-size:11px;fill:#9AA2B4;text-anchor:middle;dominant-baseline:middle}
+.rn-num{font-family:var(--mono);font-size:12px;fill:var(--kincha);text-anchor:middle;dominant-baseline:middle}
+.rn-ritsu{font-family:var(--disp);font-size:9px;fill:#525B70;text-anchor:middle;dominant-baseline:middle}
+.rn.lit .rn-dot{fill:var(--kincha);stroke:var(--kincha)}
+.rn.lit .rn-num{fill:#12141B}
+.rn.lit .rn-name{fill:var(--kinu)}
+
+.out{margin-top:52px;border-top:1px solid var(--line);padding-top:32px;display:none}
+.out.on{display:block}
+.stat{display:flex;gap:32px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;
+  letter-spacing:.1em;color:var(--nezu);margin:0 0 24px}
+.stat b{color:var(--kinu);font-weight:500}
+.bar{display:flex;gap:10px;flex-wrap:wrap}
+.drawer{display:none;margin-top:28px}
+.drawer.on{display:block}
+.scroll{overflow-x:auto;background:#0A0C11;border:1px solid var(--line);border-radius:2px}
+canvas.score{display:block;width:1160px;max-width:none}
+
+.names{background:var(--ai);border:1px solid var(--line);border-radius:2px;padding:22px}
+.names h4{font-family:var(--mono);font-size:10px;letter-spacing:.26em;color:var(--kincha);
+  margin:0 0 12px;font-weight:400}
+.names h4:not(:first-child){margin-top:26px}
+.nlist{display:flex;flex-wrap:wrap;gap:5px}
+.nn{font-family:var(--body);font-size:13px;background:var(--ai2);border-radius:2px;
+  padding:3px 9px;color:#CFC8B8;min-width:34px;text-align:center}
+.nn.hd{background:#241F12;color:var(--kincha)}
+.nn.st{background:#2A1F14;color:#E0A94C;box-shadow:inset 0 0 0 1px var(--kincha-d)}
+.oneline{width:100%;background:#0A0C11;color:#CFC8B8;border:1px solid var(--line);border-radius:2px;
+  padding:12px 14px;font-family:var(--body);font-size:13.5px;white-space:pre;overflow-x:auto;
+  resize:none;height:44px;line-height:1.4}
+.oneline:focus{outline:none;border-color:var(--kincha-d)}
+.linebar{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.copied{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--kincha);
+  opacity:0;transition:opacity .2s}
+.copied.on{opacity:1}
+
+.msg{font-family:var(--mono);font-size:12.5px;letter-spacing:.06em;margin-top:18px;
+  padding:12px 16px;border-left:2px solid var(--shu);background:#1C1418;color:#E0A99C;display:none}
+.msg.on{display:block}
+.ok{border-left-color:var(--kincha);background:#1A1810;color:#D8C48A}
+.result{background:var(--ai);border:1px solid var(--line);border-radius:2px;padding:22px 24px;
+  margin-top:26px;font-size:17px;line-height:2;white-space:pre-wrap;word-break:break-word;display:none}
+.result.on{display:block}
+
+footer{margin-top:88px;border-top:1px solid var(--line);padding-top:26px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:#4E566B}
+footer p{margin:0 0 6px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* 音律環 */
+svg.ring{display:block;width:100%;height:auto}
+.rn-dot{fill:var(--ai2);stroke:var(--line);stroke-width:1;transition:fill .12s,stroke .12s}
+.rn-name{font-family:var(--body);font-size:11px;fill:#9AA2B4;text-anchor:middle;dominant-baseline:middle}
+.rn-num{font-family:var(--mono);font-size:12px;fill:var(--kincha);text-anchor:middle;dominant-baseline:middle}
+.rn-ritsu{font-family:var(--disp);font-size:9px;fill:#525B70;text-anchor:middle;dominant-baseline:middle}
+.rn.lit .rn-dot{fill:var(--kincha);stroke:var(--kincha)}
+.rn.lit .rn-num{fill:#12141B}
+.rn.lit .rn-name{fill:var(--kinu)}
+
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.0/lame.min.js" onerror="window.__noLame=1"></script>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow" id="nav"></p>
+  <h1>噪律暗号</h1>
+  <p class="yomi">そうりつあんごう</p>
+  <p class="lede">基本形。文字を十二平均律の音高に写す。1音が1桁を運び、区切りごとに検査音が付く。読み解くのに必要なものは、すべて曲の中に書かれています。</p>
+</header>
+
+<div class="tabs" role="tablist">
+  <button class="tab" role="tab" id="t-enc" aria-selected="true" aria-controls="p-enc">文を曲に</button>
+  <button class="tab" role="tab" id="t-dec" aria-selected="false" aria-controls="p-dec">曲を文に</button>
+</div>
+
+<section class="panel on" id="p-enc" role="tabpanel" aria-labelledby="t-enc">
+<div class="grid">
+  <div>
+    <label class="fld" for="src">本文</label>
+    <textarea id="src" placeholder="ここに文を書きます。">こんにちは、世界AI2026。</textarea>
+    <div class="row">
+      <div class="ctl"><label class="fld" for="inst">楽器</label><select id="inst"></select></div>
+      <div class="ctl"><label class="fld" for="tempo">速さ <span id="tempoV">3.5</span> 音/秒</label>
+        <input type="range" id="tempo" min="1.5" max="8" step="0.5" value="3.5"></div>
+    </div>
+    <div class="row" style="margin-top:12px"><button class="mini" id="reroll">鍵表を引き直す</button></div>
+    <button class="primary" id="go">奏でる</button>
+  </div>
+  <div class="ring-box">
+    <p class="ring-cap">音律環 — 鍵表</p>
+    <svg class="ring" id="ring" viewBox="0 0 300 300" aria-label="十二音と数字の対応表"></svg>
+  </div>
+</div>
+
+<div class="msg" id="encMsg"></div>
+
+<div class="out" id="out">
+  <div class="stat">
+    <span>音数 <b id="sNotes">—</b></span><span>様式 <b id="sStyle">—</b></span>
+    <span>区切り <b id="sBlk">—</b></span><span>長さ <b id="sDur">—</b></span>
+  </div>
+  <div class="bar">
+    <button class="ghost" id="play">聴く</button>
+    <button class="ghost" id="dlAudio">音を書き出す</button>
+    <button class="ghost" id="bScore" aria-pressed="false">譜に起こす</button>
+    <button class="ghost" id="bNames" aria-pressed="false">音名で読む</button>
+  </div>
+  <div class="drawer" id="dScore">
+    <div class="row" style="margin:0 0 14px">
+      <button class="ghost" id="dlScore" style="margin-left:auto">譜面を書き出す</button>
+    </div>
+    <div class="scroll"><canvas class="score" id="score"></canvas></div>
+  </div>
+  <div class="drawer" id="dNames">
+    <div class="names">
+      <h4>1行の音名</h4>
+      <textarea class="oneline" id="oneline" readonly spellcheck="false"></textarea>
+      <div class="linebar">
+        <button class="ghost" id="copyLine">コピー</button>
+        <button class="ghost" id="swKana" aria-pressed="true">ドレミ</button>
+        <button class="ghost" id="swEn" aria-pressed="false">CDE</button>
+        <span class="copied" id="copied">コピーしました</span>
+      </div>
+      <h4>鍵表 — 数字 0〜11 の順</h4><div class="nlist" id="nlRow"></div>
+      <h4>様式</h4><div class="nlist" id="nlStyle"></div>
+      <h4>本体 — 区切りの末尾が検査音</h4><div class="nlist" id="nlBody"></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="panel" id="p-dec" role="tabpanel" aria-labelledby="t-dec">
+  <label class="fld" for="dsrc">音名 — ドレミでも CDE でも、空白か読点で区切ります</label>
+  <textarea id="dsrc" placeholder="ソ ファ レ ソ♯ ラ ファ♯ シ レ♯ ミ ド ド♯ ラ♯ ソ …"></textarea>
+  <button class="primary" id="dgo">文に戻す</button>
+  <div class="msg" id="decMsg"></div>
+  <div class="result" id="dres"></div>
+</section>
+
+<footer>
+  <p>先頭12音が鍵表、13音目が様式、以降は区切りごとの末尾1音が検査音。</p>
+  <p>鍵表は曲の中に含まれます。秘匿の用途には使えません。</p>
+</footer>
+</div>
+
+<script src="core.js"></script>
+<script src="audio.js"></script>
+<script src="score.js"></script>
+<script src="app.js"></script>
+<script>
+"use strict";
+const {$} = App;
+
+/* 図 — 音律環 */
+function drawRing(el, row) {
+  const cx=150, cy=150, R=108;
+  let h='<circle cx="150" cy="150" r="108" fill="none" stroke="#252C3E" stroke-width="1"/>';
+  for (let p=0;p<12;p++) {
+    const a=(p/12)*Math.PI*2-Math.PI/2;
+    const x=cx+R*Math.cos(a), y=cy+R*Math.sin(a);
+    const lx=cx+(R+30)*Math.cos(a), ly=cy+(R+30)*Math.sin(a);
+    h+=`<g class="rn" data-pc="${p}">
+      <circle class="rn-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="17"/>
+      <text class="rn-num" x="${x.toFixed(1)}" y="${(y+1).toFixed(1)}">${row.indexOf(p)}</text>
+      <text class="rn-name" x="${lx.toFixed(1)}" y="${(ly-5).toFixed(1)}">${Core.JA[p]}</text>
+      <text class="rn-ritsu" x="${lx.toFixed(1)}" y="${(ly+8).toFixed(1)}">${Core.RITSU[p]}</text>
+    </g>`;
+  }
+  el.innerHTML = h;
+}
+function litRing(el, pc) {
+  el.querySelectorAll(".rn").forEach(g=>g.classList.toggle("lit", +g.dataset.pc===pc));
+}
+
+$("nav").innerHTML = App.nav("souritsu");
+$("inst").innerHTML = Audio2.INSTRUMENTS.map(([v,n])=>`<option value="${v}">${n}</option>`).join("");
+let row = Core.makeRow(), cur = null, actx = null, srcNode = null, raf = 0, mode = "ja";
+drawRing($("ring"), row);
+App.tabs(); App.drawers([["bScore","dScore"],["bNames","dNames"]]);
+$("tempo").oninput = e => $("tempoV").textContent = (+e.target.value).toFixed(1);
+$("reroll").onclick = () => { row = Core.makeRow(); drawRing($("ring"), row);
+  App.say("encMsg","鍵表を引き直しました。もう一度「奏でる」を押してください。",true); };
+
+$("go").onclick = async () => {
+  App.hush("encMsg");
+  const text = $("src").value;
+  if (!text) { App.say("encMsg","本文が空です。文を書いてから押してください。"); return; }
+  let r;
+  try { r = Core.Souritsu.encode(text, row, null, true); }
+  catch(e) { App.say("encMsg", e.message); return; }
+  const nps = +$("tempo").value;
+  $("go").disabled = true; $("go").textContent = "奏でています…";
+  try {
+    const mel = Core.voice(r.pcs);
+    const ev  = Audio2.sequence(mel, nps);
+    const buf = await Audio2.render(ev, {inst: $("inst").value});
+    cur = {...r, mel, buf, nps};
+    $("sNotes").textContent = r.pcs.length;
+    $("sStyle").textContent = r.style===0 ? "0 — UTF-16" : "1 — 6桁";
+    $("sBlk").textContent = r.blk + " 音";
+    $("sDur").textContent = (buf.length/buf.sampleRate).toFixed(1) + " 秒";
+    $("out").classList.add("on");
+    fillNames(); drawScore();
+  } catch(e) { App.say("encMsg","音を作れませんでした。" + e.message); }
+  $("go").disabled = false; $("go").textContent = "奏でる";
+};
+
+function drawScore() {
+  const items = cur.pcs.map((pc,i)=>({
+    slot:i, pc, oct: Math.floor(cur.mel[i]/12)-1, dur:5,
+    accent: i<13, bar: i===11 || i===12 || (i>12 && (i-12)%cur.blk===0)
+  }));
+  Score.render($("score"), {
+    title:"噪律暗号",
+    meta:`様式 ${cur.style}  ／  ${cur.pcs.length} 音  ／  区切り ${cur.blk} 音`,
+    items
+  });
+}
+function oneLine(){ return cur ? cur.pcs.map(p=>Core.name(p, mode==="en")).join(" ") : ""; }
+function syncLine(){ $("oneline").value = oneLine();
+  $("swKana").setAttribute("aria-pressed", mode==="ja");
+  $("swEn").setAttribute("aria-pressed", mode==="en"); }
+$("swKana").onclick=()=>{mode="ja";syncLine();};
+$("swEn").onclick=()=>{mode="en";syncLine();};
+$("copyLine").onclick=()=>App.copy($("oneline"),"copied");
+
+function fillNames() {
+  syncLine();
+  const span=(p,c)=>`<span class="nn${c?" "+c:""}">${Core.JA[p]}</span>`;
+  $("nlRow").innerHTML   = cur.pcs.slice(0,12).map(p=>span(p,"hd")).join("");
+  $("nlStyle").innerHTML = span(cur.pcs[12],"st");
+  $("nlBody").innerHTML  = cur.pcs.slice(13).map((p,i)=>{
+    const last=(i+1)%cur.blk===0;
+    return span(p,last?"st":"") + (last?'<span style="flex-basis:100%;height:6px"></span>':"");
+  }).join("");
+}
+
+$("play").onclick = () => {
+  if (!cur) return;
+  if (srcNode) { stop(); return; }
+  actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+  actx.resume();
+  srcNode = actx.createBufferSource(); srcNode.buffer = cur.buf;
+  srcNode.connect(actx.destination);
+  const t0 = actx.currentTime;
+  srcNode.start(); $("play").textContent = "止める"; srcNode.onended = stop;
+  (function tick(){
+    const i = Math.floor((actx.currentTime-t0-0.05)*cur.nps);
+    if (i>=0 && i<cur.pcs.length) litRing($("ring"), cur.pcs[i]);
+    raf = requestAnimationFrame(tick);
+  })();
+};
+function stop() {
+  if (srcNode) { try{srcNode.stop()}catch(_){} srcNode=null; }
+  cancelAnimationFrame(raf); litRing($("ring"),-1); $("play").textContent="聴く";
+}
+
+$("dlAudio").onclick = () => {
+  if (!cur) return;
+  const m = Audio2.mp3(cur.buf);
+  if (m) App.dl(m,"souritsu.mp3");
+  else { App.dl(Audio2.wav(cur.buf),"souritsu.wav");
+         App.say("encMsg","MP3 の変換器を読み込めなかったので WAV で書き出しました。",true); }
+};
+$("dlScore").onclick = () => $("score").toBlob(b=>App.dl(b,"souritsu.png"));
+
+$("dgo").onclick = () => {
+  App.hush("decMsg"); $("dres").classList.remove("on");
+  try {
+    const pcs = Core.parseNotes($("dsrc").value);
+    const r = Core.Souritsu.decode(pcs, true);
+    $("dres").textContent = r.text || "（空の本文です）";
+    $("dres").classList.add("on");
+    App.say("decMsg", `${pcs.length} 音を読み解きました。`, true);
+  } catch(e) { App.say("decMsg", e.message); }
+};
+</script>
+</body>
+</html>
