@@ -157,18 +157,19 @@ const Reiritsu = {
   }
 };
 
-/* ══════════ 稠律暗号 v0.1 ══════════ */
-const BASE = {1:72, 2:60, 3:48, acc:36}, PRELUDE = 60;
+/* ══════════ 稠律暗号 v0.2 ══════════ */
+const BASE = {1:72, 2:60, 3:48, acc:36};
 const Churitsu = {
-  BASE, PRELUDE,
+  BASE,
   pattern() {
     const out=["/"]; let n=0;
     for (let i=0;i<6;i++){ out.push(n,n+1); out.push(i<5?"→":"/"); n+=2; }
     return out;
   },
   layout(text, row, check=true) {
-    const r = Souritsu.encode(text, row, 0, check);
-    const L = r.blk, head = r.pcs.slice(0,13), body = r.pcs.slice(13), blocks=[];
+    // 前奏を持たないため、空の本文でも1ページは必要（伴奏が鍵表の唯一の出どころ）
+    const r = Souritsu.encode(text.length ? text : "\u0000", row, 0, check);
+    const L = r.blk, body = r.pcs.slice(13), blocks=[];   // ヘッダ13音は捨てる
     for (let i=0;i<body.length;i+=L) blocks.push(body.slice(i,i+L));
     const pat = Churitsu.pattern(), pages=[];
     for (let p=0;p<blocks.length;p+=3) {
@@ -176,14 +177,28 @@ const Churitsu = {
       grp.forEach((b,v)=> voices[v+1] = b.map(pc=>BASE[v+1]+pc));
       pages.push({voices, acc: pat.map(x=> typeof x==="number" ? BASE.acc+row[x] : null), tie: pat});
     }
-    return {prelude: head.map(pc=>PRELUDE+pc), pages, row, slots:L, blk:L};
+    return {pages, row, slots:L, blk:L};
   },
+  /* 伴奏の音高クラス列（発音した12音）と、声部の音高クラス列から本文へ */
   read(sheet, check=true) {
-    let pcs = sheet.prelude.map(m=>((m%12)+12)%12);
-    for (const pg of sheet.pages)
-      for (const v of Object.keys(pg.voices).sort())
-        pcs = pcs.concat(pg.voices[v].map(m=>((m%12)+12)%12));
+    const pcs = Churitsu.assemble(
+      sheet.pages.map(pg=>pg.acc.filter(m=>m!==null).map(m=>((m%12)+12)%12)),
+      sheet.pages.map(pg=>Object.keys(pg.voices).sort()
+        .map(v=>pg.voices[v].map(m=>((m%12)+12)%12))));
     return Souritsu.decode(pcs, check);
+  },
+  /* accs: ページごとの伴奏12音   voices: ページごとの声部（各19音）*/
+  assemble(accs, voices) {
+    if (!accs.length || !accs[0] || accs[0].length!==12)
+      throw new Error("1ページ目の伴奏12音が見つかりません。鍵表を復元できません。");
+    const row = accs[0];
+    if (new Set(row).size!==12) throw new Error("伴奏の12音に重複があります。鍵表として読めません。");
+    accs.forEach((a,i)=>{ if (i && a && a.length===12)
+      a.forEach((p,j)=>{ if (p!==row[j])
+        throw new Error(`第${i+1}ページの伴奏が1ページ目と食い違います（${j+1}音目）。`); }); });
+    let pcs = row.concat([row[0]]);          // 様式0を表す音を補う
+    for (const pg of voices) for (const v of pg) pcs = pcs.concat(v);
+    return pcs;
   }
 };
 
