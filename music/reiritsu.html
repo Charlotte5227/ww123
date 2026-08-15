@@ -154,8 +154,8 @@ footer p{margin:0}
     <textarea id="src" placeholder="ここに文を書きます。">こんにちは、世界AI2026。</textarea>
     <div class="row">
       <div class="ctl"><label class="fld" for="inst">楽器</label><select id="inst"></select></div>
-      <div class="ctl"><label class="fld" for="tempo">速さ <span id="tempoV">3.5</span> 音/秒</label>
-        <input type="range" id="tempo" min="1.5" max="8" step="0.5" value="3.5"></div>
+      <div class="ctl"><label class="fld" for="tempo">速さ ♩= <span id="tempoV">104</span></label>
+        <input type="range" id="tempo" min="50" max="180" step="2" value="104"></div>
     </div>
     <div class="row">
       <div class="ctl"><label class="fld" for="harm">伴奏</label><select id="harm"></select></div>
@@ -178,7 +178,7 @@ footer p{margin:0}
 <div class="out" id="out">
   <div class="stat">
     <span>音数 <b id="sNotes">—</b></span><span>節 <b id="sBlk">—</b></span>
-    <span>鍵の配分 <b id="sPlan">—</b></span><span>長さ <b id="sDur">—</b></span>
+    <span>小節 <b id="sPlan">—</b></span><span>長さ <b id="sDur">—</b></span>
   </div>
   <div class="bar">
     <button class="ghost" id="play">聴く</button>
@@ -241,7 +241,7 @@ $("harm").innerHTML = Harmony.MODES.map(([v,n])=>`<option value="${v}">${n}</opt
 $("harm").value = "arp";
 let row = Reiritsu.makeRow(), cur = null, actx = null, srcNode = null, raf = 0, mode = "ja";
 App.tabs(); App.drawers([["bScore","dScore"],["bNames","dNames"]]);
-$("tempo").oninput = e => $("tempoV").textContent = (+e.target.value).toFixed(1);
+$("tempo").oninput = e => $("tempoV").textContent = e.target.value;
 $("reroll").onclick = () => { row = Reiritsu.makeRow(); showKey();
   App.say("encMsg","鍵表を引き直しました。もう一度「奏でる」を押してください。",true); };
 
@@ -296,33 +296,28 @@ $("go").onclick = async () => {
   let r;
   try { r = Reiritsu.encode(text, row); }
   catch(e) { App.say("encMsg", e.message); return; }
-  const nps = +$("tempo").value;
+  const bpm = +$("tempo").value, spb = 60/bpm;      // 1拍の秒数
   $("go").disabled = true; $("go").textContent = "奏でています…";
   try {
-    const mel = Core.voice(r.pcs);
-    const hm  = $("harm").value;
     const scale = Reiritsu.scaleOf(r.tonic);
-    const har = hm === "none" ? null : Harmony.accompany(r.pcs, {scale, mode: hm});
-    const ev  = Audio2.sequence(mel, nps);
-    if (har) {
-      const dt = 1/nps;
-      for (const n of har.notes)
-        ev.push({midi:n.midi, t:0.05+n.slot*dt, d:dt*n.span*0.94, _acc:1});
-    }
-    const melBuf = await Audio2.render(ev.filter(e=>!e._acc), {inst: $("inst").value});
+    const arr = Harmony.arrange(r.pcs, {blocks:r.blocks, plan:r.plan, scale,
+                                        mode: $("harm").value});
+    const sec = u => u/Harmony.BEAT*spb;
+    const mev = arr.melody.map(n=>({midi:n.midi, t:0.06+sec(n.at), d:sec(n.len)*0.92}));
+    const melBuf = await Audio2.render(mev, {inst:$("inst").value, voices:1});
     let buf = melBuf;
-    if (har) {
-      const accBuf = await Audio2.render(ev.filter(e=>e._acc),
-                       {inst: $("hinst").value, voices:3, tail:2.6});
-      buf = mixdown([melBuf, accBuf], [1.0, 0.62]);
+    if (arr.accomp.length) {
+      const aev = arr.accomp.map(n=>({midi:n.midi, t:0.06+sec(n.at), d:sec(n.len)*0.95}));
+      const accBuf = await Audio2.render(aev, {inst:$("hinst").value, voices:1});
+      buf = mixdown([melBuf, accBuf], [1.0, 0.95]);
     }
-    cur = {...r, mel, buf, nps, har, scale, ...marks(r)};
+    cur = {...r, arr, buf, spb, scale, ...marks(r)};
     bands(r.plan); showKey();
-    $("fignote").innerHTML = `${Core.JA[r.tonic]}長調 ／ ${r.blocks} 節、鍵表は ${Math.ceil(r.blocks/7)} 周ぶん` +
-      (cur.har ? `<br><span style="color:var(--asagi-d)">和音 ${cur.har.chords.slice(0,8).map(c=>c.name).join(" → ")}${cur.har.chords.length>8?" …":""}</span>` : "");
+    $("fignote").innerHTML = `${Core.JA[r.tonic]}長調 ／ ${r.blocks} 節 ／ ${arr.bars||Math.ceil(arr.total/Harmony.BAR)} 小節` +
+      (arr.chords.length ? `<br><span style="color:var(--asagi-d)">${arr.chords.slice(0,12).map(c=>c.name).join(" ")}${arr.chords.length>12?" …":""}</span>` : "");
     $("sNotes").textContent = r.pcs.length;
     $("sBlk").textContent = r.blocks + " 節";
-    $("sPlan").textContent = r.plan.join(",");
+    $("sPlan").textContent = (arr.bars||0) + " 小節";
     $("sDur").textContent = (buf.length/buf.sampleRate).toFixed(1) + " 秒";
     $("out").classList.add("on");
     fillNames(); drawScore();
@@ -330,20 +325,24 @@ $("go").onclick = async () => {
   $("go").disabled = false; $("go").textContent = "奏でる";
 };
 
-const SPANDUR = {1:5, 2:8, 3:9};
 function drawScore() {
-  const items = cur.pcs.map((pc,i)=>({slot:i, stave:0, voice:0, pc,
-    oct: Math.floor(cur.mel[i]/12)-1,
-    dur: cur.bar.has(i) ? 8 : (cur.isKey[i] ? 5 : 2),
-    accent: cur.isKey[i], bar: cur.bar.has(i)}));
-  if (cur.har) for (const n of cur.har.notes)
-    items.push({slot:n.slot, stave:1, voice:1, pc:n.midi%12,
-                oct: Math.floor(n.midi/12)-1, dur: SPANDUR[n.span] || 5});
+  const A = cur.arr;
+  const times = [...new Set([...A.melody, ...A.accomp].map(n=>n.at))].sort((x,y)=>x-y);
+  const slotOf = new Map(times.map((t,i)=>[t,i]));
+  const barAt = new Set();
+  times.forEach((t,i)=>{ const nx=times[i+1];
+    if (nx!==undefined && Math.floor(t/Harmony.BAR) !== Math.floor(nx/Harmony.BAR)) barAt.add(i); });
+  const items = [];
+  A.melody.forEach((n,i)=>items.push({slot:slotOf.get(n.at), stave:0, voice:0, pc:n.pc,
+    oct: Math.floor(n.midi/12)-1, dur: Harmony.durIdx(n.len),
+    accent: n.key, bar: barAt.has(slotOf.get(n.at))}));
+  for (const n of A.accomp) items.push({slot:slotOf.get(n.at), stave:1, voice:1,
+    pc: n.midi%12, oct: Math.floor(n.midi/12)-1, dur: Harmony.durIdx(n.len)});
   Score.render($("score"), {
-    title:"玲律暗号", palette:PAL, slots: cur.pcs.length,
-    staves: cur.har ? ["treble","bass"] : ["treble"], twoVoice: !!cur.har,
+    title:"玲律暗号", palette:PAL, slots: times.length, gap:26,
+    staves: A.accomp.length ? ["treble","bass"] : ["treble"], twoVoice: !!A.accomp.length,
     meta:`${Core.JA[cur.tonic]}長調  ／  ${cur.blocks} 節  ／  ${cur.pcs.length} 音` +
-         (cur.har ? `  ／  伴奏 ${cur.har.chords.length} 和音` : ""),
+         (A.chords.length ? `  ／  ${A.bars} 小節` : ""),
     items
   });
 }
@@ -381,8 +380,11 @@ $("play").onclick = () => {
   const t0 = actx.currentTime;
   srcNode.start(); $("play").textContent = "止める"; srcNode.onended = stop;
   (function tick(){
-    const i = Math.floor((actx.currentTime-t0-0.05)*cur.nps);
-    litBand(i>=0 && i<cur.pcs.length ? i : -1);
+    const u = (actx.currentTime - t0 - 0.06)/cur.spb*Harmony.BEAT;
+    let k = -1;
+    for (let i=0;i<cur.arr.melody.length;i++)
+      if (cur.arr.melody[i].at <= u) k = i; else break;
+    litBand(k);
     raf = requestAnimationFrame(tick);
   })();
 };
