@@ -277,7 +277,7 @@ $("go").onclick = async () => {
   let sh;
   try { sh = C.layout(text, row, true); }
   catch(e) { App.say("encMsg", e.message); return; }
-  const nps = +$("tempo").value, dt = 1/nps, useAcc = $("withAcc").checked;
+  const nps = +$("tempo").value, dt = 1/nps, useAcc = true;
   $("go").disabled = true; $("go").textContent = "奏でています…";
   try {
     const sp = spans(C.pattern());
