@@ -119,6 +119,15 @@ canvas#score{display:block;width:1160px;max-width:none}
 .nn.hd{background:#241F12;color:var(--kincha)}
 .nn.st{background:#2A1F14;color:#E0A94C;box-shadow:inset 0 0 0 1px var(--kincha-d)}
 
+.oneline{width:100%;background:#0A0C11;color:#CFC8B8;border:1px solid var(--line);
+  border-radius:2px;padding:12px 14px;font-family:var(--body);font-size:13.5px;
+  white-space:pre;overflow-x:auto;resize:none;height:44px;line-height:1.4}
+.oneline:focus{outline:none;border-color:var(--kincha-d)}
+.linebar{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.copied{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--kincha);opacity:0;
+  transition:opacity .2s}
+.copied.on{opacity:1}
+
 .msg{font-family:var(--mono);font-size:12.5px;letter-spacing:.06em;margin-top:18px;
   padding:12px 16px;border-left:2px solid var(--shu);background:#1C1418;color:#E0A99C;display:none}
 .msg.on{display:block}
@@ -216,6 +225,14 @@ footer p{margin:0 0 6px}
 
   <div class="drawer" id="dNames">
     <div class="names">
+      <h4>1行の音名</h4>
+      <textarea class="oneline" id="oneline" readonly spellcheck="false"></textarea>
+      <div class="linebar">
+        <button class="ghost" id="copyLine">コピー</button>
+        <button class="ghost" id="swKana" aria-pressed="true">ドレミ</button>
+        <button class="ghost" id="swEn" aria-pressed="false">CDE</button>
+        <span class="copied" id="copied">コピーしました</span>
+      </div>
       <h4>鍵表 — 数字 0〜11 の順</h4><div class="nlist" id="nlRow"></div>
       <h4>様式</h4><div class="nlist" id="nlStyle"></div>
       <h4>本体</h4><div class="nlist" id="nlBody"></div>
@@ -306,13 +323,17 @@ function decode(pcs,check=true){
   while(u.length && u[u.length-1]===0) u.pop();
   return fromUnits(u,style);
 }
+const BASE_JA={"ド":0,"レ":2,"ミ":4,"ファ":5,"ソ":7,"ラ":9,"シ":11};
+const BASE_EN={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
 function parseNotes(s){
-  const t=s.replace(/[、,\/|]/g," ").trim().split(/\s+/).filter(Boolean);
+  const t=s.replace(/[、,\/|・]/g," ").trim().split(/\s+/).filter(Boolean);
   return t.map(x=>{
-    const n=x.replace(/[♭b]$/,"").replace(/[#＃]/,"♯").trim();
-    let i=JA.indexOf(n); if(i<0) i=EN.indexOf(n.toUpperCase());
-    if(i<0) throw new Error(`「${x}」は音名として読めません。`);
-    return i;
+    let n=x.trim(), acc=0;
+    while(/[#＃♯b♭ｂ]$/.test(n)){ acc+=/[#＃♯]$/.test(n)?1:-1; n=n.slice(0,-1); }
+    let base=BASE_JA[n];
+    if(base===undefined) base=BASE_EN[n.toUpperCase()];
+    if(base===undefined) throw new Error(`「${x}」は音名として読めません。`);
+    return ((base+acc)%12+12)%12;
   });
 }
 
@@ -510,18 +531,21 @@ function drawScore(cv,pcs,meta){
 
   rows.forEach((rw,ri)=>{
     const top=head+ri*SYS;
-    c.strokeStyle='#3A4considered'.slice(0,7); c.strokeStyle='#39415A'; c.lineWidth=1;
+    const endX=LEFT+(rw.length-1)*GAP+16+GAP/2+6;
+    c.strokeStyle='#39415A'; c.lineWidth=1;
     for(let k=0;k<5;k++){
-      c.beginPath(); c.moveTo(48,top+k*S+.5); c.lineTo(W-RIGHT+12,top+k*S+.5); c.stroke();
+      c.beginPath(); c.moveTo(48,top+k*S+.5); c.lineTo(endX,top+k*S+.5); c.stroke();
     }
+    c.beginPath(); c.moveTo(endX-.5,top); c.lineTo(endX-.5,top+4*S); c.stroke();
     clef(70,top);
     rw.forEach((it,ci)=>{
       const x=LEFT+ci*GAP+16;
       const d=Math.floor(it.midi/12-1)*7+STEP[it.pc];
       const y=top+(38-d)*S/2;
+      const ry=y-top;
       c.strokeStyle='#8A93A8'; c.lineWidth=1.2;
-      for(let ly=4*S;ly<y-2;ly+=S){c.beginPath();c.moveTo(x-9,top+ly+.5);c.lineTo(x+9,top+ly+.5);c.stroke();}
-      for(let ly=-S;ly>y-top+2;ly-=S){c.beginPath();c.moveTo(x-9,top+ly+.5);c.lineTo(x+9,top+ly+.5);c.stroke();}
+      for(let ly=5*S;ly<=ry+0.1;ly+=S){c.beginPath();c.moveTo(x-9,top+ly+.5);c.lineTo(x+9,top+ly+.5);c.stroke();}
+      for(let ly=-S;ly>=ry-0.1;ly-=S){c.beginPath();c.moveTo(x-9,top+ly+.5);c.lineTo(x+9,top+ly+.5);c.stroke();}
       const hdr=it.i<13;
       c.save(); c.translate(x,y); c.rotate(-0.33);
       c.fillStyle=hdr?'#C8A23C':'#EDE4D2';
@@ -586,10 +610,33 @@ $('go').onclick=async()=>{
   $('go').disabled=false; $('go').textContent='奏でる';
 };
 
+let nameMode='ja';
+function oneLine(){ return cur ? cur.pcs.map(p=>(nameMode==='ja'?JA:EN)[p]).join(' ') : ''; }
+function syncLine(){
+  $('oneline').value=oneLine();
+  $('swKana').setAttribute('aria-pressed',nameMode==='ja');
+  $('swEn').setAttribute('aria-pressed',nameMode==='en');
+}
+$('swKana').onclick=()=>{nameMode='ja';syncLine();};
+$('swEn').onclick=()=>{nameMode='en';syncLine();};
+$('copyLine').onclick=async()=>{
+  const el=$('oneline'); const txt=el.value;
+  if(!txt) return;
+  let ok=false;
+  try{ await navigator.clipboard.writeText(txt); ok=true; }catch(_){
+    el.removeAttribute('readonly'); el.select(); el.setSelectionRange(0,txt.length);
+    try{ ok=document.execCommand('copy'); }catch(__){}
+    el.setAttribute('readonly','');
+  }
+  if(ok){ const c=$('copied'); c.classList.add('on'); setTimeout(()=>c.classList.remove('on'),1600); }
+  else{ el.select(); }
+};
+
 function fillNames(r){
   const mk=(el,arr,cls,off)=>{
     $(el).innerHTML=arr.map((p,i)=>`<span class="nn ${cls}">${JA[p]}</span>`).join('');
   };
+  syncLine();
   mk('nlRow',r.pcs.slice(0,12),'hd');
   mk('nlStyle',r.pcs.slice(12,13),'st');
   $('nlBody').innerHTML=r.pcs.slice(13).map((p,i)=>{
