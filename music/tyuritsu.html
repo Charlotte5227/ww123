@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>稠律暗号</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@700;800&family=Zen+Kaku+Gothic+New:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.0/lame.min.js" onerror="window.__noLame=1"></script>
+<style>
+:root{
+  --kon:#070B13; --ai:#0D1422; --ai2:#151F35; --line:#22304C;
+  --gin:#CBD3E0; --gin-d:#93A0B6; --usu:#65718A; --ao:#5C86C4; --shu:#C0604C;
+  --disp:"Shippori Mincho B1",serif;
+  --body:"Zen Kaku Gothic New",system-ui,sans-serif;
+  --mono:"DM Mono",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--kon);color:var(--gin);font-family:var(--body);font-size:14.5px;
+  line-height:1.62;-webkit-font-smoothing:antialiased;
+  background-image:linear-gradient(180deg,#0E1728 0%,transparent 420px);background-attachment:fixed}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 72px}
+header{padding:48px 0 24px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.28em;margin:0 0 16px;color:var(--usu)}
+.eyebrow a{color:var(--usu);text-decoration:none;margin-right:13px}
+.eyebrow a:hover,.eyebrow a[aria-current]{color:var(--gin)}
+h1{font-family:var(--disp);font-weight:800;font-size:clamp(40px,8vw,66px);letter-spacing:.06em;
+  margin:0;line-height:.98;text-indent:.06em}
+.yomi{font-family:var(--disp);font-size:11.5px;letter-spacing:.4em;color:var(--usu);margin:12px 0 0;text-indent:.4em}
+.lede{max-width:58ch;margin:16px 0 0;color:#98A4B8;font-size:13.5px;line-height:1.75}
+.tabs{display:flex;gap:1px;margin:26px 0 0;border-bottom:1px solid var(--line)}
+.tab{background:none;border:0;border-bottom:2px solid transparent;color:var(--usu);
+  font-family:var(--disp);font-size:15px;letter-spacing:.12em;padding:9px 18px;cursor:pointer;
+  transition:color .18s,border-color .18s}
+.tab:hover{color:var(--gin)}
+.tab[aria-selected="true"]{color:var(--gin);border-bottom-color:var(--ao)}
+.tab:focus-visible{outline:2px solid var(--ao);outline-offset:2px}
+.panel{display:none;padding-top:24px}
+.panel.on{display:block}
+.grid{display:grid;grid-template-columns:1fr 340px;gap:28px;align-items:start}
+@media(max-width:900px){.grid{grid-template-columns:1fr;gap:22px}}
+label.fld{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.22em;
+  color:var(--usu);margin:0 0 7px;text-transform:uppercase}
+textarea{width:100%;min-height:110px;resize:vertical;background:var(--ai);color:var(--gin);
+  border:1px solid var(--line);border-radius:2px;padding:12px 14px;font-family:var(--body);
+  font-size:15px;line-height:1.7;transition:border-color .18s}
+textarea:focus{outline:none;border-color:var(--ao)}
+textarea::placeholder{color:#3F4A62}
+.row{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;align-items:flex-end}
+.ctl{flex:1;min-width:140px}
+select{width:100%;background:var(--ai);color:var(--gin);border:1px solid var(--line);
+  border-radius:2px;padding:8px 10px;font-family:var(--body);font-size:13.5px}
+input[type=range]{width:100%;height:26px;accent-color:var(--ao);border:0;background:none;padding:0}
+select:focus,input:focus{outline:none;border-color:var(--ao)}
+button{font-family:var(--disp);cursor:pointer;transition:all .16s}
+button:focus-visible{outline:2px solid var(--ao);outline-offset:3px}
+.primary{background:var(--ao);color:#F2F5FA;border:0;border-radius:2px;font-size:16px;
+  letter-spacing:.24em;padding:12px 34px;font-weight:700;text-indent:.24em;margin-top:20px}
+.primary:hover{background:#6E97D3}
+.primary:disabled{background:var(--ai2);color:#4E5A72;cursor:not-allowed}
+.ghost{background:none;color:var(--gin);border:1px solid var(--line);border-radius:2px;
+  font-size:13px;letter-spacing:.16em;padding:9px 16px;text-indent:.16em}
+.ghost:hover{border-color:var(--ao);color:#A8C2E8}
+.ghost[aria-pressed="true"]{border-color:var(--ao);color:#A8C2E8;background:#13203A}
+.mini{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;background:none;border:0;
+  color:var(--usu);padding:4px 0;text-decoration:underline;text-underline-offset:4px}
+.mini:hover{color:var(--gin)}
+.fig{background:var(--ai);border:1px solid var(--line);border-radius:2px;padding:14px 12px}
+.fig-cap{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--usu);margin:0 0 12px;text-align:center}
+.lay{display:flex;gap:8px;align-items:center;margin-bottom:4px}
+.llab{font-family:var(--mono);font-size:9px;color:var(--usu);width:34px;flex:none;text-align:right}
+.lcells{display:flex;gap:1px;flex:1}
+.lc{height:15px;flex:1;background:var(--ai2);border-radius:1px;transition:background .1s}
+.lc.on{background:#2E4470}
+.lc.acc{background:#2A3550}
+.lc.lit{background:var(--gin)}
+.fig-note{font-family:var(--mono);font-size:9.5px;color:var(--usu);margin:12px 0 0;text-align:center;letter-spacing:.08em}
+.keyrow{display:flex;gap:2px;margin-top:10px;flex-wrap:wrap;justify-content:center}
+.kk{font-size:11px;color:var(--gin-d);background:var(--ai2);border-radius:1px;padding:1px 6px;min-width:28px;text-align:center}
+.out{margin-top:34px;border-top:1px solid var(--line);padding-top:22px;display:none}
+.out.on{display:block}
+.stat{display:flex;gap:24px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;
+  letter-spacing:.08em;color:var(--usu);margin:0 0 16px}
+.stat b{color:var(--gin);font-weight:500}
+.bar{display:flex;gap:8px;flex-wrap:wrap}
+.drawer{display:none;margin-top:20px}
+.drawer.on{display:block}
+.scroll{overflow-x:auto;background:#060A11;border:1px solid var(--line);border-radius:2px}
+canvas.score{display:block;width:1160px;max-width:none}
+.names{background:var(--ai);border:1px solid var(--line);border-radius:2px;padding:18px}
+.names h4{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--ao);
+  margin:0 0 10px;font-weight:400}
+.names h4:not(:first-child){margin-top:20px}
+.nlist{display:flex;flex-wrap:wrap;gap:4px}
+.nn{font-size:12.5px;background:var(--ai2);border-radius:1px;padding:2px 7px;color:#B4BFD0;
+  min-width:30px;text-align:center}
+.oneline{width:100%;background:#060A11;color:#B4BFD0;border:1px solid var(--line);border-radius:2px;
+  padding:10px 12px;font-family:var(--body);font-size:12.5px;white-space:pre;overflow-x:auto;
+  resize:vertical;height:190px;line-height:1.75}
+.oneline:focus{outline:none;border-color:var(--ao)}
+.linebar{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.copied{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--ao);opacity:0;transition:opacity .2s}
+.copied.on{opacity:1}
+.vgrid{display:grid;grid-template-columns:52px 1fr;gap:4px 10px;align-items:center;margin-top:4px}
+.vlab{font-family:var(--mono);font-size:10px;color:var(--usu);text-align:right}
+.vlab.acc{color:var(--ao)}
+.vrow{font-size:12.5px;color:#B4BFD0;background:var(--ai2);border-radius:1px;padding:4px 9px;
+  white-space:pre;overflow-x:auto}
+.vrow.acc{background:#13203A;color:#8FB2E4}
+.vrow.pre{background:#1A2340;color:#A8C2E8}
+.pgttl{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--ao);margin:16px 0 2px}
+.msg{font-family:var(--mono);font-size:11.5px;margin-top:14px;padding:10px 13px;
+  border-left:2px solid var(--shu);background:#1A1216;color:#DFA396;display:none}
+.msg.on{display:block}
+.ok{border-left-color:var(--ao);background:#101A2C;color:#9DBBE6}
+.result{background:var(--ai);border:1px solid var(--line);border-radius:2px;padding:18px 20px;
+  margin-top:18px;font-size:16px;line-height:1.9;white-space:pre-wrap;word-break:break-word;display:none}
+.result.on{display:block}
+footer{margin-top:60px;border-top:1px solid var(--line);padding-top:18px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:#4A5570;line-height:1.9}
+footer p{margin:0}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow" id="nav"></p>
+  <h1>稠律暗号</h1>
+  <p class="yomi">ちゅうりつあんごう</p>
+  <p class="lede">密度の枝。3つの節を高音・中音・低音に重ねて同時に鳴らし、曲の長さを3分の1にします。鍵表は最低音の伴奏として、全ページで繰り返されます。</p>
+</header>
+
+<div class="tabs" role="tablist">
+  <button class="tab" role="tab" id="t-enc" aria-selected="true" aria-controls="p-enc">文を曲に</button>
+  <button class="tab" role="tab" id="t-dec" aria-selected="false" aria-controls="p-dec">曲を文に</button>
+</div>
+
+<section class="panel on" id="p-enc" role="tabpanel" aria-labelledby="t-enc">
+<div class="grid">
+  <div>
+    <label class="fld" for="src">本文</label>
+    <textarea id="src" placeholder="ここに文を書きます。">こんにちは、世界AI2026。</textarea>
+    <div class="row">
+      <div class="ctl"><label class="fld" for="inst">楽器</label><select id="inst"></select></div>
+      <div class="ctl"><label class="fld" for="tempo">速さ <span id="tempoV">3.0</span> 拍/秒</label>
+        <input type="range" id="tempo" min="1.5" max="6" step="0.5" value="3.0"></div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="mini" id="reroll">鍵表を引き直す</button>
+      <label style="font-size:13px;color:var(--nezu);display:flex;gap:8px;align-items:center;cursor:pointer;margin-left:20px">
+        <input type="checkbox" id="withAcc" checked style="accent-color:var(--kincha)"> 伴奏を鳴らす
+      </label>
+    </div>
+    <button class="primary" id="go">奏でる</button>
+  </div>
+  <div class="fig">
+    <p class="fig-cap">4層の帯 — 同時に鳴るもの</p>
+    <div id="layers"></div>
+    <p class="fig-note" id="fignote">19枠に3声と伴奏が重なります</p>
+    <div class="keyrow" id="keyrow"></div>
+  </div>
+</div>
+
+<div class="msg" id="encMsg"></div>
+
+<div class="out" id="out">
+  <div class="stat">
+    <span>ページ <b id="sPage">—</b></span><span>音符 <b id="sNotes">—</b></span>
+    <span>時間枠 <b id="sSlot">—</b></span><span>長さ <b id="sDur">—</b></span>
+  </div>
+  <div class="bar">
+    <button class="ghost" id="play">聴く</button>
+    <button class="ghost" id="dlAudio">音を書き出す</button>
+    <button class="ghost" id="bScore" aria-pressed="false">譜に起こす</button>
+    <button class="ghost" id="bNames" aria-pressed="false">音名で読む</button>
+  </div>
+  <div class="drawer" id="dScore">
+    <div class="row" style="margin:0 0 14px">
+      <button class="ghost" id="dlScore" style="margin-left:auto">譜面を書き出す</button>
+    </div>
+    <div class="scroll"><canvas class="score" id="score"></canvas></div>
+  </div>
+  <div class="drawer" id="dNames">
+    <div class="names">
+      <h4>総譜 — 復号欄にそのまま貼れます</h4>
+      <textarea class="oneline" id="oneline" readonly spellcheck="false"
+        style="height:200px;white-space:pre;line-height:1.9"></textarea>
+      <div class="linebar">
+        <button class="ghost" id="copyLine">コピー</button>
+        <button class="ghost" id="swKana" aria-pressed="true">ドレミ</button>
+        <button class="ghost" id="swEn" aria-pressed="false">CDE</button>
+        <span class="copied" id="copied">コピーしました</span>
+      </div>
+      <h4>声部ごと</h4><div id="nlBody"></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="panel" id="p-dec" role="tabpanel" aria-labelledby="t-dec">
+  <label class="fld" for="dsrc">総譜 — 1行目が前奏。空行でページを区切り、上の行から声部1・2・3</label>
+  <textarea id="dsrc" rows="10" style="min-height:200px;font-family:var(--body)"
+    placeholder="ソ ファ レ ソ♯ ラ ファ♯ シ レ♯ ミ ド ド♯ ラ♯ ソ&#10;&#10;ファ シ ド♯ ソ …&#10;ファ シ ド♯ シ …&#10;ソ ソ ファ レ …"></textarea>
+  <button class="primary" id="dgo">文に戻す</button>
+  <div class="msg" id="decMsg"></div>
+  <div class="result" id="dres"></div>
+</section>
+
+<footer>
+  <p>前奏13音のあと、1ページ19枠に3声を重ねて12文字を運びます。</p>
+  <p>伴奏は鍵表の再掲です。落としても本文は失われません。</p>
+</footer>
+</div>
+
+<script src="core.js"></script>
+<script src="audio.js"></script>
+<script src="score.js"></script>
+<script src="app.js"></script>
+<script>
+"use strict";
+const {$} = App, C = Core.Churitsu;
+const PAL = {bg:"#060A11", ink:"#CBD3E0", accent:"#5C86C4", line:"#22304C",
+             ledger:"#7A88A4", dim:"#3E4C68", mute:"#65718A",
+             disp:'700 30px "Shippori Mincho B1",serif'};
+$("nav").innerHTML = App.nav("churitsu");
+$("inst").innerHTML = Audio2.INSTRUMENTS.map(([v,n])=>`<option value="${v}">${n}</option>`).join("");
+let row = Core.makeRow(), cur = null, actx = null, srcNode = null, raf = 0, mode = "ja";
+/* 図 — 4層の帯 */
+const LAYN = ["声部1","声部2","声部3","伴奏"];
+function layers(pages, slots) {
+  const n = Math.max(1, pages ? pages.length : 1);
+  let h = "";
+  for (let L=0;L<4;L++) {
+    let c = "";
+    for (let p=0;p<n;p++) for (let i=0;i<slots;i++) {
+      let cls = "lc";
+      if (pages) {
+        if (L<3) { if (pages[p].voices[L+1]) cls += " on"; }
+        else if (pages[p].acc[i]!==null) cls += " acc";
+      }
+      c += `<span class="${cls}"></span>`;
+    }
+    h += `<div class="lay"><span class="llab">${LAYN[L]}</span><span class="lcells">${c}</span></div>`;
+  }
+  $("layers").innerHTML = h;
+}
+function litLayer(slot) {
+  const rows = $("layers").querySelectorAll(".lcells");
+  rows.forEach(r=>r.querySelectorAll(".lc").forEach((e,i)=>e.classList.toggle("lit", i===slot)));
+}
+function showKey(){ $("keyrow").innerHTML = row.map(p=>`<span class="kk">${Core.JA[p]}</span>`).join(""); }
+
+layers(null, 19); showKey();
+App.tabs(); App.drawers([["bScore","dScore"],["bNames","dNames"]]);
+$("tempo").oninput = e => $("tempoV").textContent = (+e.target.value).toFixed(1);
+$("reroll").onclick = () => { row = Core.makeRow(); showKey();
+  App.say("encMsg","鍵表を引き直しました。もう一度「奏でる」を押してください。",true); };
+
+/* 伴奏の各音が何枠ぶん伸びるか */
+function spans(pat) {
+  const s = new Array(pat.length).fill(0);
+  for (let i=0;i<pat.length;i++) {
+    if (typeof pat[i] !== "number") continue;
+    let n = 1;
+    while (i+n < pat.length && pat[i+n] === "→") n++;
+    s[i] = n;
+  }
+  return s;
+}
+const octOf = m => Math.floor(m/12)-1;
+
+$("go").onclick = async () => {
+  App.hush("encMsg");
+  const text = $("src").value;
+  if (!text) { App.say("encMsg","本文が空です。文を書いてから押してください。"); return; }
+  let sh;
+  try { sh = C.layout(text, row, true); }
+  catch(e) { App.say("encMsg", e.message); return; }
+  const nps = +$("tempo").value, dt = 1/nps, useAcc = $("withAcc").checked;
+  $("go").disabled = true; $("go").textContent = "奏でています…";
+  try {
+    const sp = spans(C.pattern());
+    const ev = [], items = [];
+    let slot = 0, t = 0.05, notes = 0;
+    const breaks = [];
+
+    sh.prelude.forEach((m,i)=>{
+      ev.push({midi:m, t:t+i*dt, d:dt*0.95});
+      items.push({slot:slot+i, stave:0, voice:0, pc:m%12, oct:octOf(m), dur:5,
+                  accent:true, bar:i===12});
+      notes++;
+    });
+    slot += sh.prelude.length; t += sh.prelude.length*dt;
+
+    sh.pages.forEach((pg,pi)=>{
+      breaks.push(slot);
+      for (const v of [1,2,3]) {
+        if (!pg.voices[v]) continue;
+        pg.voices[v].forEach((m,i)=>{
+          ev.push({midi:m, t:t+i*dt, d:dt*0.95});
+          items.push({slot:slot+i, stave:v===3?1:0, voice:v===2?1:0,
+                      pc:m%12, oct:octOf(m), dur:5,
+                      bar:i===sh.slots-1 && v===1});
+          notes++;
+        });
+      }
+      if (useAcc) pg.acc.forEach((m,i)=>{
+        if (m===null) return;
+        ev.push({midi:m, t:t+i*dt, d:dt*sp[i]*0.95});
+        items.push({slot:slot+i, stave:1, voice:1, pc:m%12, oct:octOf(m),
+                    dur: sp[i]>1 ? 8 : 5, accent:true});
+        notes++;
+      });
+      slot += sh.slots; t += sh.slots*dt;
+    });
+
+    const buf = await Audio2.render(ev, {inst:$("inst").value, voices:4});
+    cur = {sh, ev, items, buf, nps, slots:slot, notes, breaks};
+    $("sPage").textContent  = sh.pages.length;
+    $("sNotes").textContent = notes;
+    $("sSlot").textContent  = slot;
+    $("sDur").textContent   = (buf.length/buf.sampleRate).toFixed(1) + " 秒";
+    layers(sh.pages, sh.slots); showKey();
+    $("fignote").textContent = `${sh.pages.length} ページ × ${sh.slots} 枠`;
+    $("out").classList.add("on");
+    fillNames(); drawScore();
+  } catch(e) { App.say("encMsg","音を作れませんでした。" + e.message); }
+  $("go").disabled = false; $("go").textContent = "奏でる";
+};
+
+function drawScore() {
+  Score.render($("score"), {
+    title:"稠律暗号", gap:30, palette:PAL, staves:["treble","bass"], twoVoice:true, breaks:cur.breaks,
+    meta:`${cur.sh.pages.length} ページ  ／  ${cur.notes} 音符  ／  ${cur.slots} 枠`,
+    slots: cur.slots, items: cur.items
+  });
+}
+
+function sheetText() {
+  if (!cur) return "";
+  const nm = p => Core.name(p, mode==="en");
+  const L = [cur.sh.prelude.map(m=>nm(m%12)).join(" ")];
+  for (const pg of cur.sh.pages) {
+    L.push("");
+    for (const v of [1,2,3]) if (pg.voices[v]) L.push(pg.voices[v].map(m=>nm(m%12)).join(" "));
+    L.push(pg.acc.filter(m=>m!==null).map(m=>nm(m%12)).join(" "));
+  }
+  return L.join("\n");
+}
+function syncLine(){ $("oneline").value = sheetText();
+  $("swKana").setAttribute("aria-pressed", mode==="ja");
+  $("swEn").setAttribute("aria-pressed", mode==="en"); }
+$("swKana").onclick=()=>{mode="ja";syncLine();};
+$("swEn").onclick=()=>{mode="en";syncLine();};
+$("copyLine").onclick=()=>App.copy($("oneline"),"copied");
+
+function fillNames() {
+  syncLine();
+  const line = (lab,arr,cls)=>`<div class="vlab ${cls||""}">${lab}</div>
+    <div class="vrow ${cls||""}">${arr.join(" ")}</div>`;
+  let h = `<div class="vgrid">${line("前奏", cur.sh.prelude.map(m=>Core.JA[m%12]), "pre")}</div>`;
+  cur.sh.pages.forEach((pg,i)=>{
+    h += `<p class="pgttl">第${i+1}ページ</p><div class="vgrid">`;
+    for (const v of [1,2,3]) if (pg.voices[v])
+      h += line("声部"+v, pg.voices[v].map(m=>Core.JA[m%12]));
+    h += line("伴奏", pg.tie.map((x,j)=> pg.acc[j]===null ? x : Core.JA[pg.acc[j]%12]), "acc");
+    h += `</div>`;
+  });
+  $("nlBody").innerHTML = h;
+}
+
+$("play").onclick = () => {
+  if (!cur) return;
+  if (srcNode) { stop(); return; }
+  actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+  actx.resume();
+  srcNode = actx.createBufferSource(); srcNode.buffer = cur.buf;
+  srcNode.connect(actx.destination);
+  const t0 = actx.currentTime;
+  srcNode.start(); $("play").textContent = "止める"; srcNode.onended = stop;
+  (function tick(){
+    const t = actx.currentTime - t0 - 0.05;
+    const i = Math.floor(t*cur.nps);
+    litLayer(i>=13 ? i-13 : -1);
+    raf = requestAnimationFrame(tick);
+  })();
+};
+function stop() {
+  if (srcNode) { try{srcNode.stop()}catch(_){} srcNode=null; }
+  cancelAnimationFrame(raf); litLayer(-1); $("play").textContent="聴く";
+}
+
+$("dlAudio").onclick = () => {
+  if (!cur) return;
+  const m = Audio2.mp3(cur.buf);
+  if (m) App.dl(m,"churitsu.mp3");
+  else { App.dl(Audio2.wav(cur.buf),"churitsu.wav");
+         App.say("encMsg","MP3 の変換器を読み込めなかったので WAV で書き出しました。",true); }
+};
+$("dlScore").onclick = () => $("score").toBlob(b=>App.dl(b,"churitsu.png"));
+
+$("dgo").onclick = () => {
+  App.hush("decMsg"); $("dres").classList.remove("on");
+  try {
+    const groups = $("dsrc").value.trim().split(/\n\s*\n+/).filter(g=>g.trim());
+    if (!groups.length) throw new Error("何も入力されていません。");
+    const pre = Core.parseNotes(groups[0]);
+    if (pre.length !== 13) throw new Error(`前奏は13音である必要があります。${pre.length}音でした。`);
+    let pcs = pre.slice();
+    let pages = 0, voices = 0;
+    for (let g=1; g<groups.length; g++) {
+      const lines = groups[g].split("\n").map(s=>s.trim()).filter(Boolean).map(Core.parseNotes);
+      const mel = lines.filter(l=>l.length !== 12);      // 12音の行は伴奏とみなして無視
+      if (!mel.length) throw new Error(`第${g}ページに声部の行がありません。`);
+      if (mel.length > 3) throw new Error(`第${g}ページの声部が${mel.length}行あります。3行までです。`);
+      mel.forEach((l,i)=>{
+        if (l.length !== 19)
+          throw new Error(`第${g}ページ 声部${i+1} が${l.length}音です。19音である必要があります。`);
+        pcs = pcs.concat(l);
+      });
+      pages++; voices += mel.length;
+    }
+    const r = Core.Souritsu.decode(pcs, true);
+    $("dres").textContent = r.text || "（空の本文です）";
+    $("dres").classList.add("on");
+    App.say("decMsg", `${pages} ページ、${voices} 声部を読み解きました。`, true);
+  } catch(e) { App.say("decMsg", e.message); }
+};
+</script>
+</body>
+</html>
