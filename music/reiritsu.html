@@ -157,6 +157,10 @@ footer p{margin:0}
       <div class="ctl"><label class="fld" for="tempo">速さ <span id="tempoV">3.5</span> 音/秒</label>
         <input type="range" id="tempo" min="1.5" max="8" step="0.5" value="3.5"></div>
     </div>
+    <div class="row">
+      <div class="ctl"><label class="fld" for="harm">伴奏</label><select id="harm"></select></div>
+      <div class="ctl"><label class="fld" for="hinst">伴奏の楽器</label><select id="hinst"></select></div>
+    </div>
     <div class="row" style="margin-top:14px"><button class="mini" id="reroll">鍵表を引き直す</button></div>
     <button class="primary" id="go">奏でる</button>
   </div>
@@ -217,10 +221,11 @@ footer p{margin:0}
 </footer>
 </div>
 
-<script src="Core.js"></script>
-<script src="Audio.js"></script>
-<script src="Score.js"></script>
-<script src="App.js"></script>
+<script src="core.js"></script>
+<script src="audio.js"></script>
+<script src="score.js"></script>
+<script src="harmony.js"></script>
+<script src="app.js"></script>
 <script>
 "use strict";
 const {$} = App;
@@ -229,6 +234,10 @@ const PAL = {bg:"#FCFBF7", ink:"#2A3033", accent:"#2E8B93", line:"#CFCEC4",
              disp:'400 30px "Zen Old Mincho",serif'};
 $("nav").innerHTML = App.nav("reiritsu");
 $("inst").innerHTML = Audio2.INSTRUMENTS.map(([v,n])=>`<option value="${v}">${n}</option>`).join("");
+$("hinst").innerHTML = Audio2.INSTRUMENTS.map(([v,n])=>`<option value="${v}">${n}</option>`).join("");
+$("hinst").value = "organ";
+$("harm").innerHTML = Harmony.MODES.map(([v,n])=>`<option value="${v}">${n}</option>`).join("");
+$("harm").value = "arp";
 let row = Core.makeRow(), cur = null, actx = null, srcNode = null, raf = 0, mode = "ja";
 App.tabs(); App.drawers([["bScore","dScore"],["bNames","dNames"]]);
 $("tempo").oninput = e => $("tempoV").textContent = (+e.target.value).toFixed(1);
@@ -248,6 +257,22 @@ function litBand(idx) {
   $("bands").querySelectorAll(".cell").forEach((e,i)=>e.classList.toggle("lit", i===idx));
 }
 showKey(); bands(Core.Reiritsu.spread(3));
+
+
+/* 主旋律と伴奏を混ぜる */
+function mixdown(bufs, gains) {
+  const sr = bufs[0].sampleRate;
+  const n = Math.max(...bufs.map(b=>b.length));
+  const out = new (window.AudioContext||window.webkitAudioContext)({sampleRate:sr})
+                .createBuffer(1, n, sr);
+  const d = out.getChannelData(0);
+  bufs.forEach((b,i)=>{ const s=b.getChannelData(0), g=gains[i];
+    for (let k=0;k<s.length;k++) d[k] += s[k]*g; });
+  let peak = 0;
+  for (let k=0;k<n;k++) peak = Math.max(peak, Math.abs(d[k]));
+  if (peak > 0.95) { const q = 0.95/peak; for (let k=0;k<n;k++) d[k] *= q; }
+  return out;
+}
 
 function marks(r) {
   const isKey = new Array(r.pcs.length).fill(false), bar = new Set();
@@ -269,10 +294,25 @@ $("go").onclick = async () => {
   $("go").disabled = true; $("go").textContent = "奏でています…";
   try {
     const mel = Core.voice(r.pcs);
-    const buf = await Audio2.render(Audio2.sequence(mel, nps), {inst: $("inst").value});
-    cur = {...r, mel, buf, nps, ...marks(r)};
+    const hm  = $("harm").value;
+    const har = hm === "none" ? null : Harmony.accompany(r.pcs, {mode: hm});
+    const ev  = Audio2.sequence(mel, nps);
+    if (har) {
+      const dt = 1/nps;
+      for (const n of har.notes)
+        ev.push({midi:n.midi, t:0.05+n.slot*dt, d:dt*n.span*0.94, _acc:1});
+    }
+    const melBuf = await Audio2.render(ev.filter(e=>!e._acc), {inst: $("inst").value});
+    let buf = melBuf;
+    if (har) {
+      const accBuf = await Audio2.render(ev.filter(e=>e._acc),
+                       {inst: $("hinst").value, voices:3, tail:2.6});
+      buf = mixdown([melBuf, accBuf], [1.0, 0.62]);
+    }
+    cur = {...r, mel, buf, nps, har, ...marks(r)};
     bands(r.plan); showKey();
-    $("fignote").textContent = `${r.blocks} 節、鍵表は ${Math.ceil(r.blocks/12)} 周ぶん配られます。`;
+    $("fignote").innerHTML = `${r.blocks} 節、鍵表は ${Math.ceil(r.blocks/12)} 周ぶん配られます。` +
+      (cur.har ? `<br><span style="color:var(--asagi-d)">和音 ${cur.har.chords.slice(0,8).map(c=>c.name).join(" → ")}${cur.har.chords.length>8?" …":""}</span>` : "");
     $("sNotes").textContent = r.pcs.length;
     $("sBlk").textContent = r.blocks + " 節";
     $("sPlan").textContent = r.plan.join(",");
@@ -283,12 +323,20 @@ $("go").onclick = async () => {
   $("go").disabled = false; $("go").textContent = "奏でる";
 };
 
+const SPANDUR = {1:5, 2:8, 3:9};
 function drawScore() {
+  const items = cur.pcs.map((pc,i)=>({slot:i, stave:0, voice:0, pc,
+    oct: Math.floor(cur.mel[i]/12)-1, dur:5,
+    accent: cur.isKey[i], bar: cur.bar.has(i)}));
+  if (cur.har) for (const n of cur.har.notes)
+    items.push({slot:n.slot, stave:1, voice:1, pc:n.midi%12,
+                oct: Math.floor(n.midi/12)-1, dur: SPANDUR[n.span] || 5});
   Score.render($("score"), {
-    title:"玲律暗号", palette:PAL,
-    meta:`${cur.blocks} 節  ／  ${cur.pcs.length} 音  ／  鍵の配分 ${cur.plan.join(",")}`,
-    items: cur.pcs.map((pc,i)=>({slot:i, pc, oct: Math.floor(cur.mel[i]/12)-1, dur:5,
-      accent: cur.isKey[i], bar: cur.bar.has(i)}))
+    title:"玲律暗号", palette:PAL, slots: cur.pcs.length,
+    staves: cur.har ? ["treble","bass"] : ["treble"], twoVoice: !!cur.har,
+    meta:`${cur.blocks} 節  ／  ${cur.pcs.length} 音` +
+         (cur.har ? `  ／  伴奏 ${cur.har.chords.length} 和音` : ""),
+    items
   });
 }
 function syncLine(){
