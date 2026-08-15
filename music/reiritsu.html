@@ -139,7 +139,7 @@ footer p{margin:0}
   <p class="eyebrow" id="nav"></p>
   <h1>玲律暗号</h1>
   <p class="yomi">れいりつあんごう</p>
-  <p class="lede">玉の触れ合う澄んだ音。情報を主旋律1本に退け、伴奏も内声もリズムも、すべて音楽そのものに明け渡します。鍵表は先頭にまとめず、節の終わりに散らします。</p>
+  <p class="lede">玉の触れ合う澄んだ音。<b style="font-weight:500">12音ではなく、ある長調の7音だけを使います。</b>無調が消えるので、伴奏を当てても濁りません。情報は主旋律1本だけが持ち、鍵表は節の終わりに散らします。</p>
 </header>
 
 <div class="tabs" role="tablist">
@@ -161,14 +161,14 @@ footer p{margin:0}
       <div class="ctl"><label class="fld" for="harm">伴奏</label><select id="harm"></select></div>
       <div class="ctl"><label class="fld" for="hinst">伴奏の楽器</label><select id="hinst"></select></div>
     </div>
-    <div class="row" style="margin-top:14px"><button class="mini" id="reroll">鍵表を引き直す</button></div>
+    <div class="row" style="margin-top:14px"><button class="mini" id="reroll">調と鍵表を引き直す</button></div>
     <button class="primary" id="go">奏でる</button>
   </div>
 
   <div class="fig">
-    <p class="fig-cap">節の帯 — 鍵表の散らばり</p>
+    <p class="fig-cap">節の帯 — 12音と鍵表の散らばり</p>
     <div id="bands"></div>
-    <p class="fig-note" id="fignote">18音の節ごとに、鍵表の断片が置かれます。</p>
+    <p class="fig-note" id="fignote">12音の節ごとに、鍵表の断片が置かれます。</p>
     <div class="keyrow" id="keyrow"></div>
   </div>
 </div>
@@ -200,8 +200,8 @@ footer p{margin:0}
         <button class="ghost" id="swEn" aria-pressed="false">CDE</button>
         <span class="copied" id="copied">コピーしました</span>
       </div>
-      <h4>節ごと — 浅葱が鍵表の断片</h4><div id="nlBody"></div>
-      <h4>集めた鍵表</h4><div class="nlist" id="nlRow"></div>
+      <h4>節ごと — 12音＋鍵表の断片</h4><div id="nlBody"></div>
+      <h4>集めた鍵表 — 長音階の7音</h4><div class="nlist" id="nlRow"></div>
     </div>
   </div>
 </div>
@@ -216,12 +216,13 @@ footer p{margin:0}
 </section>
 
 <footer>
-  <p>18音の節ごとに鍵表の断片が置かれ、総音数から節の数が決まります。</p>
+  <p>ある長調の7音だけを使い、2文字を7進12桁で1節に収めます。</p>
   <p>検査音を持ちません。節の中の1音の誤りは検出できません。</p>
 </footer>
 </div>
 
 <script src="core.js"></script>
+<script src="reiritsu.js"></script>
 <script src="audio.js"></script>
 <script src="score.js"></script>
 <script src="harmony.js"></script>
@@ -238,17 +239,22 @@ $("hinst").innerHTML = Audio2.INSTRUMENTS.map(([v,n])=>`<option value="${v}">${n
 $("hinst").value = "organ";
 $("harm").innerHTML = Harmony.MODES.map(([v,n])=>`<option value="${v}">${n}</option>`).join("");
 $("harm").value = "arp";
-let row = Core.makeRow(), cur = null, actx = null, srcNode = null, raf = 0, mode = "ja";
+let row = Reiritsu.makeRow(), cur = null, actx = null, srcNode = null, raf = 0, mode = "ja";
 App.tabs(); App.drawers([["bScore","dScore"],["bNames","dNames"]]);
 $("tempo").oninput = e => $("tempoV").textContent = (+e.target.value).toFixed(1);
-$("reroll").onclick = () => { row = Core.makeRow(); showKey();
+$("reroll").onclick = () => { row = Reiritsu.makeRow(); showKey();
   App.say("encMsg","鍵表を引き直しました。もう一度「奏でる」を押してください。",true); };
 
-function showKey(){ $("keyrow").innerHTML = row.map(p=>`<span class="kk">${Core.JA[p]}</span>`).join(""); }
+function showKey(){
+  const t = Reiritsu.tonicOf(row);
+  $("keyrow").innerHTML =
+    `<span class="kk" style="border-style:dashed">${Core.JA[t]}長調</span>` +
+    row.map(p=>`<span class="kk">${Core.JA[p]}</span>`).join("");
+}
 function bands(plan) {
   $("bands").innerHTML = plan.map((k,b)=>{
     let c = "";
-    for (let i=0;i<18;i++) c += '<span class="cell"></span>';
+    for (let i=0;i<12;i++) c += '<span class="cell"></span>';
     for (let i=0;i<k;i++)  c += '<span class="cell key"></span>';
     return `<div class="band"><span class="bno">${String(b+1).padStart(2,"0")}</span>${c}</div>`;
   }).join("");
@@ -256,7 +262,7 @@ function bands(plan) {
 function litBand(idx) {
   $("bands").querySelectorAll(".cell").forEach((e,i)=>e.classList.toggle("lit", i===idx));
 }
-showKey(); bands(Core.Reiritsu.spread(3));
+showKey(); bands(Reiritsu.spread(4));
 
 
 /* 主旋律と伴奏を混ぜる */
@@ -277,7 +283,7 @@ function mixdown(bufs, gains) {
 function marks(r) {
   const isKey = new Array(r.pcs.length).fill(false), bar = new Set();
   let i = 0;
-  for (let b=0;b<r.blocks;b++) { i += 18; bar.add(i-1);
+  for (let b=0;b<r.blocks;b++) { i += 12; bar.add(i-1);
     for (let k=0;k<r.plan[b];k++) isKey[i+k] = true;
     i += r.plan[b]; bar.add(i-1); }
   return {isKey, bar};
@@ -288,14 +294,15 @@ $("go").onclick = async () => {
   const text = $("src").value;
   if (!text) { App.say("encMsg","本文が空です。文を書いてから押してください。"); return; }
   let r;
-  try { r = Core.Reiritsu.encode(text, row); }
+  try { r = Reiritsu.encode(text, row); }
   catch(e) { App.say("encMsg", e.message); return; }
   const nps = +$("tempo").value;
   $("go").disabled = true; $("go").textContent = "奏でています…";
   try {
     const mel = Core.voice(r.pcs);
     const hm  = $("harm").value;
-    const har = hm === "none" ? null : Harmony.accompany(r.pcs, {mode: hm});
+    const scale = Reiritsu.scaleOf(r.tonic);
+    const har = hm === "none" ? null : Harmony.accompany(r.pcs, {scale, mode: hm});
     const ev  = Audio2.sequence(mel, nps);
     if (har) {
       const dt = 1/nps;
@@ -309,9 +316,9 @@ $("go").onclick = async () => {
                        {inst: $("hinst").value, voices:3, tail:2.6});
       buf = mixdown([melBuf, accBuf], [1.0, 0.62]);
     }
-    cur = {...r, mel, buf, nps, har, ...marks(r)};
+    cur = {...r, mel, buf, nps, har, scale, ...marks(r)};
     bands(r.plan); showKey();
-    $("fignote").innerHTML = `${r.blocks} 節、鍵表は ${Math.ceil(r.blocks/12)} 周ぶん配られます。` +
+    $("fignote").innerHTML = `${Core.JA[r.tonic]}長調 ／ ${r.blocks} 節、鍵表は ${Math.ceil(r.blocks/7)} 周ぶん` +
       (cur.har ? `<br><span style="color:var(--asagi-d)">和音 ${cur.har.chords.slice(0,8).map(c=>c.name).join(" → ")}${cur.har.chords.length>8?" …":""}</span>` : "");
     $("sNotes").textContent = r.pcs.length;
     $("sBlk").textContent = r.blocks + " 節";
@@ -326,7 +333,8 @@ $("go").onclick = async () => {
 const SPANDUR = {1:5, 2:8, 3:9};
 function drawScore() {
   const items = cur.pcs.map((pc,i)=>({slot:i, stave:0, voice:0, pc,
-    oct: Math.floor(cur.mel[i]/12)-1, dur:5,
+    oct: Math.floor(cur.mel[i]/12)-1,
+    dur: cur.bar.has(i) ? 8 : (cur.isKey[i] ? 5 : 2),
     accent: cur.isKey[i], bar: cur.bar.has(i)}));
   if (cur.har) for (const n of cur.har.notes)
     items.push({slot:n.slot, stave:1, voice:1, pc:n.midi%12,
@@ -334,7 +342,7 @@ function drawScore() {
   Score.render($("score"), {
     title:"玲律暗号", palette:PAL, slots: cur.pcs.length,
     staves: cur.har ? ["treble","bass"] : ["treble"], twoVoice: !!cur.har,
-    meta:`${cur.blocks} 節  ／  ${cur.pcs.length} 音` +
+    meta:`${Core.JA[cur.tonic]}長調  ／  ${cur.blocks} 節  ／  ${cur.pcs.length} 音` +
          (cur.har ? `  ／  伴奏 ${cur.har.chords.length} 和音` : ""),
     items
   });
@@ -353,7 +361,7 @@ function fillNames() {
   const span=(p,c)=>`<span class="nn${c?" "+c:""}">${Core.JA[p]}</span>`;
   let h="", i=0;
   for (let b=0;b<cur.blocks;b++) {
-    const body = cur.pcs.slice(i,i+18); i+=18;
+    const body = cur.pcs.slice(i,i+12); i+=12;
     const key  = cur.pcs.slice(i,i+cur.plan[b]); i+=cur.plan[b];
     h += `<div class="blk"><span class="bno">${String(b+1).padStart(2,"0")}</span>
       <span class="nlist" style="display:inline-flex">${body.map(p=>span(p)).join("")}
@@ -396,7 +404,7 @@ $("dgo").onclick = () => {
   App.hush("decMsg"); $("dres").classList.remove("on");
   try {
     const pcs = Core.parseNotes($("dsrc").value);
-    const r = Core.Reiritsu.decode(pcs);
+    const r = Reiritsu.decode(pcs);
     $("dres").textContent = r.text || "（空の本文です）";
     $("dres").classList.add("on");
     App.say("decMsg", `${pcs.length} 音、${r.blocks} 節を読み解きました。`, true);
