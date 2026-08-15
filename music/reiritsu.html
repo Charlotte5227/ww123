@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>玲律暗号</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.0/lame.min.js" onerror="window.__noLame=1"></script>
+<style>
+:root{
+  --haku:#F5F4EF; --paper:#FCFBF7; --sen:#E3E2D9; --line:#D3D2C8;
+  --sumi:#242A2C; --usu:#7C8487; --asagi:#2E8B93; --asagi-d:#1E6B72; --shu:#B4553F;
+  --disp:"Zen Old Mincho",serif;
+  --body:"Zen Kaku Gothic New",system-ui,sans-serif;
+  --mono:"DM Mono",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--haku);color:var(--sumi);font-family:var(--body);font-weight:300;
+  font-size:15px;line-height:2.05;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1060px;margin:0 auto;padding:0 28px 120px}
+
+header{padding:96px 0 52px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.3em;margin:0 0 32px;color:var(--usu)}
+.eyebrow a{color:var(--usu);text-decoration:none;margin-right:18px}
+.eyebrow a:hover{color:var(--asagi)}
+.eyebrow a[aria-current]{color:var(--asagi);border-bottom:1px solid var(--asagi);padding-bottom:3px}
+h1{font-family:var(--disp);font-weight:400;font-size:clamp(46px,8vw,74px);letter-spacing:.22em;
+  margin:0;line-height:1.15;text-indent:.22em}
+.yomi{font-family:var(--disp);font-size:12px;letter-spacing:.62em;color:var(--usu);
+  margin:22px 0 0;text-indent:.62em}
+.lede{max-width:38ch;margin:40px 0 0;color:#4C5457;font-size:15px;line-height:2.2}
+
+.tabs{display:flex;gap:30px;margin:64px 0 0;border-bottom:1px solid var(--line)}
+.tab{background:none;border:0;border-bottom:1px solid transparent;color:var(--usu);
+  font-family:var(--disp);font-size:15px;letter-spacing:.2em;padding:14px 2px;cursor:pointer;
+  margin-bottom:-1px;transition:color .25s,border-color .25s}
+.tab:hover{color:var(--sumi)}
+.tab[aria-selected="true"]{color:var(--asagi);border-bottom-color:var(--asagi)}
+.tab:focus-visible{outline:2px solid var(--asagi);outline-offset:3px}
+.panel{display:none;padding-top:52px}
+.panel.on{display:block}
+
+.grid{display:grid;grid-template-columns:1fr 300px;gap:56px;align-items:start}
+@media(max-width:860px){.grid{grid-template-columns:1fr;gap:40px}}
+
+label.fld{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.28em;
+  color:var(--usu);margin:0 0 14px;text-transform:uppercase}
+textarea{width:100%;min-height:150px;resize:vertical;background:var(--paper);color:var(--sumi);
+  border:1px solid var(--line);border-radius:1px;padding:18px 20px;font-family:var(--body);
+  font-weight:400;font-size:16px;line-height:2;transition:border-color .25s}
+textarea:focus{outline:none;border-color:var(--asagi)}
+textarea::placeholder{color:#B4B7B2}
+
+.row{display:flex;gap:26px;flex-wrap:wrap;margin-top:26px;align-items:flex-end}
+.ctl{flex:1;min-width:150px}
+select{width:100%;background:var(--paper);color:var(--sumi);border:1px solid var(--line);
+  border-radius:1px;padding:11px 12px;font-family:var(--body);font-size:14px}
+input[type=range]{width:100%;height:30px;accent-color:var(--asagi);border:0;background:none;padding:0}
+select:focus,input:focus{outline:none;border-color:var(--asagi)}
+
+button{font-family:var(--disp);cursor:pointer;transition:all .22s}
+button:focus-visible{outline:2px solid var(--asagi);outline-offset:3px}
+.primary{background:var(--asagi);color:#FBFBF8;border:0;border-radius:1px;font-size:16px;
+  letter-spacing:.32em;padding:16px 46px;text-indent:.32em;margin-top:40px}
+.primary:hover{background:var(--asagi-d)}
+.primary:disabled{background:#C6C9C4;color:#F2F2EE;cursor:not-allowed}
+.ghost{background:none;color:var(--sumi);border:1px solid var(--line);border-radius:1px;
+  font-size:13.5px;letter-spacing:.2em;padding:11px 20px;text-indent:.2em}
+.ghost:hover{border-color:var(--asagi);color:var(--asagi)}
+.ghost[aria-pressed="true"]{border-color:var(--asagi);color:var(--asagi);background:#E7F1F1}
+.mini{font-family:var(--mono);font-size:11px;letter-spacing:.14em;background:none;border:0;
+  color:var(--usu);padding:6px 0;text-decoration:underline;text-underline-offset:5px}
+.mini:hover{color:var(--asagi)}
+
+.fig{border-top:1px solid var(--line);padding-top:22px}
+.fig-cap{font-family:var(--mono);font-size:10px;letter-spacing:.26em;color:var(--usu);margin:0 0 20px}
+.band{display:flex;gap:2px;align-items:center;margin-bottom:7px}
+.bno{font-family:var(--mono);font-size:9px;color:#A9AEA8;width:20px;flex:none;letter-spacing:.06em}
+.cell{height:13px;flex:1;background:var(--sen);border-radius:.5px;transition:background .12s}
+.cell.key{background:var(--asagi);flex:1.5}
+.cell.lit{background:var(--shu)}
+.fig-note{font-size:12px;color:var(--usu);margin:20px 0 0;line-height:1.9}
+.keyrow{display:flex;gap:3px;margin-top:8px;flex-wrap:wrap}
+.kk{font-size:11px;color:var(--asagi-d);border:1px solid var(--asagi);border-radius:1px;
+  padding:1px 6px;min-width:30px;text-align:center}
+
+.out{margin-top:76px;border-top:1px solid var(--line);padding-top:42px;display:none}
+.out.on{display:block}
+.stat{display:flex;gap:40px;flex-wrap:wrap;font-family:var(--mono);font-size:11.5px;
+  letter-spacing:.1em;color:var(--usu);margin:0 0 34px}
+.stat b{color:var(--sumi);font-weight:400}
+.bar{display:flex;gap:12px;flex-wrap:wrap}
+.drawer{display:none;margin-top:36px}
+.drawer.on{display:block}
+.scroll{overflow-x:auto;background:var(--paper);border:1px solid var(--line);border-radius:1px}
+canvas.score{display:block;width:1160px;max-width:none}
+
+.names{background:var(--paper);border:1px solid var(--line);border-radius:1px;padding:28px}
+.names h4{font-family:var(--mono);font-size:10px;letter-spacing:.26em;color:var(--asagi-d);
+  margin:0 0 14px;font-weight:400}
+.names h4:not(:first-child){margin-top:32px}
+.nlist{display:flex;flex-wrap:wrap;gap:5px}
+.nn{font-size:13px;background:#EFEEE7;border-radius:1px;padding:3px 9px;color:#3C4346;
+  min-width:34px;text-align:center}
+.nn.st{background:var(--asagi);color:#FBFBF8}
+.nn.hd{background:#E7F1F1;color:var(--asagi-d)}
+.oneline{width:100%;background:var(--haku);color:#3C4346;border:1px solid var(--line);
+  border-radius:1px;padding:13px 15px;font-family:var(--body);font-size:13.5px;white-space:pre;
+  overflow-x:auto;resize:none;height:46px;line-height:1.5}
+.oneline:focus{outline:none;border-color:var(--asagi)}
+.linebar{display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.copied{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--asagi);
+  opacity:0;transition:opacity .25s}
+.copied.on{opacity:1}
+.blk{margin-bottom:12px}
+.blk .bno{display:inline-block;margin-right:12px}
+
+.msg{font-family:var(--mono);font-size:12px;letter-spacing:.05em;margin-top:22px;padding:13px 17px;
+  border-left:2px solid var(--shu);background:#F7EEEA;color:#8A3F2C;display:none}
+.msg.on{display:block}
+.ok{border-left-color:var(--asagi);background:#E9F2F2;color:var(--asagi-d)}
+.result{background:var(--paper);border:1px solid var(--line);border-radius:1px;padding:26px 28px;
+  margin-top:32px;font-size:17px;line-height:2.1;white-space:pre-wrap;word-break:break-word;display:none}
+.result.on{display:block}
+
+footer{margin-top:110px;border-top:1px solid var(--line);padding-top:28px;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:#A2A7A2;line-height:2}
+footer p{margin:0}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow" id="nav"></p>
+  <h1>玲律暗号</h1>
+  <p class="yomi">れいりつあんごう</p>
+  <p class="lede">玉の触れ合う澄んだ音。情報を主旋律1本に退け、伴奏も内声もリズムも、すべて音楽そのものに明け渡します。鍵表は先頭にまとめず、節の終わりに散らします。</p>
+</header>
+
+<div class="tabs" role="tablist">
+  <button class="tab" role="tab" id="t-enc" aria-selected="true" aria-controls="p-enc">文を曲に</button>
+  <button class="tab" role="tab" id="t-dec" aria-selected="false" aria-controls="p-dec">曲を文に</button>
+</div>
+
+<section class="panel on" id="p-enc" role="tabpanel" aria-labelledby="t-enc">
+<div class="grid">
+  <div>
+    <label class="fld" for="src">本文</label>
+    <textarea id="src" placeholder="ここに文を書きます。">こんにちは、世界AI2026。</textarea>
+    <div class="row">
+      <div class="ctl"><label class="fld" for="inst">楽器</label><select id="inst"></select></div>
+      <div class="ctl"><label class="fld" for="tempo">速さ <span id="tempoV">3.5</span> 音/秒</label>
+        <input type="range" id="tempo" min="1.5" max="8" step="0.5" value="3.5"></div>
+    </div>
+    <div class="row" style="margin-top:14px"><button class="mini" id="reroll">鍵表を引き直す</button></div>
+    <button class="primary" id="go">奏でる</button>
+  </div>
+
+  <div class="fig">
+    <p class="fig-cap">節の帯 — 鍵表の散らばり</p>
+    <div id="bands"></div>
+    <p class="fig-note" id="fignote">18音の節ごとに、鍵表の断片が置かれます。</p>
+    <div class="keyrow" id="keyrow"></div>
+  </div>
+</div>
+
+<div class="msg" id="encMsg"></div>
+
+<div class="out" id="out">
+  <div class="stat">
+    <span>音数 <b id="sNotes">—</b></span><span>節 <b id="sBlk">—</b></span>
+    <span>鍵の配分 <b id="sPlan">—</b></span><span>長さ <b id="sDur">—</b></span>
+  </div>
+  <div class="bar">
+    <button class="ghost" id="play">聴く</button>
+    <button class="ghost" id="dlAudio">音を書き出す</button>
+    <button class="ghost" id="bScore" aria-pressed="false">譜に起こす</button>
+    <button class="ghost" id="bNames" aria-pressed="false">音名で読む</button>
+  </div>
+  <div class="drawer" id="dScore">
+    <div class="row" style="margin:0 0 16px"><button class="ghost" id="dlScore" style="margin-left:auto">譜面を書き出す</button></div>
+    <div class="scroll"><canvas class="score" id="score"></canvas></div>
+  </div>
+  <div class="drawer" id="dNames">
+    <div class="names">
+      <h4>1行の音名 — 主旋律だけ</h4>
+      <textarea class="oneline" id="oneline" readonly spellcheck="false"></textarea>
+      <div class="linebar">
+        <button class="ghost" id="copyLine">コピー</button>
+        <button class="ghost" id="swKana" aria-pressed="true">ドレミ</button>
+        <button class="ghost" id="swEn" aria-pressed="false">CDE</button>
+        <span class="copied" id="copied">コピーしました</span>
+      </div>
+      <h4>節ごと — 浅葱が鍵表の断片</h4><div id="nlBody"></div>
+      <h4>集めた鍵表</h4><div class="nlist" id="nlRow"></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="panel" id="p-dec" role="tabpanel" aria-labelledby="t-dec">
+  <label class="fld" for="dsrc">主旋律の音名 — 同時に鳴る音のうち、最も高いものだけを順に</label>
+  <textarea id="dsrc" placeholder="ファ シ ド♯ ソ ファ ド ミ ラ レ♯ …"></textarea>
+  <button class="primary" id="dgo">文に戻す</button>
+  <div class="msg" id="decMsg"></div>
+  <div class="result" id="dres"></div>
+</section>
+
+<footer>
+  <p>18音の節ごとに鍵表の断片が置かれ、総音数から節の数が決まります。</p>
+  <p>検査音を持ちません。節の中の1音の誤りは検出できません。</p>
+</footer>
+</div>
+
+<script src="core.js"></script>
+<script src="audio.js"></script>
+<script src="score.js"></script>
+<script src="app.js"></script>
+<script>
+"use strict";
+const {$} = App;
+const PAL = {bg:"#FCFBF7", ink:"#2A3033", accent:"#2E8B93", line:"#CFCEC4",
+             ledger:"#9AA09C", dim:"#B0B2A8", mute:"#8A918D",
+             disp:'400 30px "Zen Old Mincho",serif'};
+$("nav").innerHTML = App.nav("reiritsu");
+$("inst").innerHTML = Audio2.INSTRUMENTS.map(([v,n])=>`<option value="${v}">${n}</option>`).join("");
+let row = Core.makeRow(), cur = null, actx = null, srcNode = null, raf = 0, mode = "ja";
+App.tabs(); App.drawers([["bScore","dScore"],["bNames","dNames"]]);
+$("tempo").oninput = e => $("tempoV").textContent = (+e.target.value).toFixed(1);
+$("reroll").onclick = () => { row = Core.makeRow(); showKey();
+  App.say("encMsg","鍵表を引き直しました。もう一度「奏でる」を押してください。",true); };
+
+function showKey(){ $("keyrow").innerHTML = row.map(p=>`<span class="kk">${Core.JA[p]}</span>`).join(""); }
+function bands(plan) {
+  $("bands").innerHTML = plan.map((k,b)=>{
+    let c = "";
+    for (let i=0;i<18;i++) c += '<span class="cell"></span>';
+    for (let i=0;i<k;i++)  c += '<span class="cell key"></span>';
+    return `<div class="band"><span class="bno">${String(b+1).padStart(2,"0")}</span>${c}</div>`;
+  }).join("");
+}
+function litBand(idx) {
+  $("bands").querySelectorAll(".cell").forEach((e,i)=>e.classList.toggle("lit", i===idx));
+}
+showKey(); bands(Core.Reiritsu.spread(3));
+
+function marks(r) {
+  const isKey = new Array(r.pcs.length).fill(false), bar = new Set();
+  let i = 0;
+  for (let b=0;b<r.blocks;b++) { i += 18; bar.add(i-1);
+    for (let k=0;k<r.plan[b];k++) isKey[i+k] = true;
+    i += r.plan[b]; bar.add(i-1); }
+  return {isKey, bar};
+}
+
+$("go").onclick = async () => {
+  App.hush("encMsg");
+  const text = $("src").value;
+  if (!text) { App.say("encMsg","本文が空です。文を書いてから押してください。"); return; }
+  let r;
+  try { r = Core.Reiritsu.encode(text, row); }
+  catch(e) { App.say("encMsg", e.message); return; }
+  const nps = +$("tempo").value;
+  $("go").disabled = true; $("go").textContent = "奏でています…";
+  try {
+    const mel = Core.voice(r.pcs);
+    const buf = await Audio2.render(Audio2.sequence(mel, nps), {inst: $("inst").value});
+    cur = {...r, mel, buf, nps, ...marks(r)};
+    bands(r.plan); showKey();
+    $("fignote").textContent = `${r.blocks} 節、鍵表は ${Math.ceil(r.blocks/12)} 周ぶん配られます。`;
+    $("sNotes").textContent = r.pcs.length;
+    $("sBlk").textContent = r.blocks + " 節";
+    $("sPlan").textContent = r.plan.join(",");
+    $("sDur").textContent = (buf.length/buf.sampleRate).toFixed(1) + " 秒";
+    $("out").classList.add("on");
+    fillNames(); drawScore();
+  } catch(e) { App.say("encMsg","音を作れませんでした。" + e.message); }
+  $("go").disabled = false; $("go").textContent = "奏でる";
+};
+
+function drawScore() {
+  Score.render($("score"), {
+    title:"玲律暗号", palette:PAL,
+    meta:`${cur.blocks} 節  ／  ${cur.pcs.length} 音  ／  鍵の配分 ${cur.plan.join(",")}`,
+    items: cur.pcs.map((pc,i)=>({slot:i, pc, oct: Math.floor(cur.mel[i]/12)-1, dur:5,
+      accent: cur.isKey[i], bar: cur.bar.has(i)}))
+  });
+}
+function syncLine(){
+  $("oneline").value = cur ? cur.pcs.map(p=>Core.name(p, mode==="en")).join(" ") : "";
+  $("swKana").setAttribute("aria-pressed", mode==="ja");
+  $("swEn").setAttribute("aria-pressed", mode==="en");
+}
+$("swKana").onclick=()=>{mode="ja";syncLine();};
+$("swEn").onclick=()=>{mode="en";syncLine();};
+$("copyLine").onclick=()=>App.copy($("oneline"),"copied");
+
+function fillNames() {
+  syncLine();
+  const span=(p,c)=>`<span class="nn${c?" "+c:""}">${Core.JA[p]}</span>`;
+  let h="", i=0;
+  for (let b=0;b<cur.blocks;b++) {
+    const body = cur.pcs.slice(i,i+18); i+=18;
+    const key  = cur.pcs.slice(i,i+cur.plan[b]); i+=cur.plan[b];
+    h += `<div class="blk"><span class="bno">${String(b+1).padStart(2,"0")}</span>
+      <span class="nlist" style="display:inline-flex">${body.map(p=>span(p)).join("")}
+      ${key.map(p=>span(p,"st")).join("")}</span></div>`;
+  }
+  $("nlBody").innerHTML = h;
+  $("nlRow").innerHTML = cur.row.map(p=>span(p,"hd")).join("");
+}
+
+$("play").onclick = () => {
+  if (!cur) return;
+  if (srcNode) { stop(); return; }
+  actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+  actx.resume();
+  srcNode = actx.createBufferSource(); srcNode.buffer = cur.buf;
+  srcNode.connect(actx.destination);
+  const t0 = actx.currentTime;
+  srcNode.start(); $("play").textContent = "止める"; srcNode.onended = stop;
+  (function tick(){
+    const i = Math.floor((actx.currentTime-t0-0.05)*cur.nps);
+    litBand(i>=0 && i<cur.pcs.length ? i : -1);
+    raf = requestAnimationFrame(tick);
+  })();
+};
+function stop() {
+  if (srcNode) { try{srcNode.stop()}catch(_){} srcNode=null; }
+  cancelAnimationFrame(raf); litBand(-1); $("play").textContent="聴く";
+}
+
+$("dlAudio").onclick = () => {
+  if (!cur) return;
+  const m = Audio2.mp3(cur.buf);
+  if (m) App.dl(m,"reiritsu.mp3");
+  else { App.dl(Audio2.wav(cur.buf),"reiritsu.wav");
+         App.say("encMsg","MP3 の変換器を読み込めなかったので WAV で書き出しました。",true); }
+};
+$("dlScore").onclick = () => $("score").toBlob(b=>App.dl(b,"reiritsu.png"));
+
+$("dgo").onclick = () => {
+  App.hush("decMsg"); $("dres").classList.remove("on");
+  try {
+    const pcs = Core.parseNotes($("dsrc").value);
+    const r = Core.Reiritsu.decode(pcs);
+    $("dres").textContent = r.text || "（空の本文です）";
+    $("dres").classList.add("on");
+    App.say("decMsg", `${pcs.length} 音、${r.blocks} 節を読み解きました。`, true);
+  } catch(e) { App.say("decMsg", e.message); }
+};
+</script>
+</body>
+</html>
