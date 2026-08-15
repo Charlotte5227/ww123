@@ -131,7 +131,7 @@ footer p{margin:0}
   <p class="eyebrow" id="nav"></p>
   <h1>稠律暗号</h1>
   <p class="yomi">ちゅうりつあんごう</p>
-  <p class="lede">密度の枝。3つの節を高音・中音・低音に重ねて同時に鳴らし、曲の長さを3分の1にします。鍵表は最低音の伴奏として、全ページで繰り返されます。</p>
+  <p class="lede">密度の枝。3つの節を高音・中音・低音に重ねて同時に鳴らし、曲の長さを3分の1にします。鍵表は最低音の伴奏そのもの。前奏を持たず、曲はいきなり本編から始まります。</p>
 </header>
 
 <div class="tabs" role="tablist">
@@ -151,9 +151,6 @@ footer p{margin:0}
     </div>
     <div class="row" style="margin-top:12px">
       <button class="mini" id="reroll">鍵表を引き直す</button>
-      <label style="font-size:13px;color:var(--nezu);display:flex;gap:8px;align-items:center;cursor:pointer;margin-left:20px">
-        <input type="checkbox" id="withAcc" checked style="accent-color:var(--kincha)"> 伴奏を鳴らす
-      </label>
     </div>
     <button class="primary" id="go">奏でる</button>
   </div>
@@ -202,24 +199,24 @@ footer p{margin:0}
 </section>
 
 <section class="panel" id="p-dec" role="tabpanel" aria-labelledby="t-dec">
-  <label class="fld" for="dsrc">総譜 — 1行目が前奏。空行でページを区切り、上の行から声部1・2・3</label>
+  <label class="fld" for="dsrc">総譜 — 空行でページを区切り、上の行から声部1・2・3、最後の行が伴奏12音</label>
   <textarea id="dsrc" rows="10" style="min-height:200px;font-family:var(--body)"
-    placeholder="ソ ファ レ ソ♯ ラ ファ♯ シ レ♯ ミ ド ド♯ ラ♯ ソ&#10;&#10;ファ シ ド♯ ソ …&#10;ファ シ ド♯ シ …&#10;ソ ソ ファ レ …"></textarea>
+    placeholder="ファ シ ド♯ ソ …（声部1・19音）&#10;ファ シ ド♯ シ …（声部2・19音）&#10;ソ ソ ファ レ …（声部3・19音）&#10;ソ ファ レ ソ♯ ラ ファ♯ シ レ♯ ミ ド ド♯ ラ♯（伴奏・12音）"></textarea>
   <button class="primary" id="dgo">文に戻す</button>
   <div class="msg" id="decMsg"></div>
   <div class="result" id="dres"></div>
 </section>
 
 <footer>
-  <p>前奏13音のあと、1ページ19枠に3声を重ねて12文字を運びます。</p>
-  <p>伴奏は鍵表の再掲です。落としても本文は失われません。</p>
+  <p>1ページ19枠に3声を重ねて12文字を運びます。前奏はありません。</p>
+  <p>伴奏が鍵表そのものです。落とすと復号できません。</p>
 </footer>
 </div>
 
-<script src="Core.js"></script>
-<script src="Audio.js"></script>
-<script src="Score.js"></script>
-<script src="App.js"></script>
+<script src="core.js"></script>
+<script src="audio.js"></script>
+<script src="score.js"></script>
+<script src="app.js"></script>
 <script>
 "use strict";
 const {$} = App, C = Core.Churitsu;
@@ -288,16 +285,8 @@ $("go").onclick = async () => {
     let slot = 0, t = 0.05, notes = 0;
     const breaks = [];
 
-    sh.prelude.forEach((m,i)=>{
-      ev.push({midi:m, t:t+i*dt, d:dt*0.95});
-      items.push({slot:slot+i, stave:0, voice:0, pc:m%12, oct:octOf(m), dur:5,
-                  accent:true, bar:i===12});
-      notes++;
-    });
-    slot += sh.prelude.length; t += sh.prelude.length*dt;
-
     sh.pages.forEach((pg,pi)=>{
-      breaks.push(slot);
+      if (slot) breaks.push(slot);
       for (const v of [1,2,3]) {
         if (!pg.voices[v]) continue;
         pg.voices[v].forEach((m,i)=>{
@@ -343,9 +332,9 @@ function drawScore() {
 function sheetText() {
   if (!cur) return "";
   const nm = p => Core.name(p, mode==="en");
-  const L = [cur.sh.prelude.map(m=>nm(m%12)).join(" ")];
+  const L = [];
   for (const pg of cur.sh.pages) {
-    L.push("");
+    if (L.length) L.push("");
     for (const v of [1,2,3]) if (pg.voices[v]) L.push(pg.voices[v].map(m=>nm(m%12)).join(" "));
     L.push(pg.acc.filter(m=>m!==null).map(m=>nm(m%12)).join(" "));
   }
@@ -362,7 +351,7 @@ function fillNames() {
   syncLine();
   const line = (lab,arr,cls)=>`<div class="vlab ${cls||""}">${lab}</div>
     <div class="vrow ${cls||""}">${arr.join(" ")}</div>`;
-  let h = `<div class="vgrid">${line("前奏", cur.sh.prelude.map(m=>Core.JA[m%12]), "pre")}</div>`;
+  let h = "";
   cur.sh.pages.forEach((pg,i)=>{
     h += `<p class="pgttl">第${i+1}ページ</p><div class="vgrid">`;
     for (const v of [1,2,3]) if (pg.voices[v])
@@ -385,7 +374,7 @@ $("play").onclick = () => {
   (function tick(){
     const t = actx.currentTime - t0 - 0.05;
     const i = Math.floor(t*cur.nps);
-    litLayer(i>=13 ? i-13 : -1);
+    litLayer(i>=0 ? i%cur.sh.slots : -1);
     raf = requestAnimationFrame(tick);
   })();
 };
@@ -408,28 +397,25 @@ $("dgo").onclick = () => {
   try {
     const groups = $("dsrc").value.trim().split(/\n\s*\n+/).filter(g=>g.trim());
     if (!groups.length) throw new Error("何も入力されていません。");
-    const pre = Core.parseNotes(groups[0]);
-    if (pre.length !== 13) throw new Error(`前奏は13音である必要があります。${pre.length}音でした。`);
-    let pcs = pre.slice();
-    let pages = 0, voices = 0;
-    for (let g=1; g<groups.length; g++) {
-      const lines = groups[g].split("\n").map(s=>s.trim()).filter(Boolean).map(Core.parseNotes);
-      const mel = lines.filter(l=>l.length !== 12);      // 12音の行は伴奏とみなして無視
-      if (!mel.length) throw new Error(`第${g}ページに声部の行がありません。`);
-      if (mel.length > 3) throw new Error(`第${g}ページの声部が${mel.length}行あります。3行までです。`);
-      mel.forEach((l,i)=>{
-        if (l.length !== 19)
-          throw new Error(`第${g}ページ 声部${i+1} が${l.length}音です。19音である必要があります。`);
-        pcs = pcs.concat(l);
-      });
-      pages++; voices += mel.length;
-    }
-    const r = Core.Souritsu.decode(pcs, true);
+    const accs = [], voices = [];
+    let nv = 0;
+    groups.forEach((g,gi)=>{
+      const lines = g.split("\n").map(x=>x.trim()).filter(Boolean).map(Core.parseNotes);
+      const acc = lines.filter(l=>l.length===12);
+      const mel = lines.filter(l=>l.length!==12);
+      if (mel.length > 3)
+        throw new Error(`第${gi+1}ページの声部が${mel.length}行あります。3行までです。`);
+      mel.forEach((l,i)=>{ if (l.length!==19)
+        throw new Error(`第${gi+1}ページ 声部${i+1} が${l.length}音です。19音である必要があります。`); });
+      if (!acc.length && gi===0)
+        throw new Error("1ページ目に伴奏の12音がありません。鍵表を復元できません。");
+      accs.push(acc[0] || null); voices.push(mel); nv += mel.length;
+    });
+    const r = Core.Souritsu.decode(Core.Churitsu.assemble(accs, voices), true);
     $("dres").textContent = r.text || "（空の本文です）";
     $("dres").classList.add("on");
-    App.say("decMsg", `${pages} ページ、${voices} 声部を読み解きました。`, true);
+    App.say("decMsg", `${groups.length} ページ、${nv} 声部を読み解きました。`, true);
   } catch(e) { App.say("decMsg", e.message); }
-};
-</script>
+};</script>
 </body>
 </html>
