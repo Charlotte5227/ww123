@@ -116,47 +116,6 @@ const Souritsu = {
   }
 };
 
-/* ══════════ 玲律暗号 v0.1 ══════════ */
-const RDIG = 18, RPER = 4;
-const Reiritsu = {
-  spread(n) {
-    const T = 12*Math.ceil(n/12), q = Math.floor(T/n), r = T%n;
-    return [...Array(n).keys()].map(i => q + (i >= n-r ? 1 : 0));
-  },
-  encode(text, row) {
-    checkRow(row);
-    const u = padUnits(toUnits(text,0), RPER), n = u.length/RPER;
-    const plan = Reiritsu.spread(n), out=[]; let k=0;
-    for (let b=0;b<n;b++) {
-      for (const x of toDigits(pack(u.slice(b*RPER,(b+1)*RPER),4), RDIG)) out.push(row[x]);
-      for (let i=0;i<plan[b];i++) out.push(row[(k++)%12]);
-    }
-    return {pcs: out, row, blocks: n, plan};
-  },
-  blocksOf(total) {
-    for (let n=1;n<200000;n++) {
-      const t = RDIG*n + 12*Math.ceil(n/12);
-      if (t===total) return n;
-      if (t>total) break;
-    }
-    throw new Error(`総音数 ${total} に対応する節の数がありません。`);
-  },
-  decode(pcs) {
-    const n = Reiritsu.blocksOf(pcs.length), plan = Reiritsu.spread(n);
-    const body=[], frag=[]; let i=0;
-    for (let b=0;b<n;b++) { body.push(pcs.slice(i,i+RDIG)); i+=RDIG;
-      frag.push(...pcs.slice(i,i+plan[b])); i+=plan[b]; }
-    const row = frag.slice(0,12);
-    if (new Set(row).size!==12) throw new Error("集めた鍵表の12音に重複があります。");
-    for (let j=0;j<frag.length;j++) if (frag[j]!==row[j%12])
-      throw new Error(`鍵表の${Math.floor(j/12)+1}周目が1周目と食い違います（${j+1}音目）。`);
-    const inv={}; row.forEach((p,j)=>inv[p]=j);
-    let u=[];
-    for (const blk of body) u = u.concat(unpack(fromDigits(blk.map(p=>inv[p])),4,RPER));
-    return {text: fromUnits(trim(u),0), row, blocks:n, plan};
-  }
-};
-
 /* ══════════ 稠律暗号 v0.2 ══════════ */
 const BASE = {1:72, 2:60, 3:48, acc:36};
 const Churitsu = {
@@ -250,5 +209,6 @@ function voice(pcs, lo=60, hi=81, start=69) {
 }
 
 root.Core = {JA,EN,RITSU,DURN,DURLEN,makeRow,checkRow,parseNote,parseNotes,parseTimed,
-             name,voice,toUnits,fromUnits,Souritsu,Reiritsu,Churitsu,Kiritsu};
+             name,voice,toUnits,fromUnits,trim,pack,unpack,toDigits,fromDigits,
+             Souritsu,Churitsu,Kiritsu};
 })(typeof window !== "undefined" ? window : globalThis);
