@@ -6,217 +6,229 @@
 <title>無幾暗号</title>
 <style>
   :root{
-    --ai:      #1a2742;  /* 藍 ground */
-    --ai-deep: #101a2e;  /* deeper ink for vignette */
-    --ai-lift: #223montant;
-    --panel:   #21304e;
-    --line:    #4d6b78;  /* 錆浅葱 */
-    --gofun:   #f0e9da;  /* 胡粉 */
-    --kincha:  #c9a44c;  /* 金茶 */
-    --shu:     #d2543a;  /* 朱 */
-    --muted:   #8fa3b8;
+    --paper:   #ece1cd;   /* 生成りの紙 */
+    --paper-hi:#f4ecdc;   /* 便箋の面 */
+    --paper-lo:#dccdb0;   /* 焼けた縁 */
+    --ink:     #2b3648;   /* 没食子インク（青墨） */
+    --ink-mid: #55607010;
+    --ink-soft:#6a7284;
+    --sepia:   #8a6a46;   /* 染み */
+    --wax:     #9c3b2e;   /* 封蝋 */
     --mincho: "Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP","Songti SC",serif;
     --gothic: "Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;
     --mono: ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
+    --rule: 30px;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{
-    background:var(--ai-deep);
-    background-image:radial-gradient(ellipse at 50% 22%, #22335a 0%, #1a2742 42%, #0e1728 100%);
+    background-color:var(--paper);
+    background-image:
+      radial-gradient(ellipse 70% 55% at 30% 18%, rgba(255,250,238,.75), transparent 65%),
+      radial-gradient(ellipse 60% 50% at 82% 88%, rgba(138,106,70,.13), transparent 62%),
+      radial-gradient(ellipse 120% 95% at 50% 50%, transparent 48%, rgba(138,106,70,.20) 100%);
     background-attachment:fixed;
-    color:var(--gofun);
+    color:var(--ink);
     font-family:var(--gothic);
-    line-height:1.7;
+    line-height:1.75;
     -webkit-font-smoothing:antialiased;
     min-height:100vh;
   }
 
-  .wrap{max-width:1180px;margin:0 auto;padding:26px 20px 80px}
+  .wrap{max-width:1140px;margin:0 auto;padding:30px 20px 90px}
 
-  /* ---- masthead ---- */
+  /* ---- 見出し ---- */
   .masthead{
     display:flex;align-items:flex-end;justify-content:space-between;
     gap:20px;flex-wrap:wrap;
-    padding-bottom:16px;margin-bottom:22px;
-    border-bottom:1px solid rgba(77,107,120,.42);
+    padding-bottom:14px;margin-bottom:24px;
+    border-bottom:1px solid rgba(43,54,72,.28);
   }
-  .brand{display:flex;align-items:baseline;gap:14px}
+  .brand{display:flex;align-items:baseline;gap:16px}
   .brand h1{
     font-family:var(--mincho);
-    font-size:clamp(30px,6vw,44px);
-    font-weight:600;margin:0;letter-spacing:.16em;
-    display:flex;gap:.06em;
+    font-size:clamp(30px,6vw,42px);
+    font-weight:600;margin:0;letter-spacing:.2em;
+    display:flex;gap:.08em;
   }
   .brand h1 span{display:inline-block}
   .g-h{transform:scaleX(-1)}
   .g-v{transform:scaleY(-1)}
   .g-b{transform:scale(-1,-1)}
   .brand small{
-    font-family:var(--mono);font-size:11px;letter-spacing:.28em;
-    color:var(--muted);text-transform:uppercase;
+    font-family:var(--mincho);font-size:12px;letter-spacing:.36em;
+    color:var(--ink-soft);
   }
 
-  /* ---- tabs ---- */
-  .tabs{display:flex;gap:2px}
+  /* ---- 見出しの索引 ---- */
+  .tabs{display:flex;gap:6px}
   .tab{
-    font-family:var(--mincho);font-size:15px;letter-spacing:.1em;
-    background:transparent;color:var(--muted);
-    border:1px solid rgba(77,107,120,.42);border-bottom:none;
-    padding:9px 18px;cursor:pointer;
-    border-radius:3px 3px 0 0;transition:color .18s,background .18s;
+    font-family:var(--mincho);font-size:15px;letter-spacing:.14em;
+    background:rgba(255,252,244,.5);color:var(--ink-soft);
+    border:1px solid rgba(43,54,72,.24);border-bottom:none;
+    padding:9px 20px 8px;cursor:pointer;
+    border-radius:2px 2px 0 0;transition:color .18s,background .18s;
   }
-  .tab:hover{color:var(--gofun)}
+  .tab:hover{color:var(--ink)}
   .tab[aria-selected="true"]{
-    background:var(--panel);color:var(--kincha);
-    box-shadow:inset 0 2px 0 var(--shu);
+    background:var(--paper-hi);color:var(--ink);
+    box-shadow:inset 0 3px 0 var(--wax);
   }
-  .tab:focus-visible{outline:2px solid var(--kincha);outline-offset:2px}
+  .tab:focus-visible{outline:2px solid var(--wax);outline-offset:2px}
 
-  /* ---- layout ---- */
   .view[hidden]{display:none}
-  .split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:26px;align-items:start}
+  .split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:24px;align-items:start}
   @media(max-width:860px){.split{grid-template-columns:1fr}}
 
+  /* ---- 便箋 ---- */
   .card{
-    background:var(--panel);
-    border:1px solid rgba(77,107,120,.34);
-    border-radius:4px;
-    padding:20px;
+    background:var(--paper-hi);
+    border:1px solid rgba(43,54,72,.2);
+    border-radius:2px;
+    padding:22px 24px 24px;
+    box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 6px 18px -12px rgba(60,44,26,.5);
+    position:relative;
   }
-  .card + .card{margin-top:18px}
+  .card + .card{margin-top:20px}
+  .card::after{
+    content:"";position:absolute;left:0;right:0;top:0;height:3px;
+    background:linear-gradient(90deg,transparent,rgba(138,106,70,.16),transparent);
+  }
 
   .eyebrow{
-    font-family:var(--mono);font-size:10px;letter-spacing:.3em;
-    color:var(--line);text-transform:uppercase;
-    margin:0 0 10px;display:block;
+    font-family:var(--mincho);font-size:11px;letter-spacing:.34em;
+    color:var(--sepia);margin:0 0 8px;display:block;
   }
   .card h2{
-    font-family:var(--mincho);font-size:17px;font-weight:600;
-    letter-spacing:.12em;margin:0 0 14px;color:var(--gofun);
+    font-family:var(--mincho);font-size:18px;font-weight:600;
+    letter-spacing:.14em;margin:0 0 16px;color:var(--ink);
   }
 
   label.field{display:block;margin-bottom:16px}
   label.field > span{
-    display:block;font-size:12px;letter-spacing:.12em;
-    color:var(--muted);margin-bottom:6px;
+    display:block;font-size:12px;letter-spacing:.1em;
+    color:var(--ink-soft);margin-bottom:6px;
   }
-  textarea,select,input[type=text]{
-    width:100%;background:rgba(14,23,40,.66);
-    color:var(--gofun);
-    border:1px solid rgba(77,107,120,.5);border-radius:3px;
-    padding:11px 12px;font-family:var(--gothic);font-size:15px;
-    transition:border-color .18s;
-  }
-  textarea{resize:vertical;min-height:96px;line-height:1.8}
-  #decIn{font-family:var(--mono);letter-spacing:.14em;min-height:150px}
-  textarea:focus,select:focus,input:focus{outline:none;border-color:var(--kincha)}
-  select{font-family:var(--mono);letter-spacing:.1em}
 
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+  /* 罫線の入った書き込み欄 */
+  textarea{
+    width:100%;color:var(--ink);
+    border:none;border-bottom:1px solid rgba(43,54,72,.3);
+    background-color:transparent;
+    background-image:repeating-linear-gradient(
+      to bottom, transparent, transparent calc(var(--rule) - 1px),
+      rgba(43,54,72,.16) calc(var(--rule) - 1px), rgba(43,54,72,.16) var(--rule));
+    background-position:0 6px;
+    padding:0 2px 6px;
+    font-family:var(--mincho);font-size:17px;
+    line-height:var(--rule);resize:vertical;min-height:calc(var(--rule)*3);
+  }
+  #decIn{font-family:var(--mono);letter-spacing:.2em;font-size:15px;min-height:calc(var(--rule)*5)}
+  textarea:focus{outline:none;border-bottom-color:var(--wax)}
+
+  select{
+    width:100%;color:var(--ink);
+    background:rgba(255,252,244,.7);
+    border:1px solid rgba(43,54,72,.3);border-radius:2px;
+    padding:9px 11px;font-family:var(--mono);font-size:16px;letter-spacing:.1em;
+  }
+  select:focus{outline:none;border-color:var(--wax)}
+
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
   .row > label.field{flex:1;min-width:130px;margin-bottom:0}
 
   button.act{
-    font-family:var(--mincho);font-size:15px;letter-spacing:.14em;
-    background:var(--shu);color:#fff8f0;
-    border:none;border-radius:3px;padding:11px 22px;cursor:pointer;
+    font-family:var(--mincho);font-size:15px;letter-spacing:.18em;
+    background:var(--wax);color:#fdf6ea;
+    border:none;border-radius:2px;padding:11px 26px;cursor:pointer;
+    box-shadow:0 2px 6px -3px rgba(90,30,20,.7);
     transition:filter .18s;
   }
-  button.act:hover{filter:brightness(1.13)}
+  button.act:hover{filter:brightness(1.1)}
   button.ghost{
-    font-family:var(--gothic);font-size:13px;letter-spacing:.08em;
-    background:transparent;color:var(--kincha);
-    border:1px solid rgba(201,164,76,.55);border-radius:3px;
-    padding:9px 16px;cursor:pointer;transition:background .18s;
+    font-family:var(--mincho);font-size:14px;letter-spacing:.12em;
+    background:transparent;color:var(--ink);
+    border:1px solid rgba(43,54,72,.36);border-radius:2px;
+    padding:9px 18px;cursor:pointer;transition:background .18s;
   }
-  button.ghost:hover{background:rgba(201,164,76,.13)}
-  button:focus-visible{outline:2px solid var(--kincha);outline-offset:2px}
-  button:disabled{opacity:.4;cursor:default;filter:none}
+  button.ghost:hover{background:rgba(43,54,72,.07)}
+  button:focus-visible{outline:2px solid var(--wax);outline-offset:2px}
+  button:disabled{opacity:.35;cursor:default;filter:none}
+  .btnbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
 
-  .btnbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
-
-  /* ---- output ---- */
+  /* ---- 書き写した文字列 ---- */
   .out{
-    font-family:var(--mono);font-size:15px;letter-spacing:.2em;line-height:2;
-    background:rgba(14,23,40,.66);
-    border:1px solid rgba(77,107,120,.34);border-radius:3px;
-    padding:16px;white-space:pre;overflow-x:auto;
-    color:var(--gofun);min-height:60px;
+    font-family:var(--mono);font-size:15px;letter-spacing:.24em;line-height:1.95;
+    background-color:transparent;
+    background-image:repeating-linear-gradient(
+      to bottom, transparent, transparent calc(1.95em - 1px),
+      rgba(43,54,72,.14) calc(1.95em - 1px), rgba(43,54,72,.14) 1.95em);
+    padding:2px 2px 10px;white-space:pre;overflow-x:auto;
+    color:var(--ink);min-height:60px;
   }
-  .out .lead{color:var(--shu);font-weight:700}
+  .out .lead{color:var(--wax);font-weight:700}
   .plain{
-    font-family:var(--mincho);font-size:20px;letter-spacing:.06em;
-    background:rgba(14,23,40,.66);
-    border:1px solid rgba(77,107,120,.34);border-radius:3px;
-    padding:16px;min-height:60px;word-break:break-all;white-space:pre-wrap;
+    font-family:var(--mincho);font-size:21px;letter-spacing:.08em;line-height:1.9;
+    padding:2px;min-height:60px;word-break:break-all;white-space:pre-wrap;
   }
 
-  .note{font-size:12.5px;color:var(--muted);margin:10px 0 0;line-height:1.75}
-  .err{color:var(--shu);font-size:13px;margin:10px 0 0;min-height:1.2em}
+  .note{font-size:12.5px;color:var(--ink-soft);margin:12px 0 0;line-height:1.8}
+  .err{color:var(--wax);font-size:13px;margin:10px 0 0;min-height:1.2em}
 
-  /* ---- disk ---- */
+  /* ---- 円盤 ---- */
   .diskwrap{
-    background:var(--ai-deep);
-    border:1px solid rgba(77,107,120,.34);border-radius:4px;
-    padding:12px;display:flex;justify-content:center;
+    display:flex;justify-content:center;
+    padding:6px;background:rgba(255,252,244,.5);
+    border:1px solid rgba(43,54,72,.16);
   }
-  canvas#disk{width:100%;height:auto;display:block;max-width:620px}
+  canvas#disk{width:100%;height:auto;display:block;max-width:600px}
 
   .readout{
-    display:flex;gap:26px;flex-wrap:wrap;
-    margin-top:14px;padding-top:14px;
-    border-top:1px solid rgba(77,107,120,.28);
+    display:flex;gap:28px;flex-wrap:wrap;
+    margin-top:16px;padding-top:14px;
+    border-top:1px solid rgba(43,54,72,.22);
   }
-  .readout div{display:flex;flex-direction:column;gap:2px}
-  .readout dt{
-    font-family:var(--mono);font-size:10px;letter-spacing:.24em;
-    color:var(--line);text-transform:uppercase;
-  }
-  .readout dd{margin:0;font-family:var(--mono);font-size:19px;letter-spacing:.1em}
-  .v-out{color:var(--kincha)}
-  .v-in{color:var(--shu)}
+  .readout div{display:flex;flex-direction:column;gap:1px}
+  .readout dt{font-family:var(--mincho);font-size:11px;letter-spacing:.28em;color:var(--sepia)}
+  .readout dd{margin:0;font-family:var(--mono);font-size:19px;letter-spacing:.1em;color:var(--ink)}
 
-  /* ---- procedure toggles ---- */
-  .toggles{display:grid;grid-template-columns:1fr 1fr;gap:2px}
+  /* ---- 手順の選択 ---- */
+  .toggles{display:grid;grid-template-columns:1fr 1fr;gap:0}
   @media(max-width:620px){.toggles{grid-template-columns:1fr}}
   .toggles label{
-    display:flex;align-items:flex-start;gap:10px;
-    padding:10px 12px;cursor:pointer;border-radius:3px;
+    display:flex;align-items:flex-start;gap:11px;
+    padding:9px 10px;cursor:pointer;
+    border-bottom:1px solid rgba(43,54,72,.12);
     transition:background .16s;
   }
-  .toggles label:hover{background:rgba(77,107,120,.14)}
-  .toggles input{
-    appearance:none;width:15px;height:15px;flex:none;margin-top:5px;
-    border:1px solid var(--line);border-radius:2px;cursor:pointer;
+  .toggles label:hover{background:rgba(43,54,72,.05)}
+  .toggles input, .flag input{
+    appearance:none;width:15px;height:15px;flex:none;margin-top:6px;
+    border:1px solid var(--ink-soft);border-radius:1px;cursor:pointer;
     transition:background .16s,border-color .16s;
   }
-  .toggles input:checked{background:var(--kincha);border-color:var(--kincha)}
-  .toggles input:focus-visible{outline:2px solid var(--kincha);outline-offset:2px}
-  .toggles .tl{font-family:var(--mincho);font-size:14px;letter-spacing:.06em}
-  .toggles .ts{display:block;font-size:11.5px;color:var(--muted);letter-spacing:0}
+  .toggles input:checked, .flag input:checked{
+    background:var(--wax);border-color:var(--wax);
+    box-shadow:inset 0 0 0 2px var(--paper-hi);
+  }
+  .toggles input:focus-visible,.flag input:focus-visible{outline:2px solid var(--wax);outline-offset:2px}
+  .toggles .tl{font-family:var(--mincho);font-size:14.5px;letter-spacing:.06em}
+  .toggles .ts{display:block;font-size:11.5px;color:var(--ink-soft);letter-spacing:0;line-height:1.5}
 
-  canvas#proc{width:100%;height:auto;display:block;border-radius:3px}
+  canvas#proc{width:100%;height:auto;display:block;border:1px solid rgba(43,54,72,.16)}
 
   .flag{
-    display:flex;align-items:center;gap:9px;
-    font-size:13px;color:var(--muted);cursor:pointer;margin-top:14px;
+    display:flex;align-items:center;gap:10px;
+    font-size:13px;color:var(--ink-soft);cursor:pointer;margin-top:16px;
   }
-  .flag input{
-    appearance:none;width:15px;height:15px;flex:none;
-    border:1px solid var(--line);border-radius:2px;cursor:pointer;
-    transition:background .16s,border-color .16s;
-  }
-  .flag input:checked{background:var(--kincha);border-color:var(--kincha)}
-  .flag input:focus-visible{outline:2px solid var(--kincha);outline-offset:2px}
+  .flag input{margin-top:0}
 
   .empty{
-    color:var(--line);font-family:var(--mincho);font-size:14px;
-    letter-spacing:.1em;text-align:center;padding:40px 10px;
+    color:var(--ink-soft);font-family:var(--mincho);font-size:14px;
+    letter-spacing:.12em;text-align:center;padding:46px 10px;
   }
 
-  @media (prefers-reduced-motion: reduce){
-    *{transition:none!important;animation:none!important}
-  }
+  @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
@@ -225,7 +237,7 @@
   <header class="masthead">
     <div class="brand">
       <h1><span>無</span><span class="g-h">幾</span><span class="g-v">暗</span><span class="g-b">号</span></h1>
-      <small>muki cipher</small>
+      <small>むきあんごう</small>
     </div>
     <nav class="tabs" role="tablist">
       <button class="tab" role="tab" id="t-enc" aria-selected="true" aria-controls="v-enc">暗号化</button>
@@ -237,14 +249,13 @@
   <!-- ============ 暗号化 ============ -->
   <section class="view" id="v-enc" role="tabpanel" aria-labelledby="t-enc">
     <div class="split">
-
       <div>
         <div class="card">
-          <span class="eyebrow">plaintext</span>
+          <span class="eyebrow">もとのぶん</span>
           <h2>元の文章</h2>
           <label class="field">
             <span>Unicode 4桁で表せる文字のみ</span>
-            <textarea id="encIn" placeholder="こんにちは">こんにちは</textarea>
+            <textarea id="encIn" rows="3">こんにちは</textarea>
           </label>
           <div class="row">
             <label class="field">
@@ -253,14 +264,14 @@
             </label>
             <button class="ghost" id="reroll">引き直す</button>
           </div>
-          <div class="btnbar" style="margin-top:16px">
+          <div class="btnbar" style="margin-top:18px">
             <button class="act" id="encGo">暗号化する</button>
           </div>
           <p class="err" id="encErr"></p>
         </div>
 
         <div class="card">
-          <span class="eyebrow">text form</span>
+          <span class="eyebrow">かきうつし</span>
           <h2>文字列</h2>
           <div class="out" id="encOut"></div>
           <p class="note">先頭の1文字が基準値を表します。復号にはこの形式を使ってください。</p>
@@ -271,21 +282,20 @@
       </div>
 
       <div class="card">
-        <span class="eyebrow">disk</span>
+        <span class="eyebrow">えんばん</span>
         <h2>暗号画像</h2>
         <div class="diskwrap"><canvas id="disk"></canvas></div>
         <div class="readout">
-          <div><dt>outer / 基準文字</dt><dd class="v-out" id="roOut">—</dd></div>
-          <div><dt>inner / 基準値</dt><dd class="v-in" id="roIn">—</dd></div>
-          <div><dt>rotation</dt><dd id="roRot">—</dd></div>
+          <div><dt>外環</dt><dd id="roOut">—</dd></div>
+          <div><dt>内環</dt><dd id="roIn">—</dd></div>
+          <div><dt>回転</dt><dd id="roRot">—</dd></div>
         </div>
         <label class="flag"><input type="checkbox" id="showTitle" checked>題字を入れる</label>
         <div class="btnbar" style="margin-top:14px">
           <button class="ghost" id="savePng">画像を保存</button>
         </div>
-        <p class="note">二重円は同じ換字列です。内側は基準値の分だけ回っており、この回転角そのものが基準値を表します。</p>
+        <p class="note">文字列は北東に傾けてあります。二重円は同じ換字列で、内側は基準値の分だけ回っています。</p>
       </div>
-
     </div>
   </section>
 
@@ -293,11 +303,11 @@
   <section class="view" id="v-dec" role="tabpanel" aria-labelledby="t-dec" hidden>
     <div class="split">
       <div class="card">
-        <span class="eyebrow">ciphertext</span>
+        <span class="eyebrow">あんごうぶん</span>
         <h2>暗号文</h2>
         <label class="field">
           <span>先頭の1文字＋4行を貼り付け</span>
-          <textarea id="decIn" placeholder="K&#10;fbBaC&#10;agAAb&#10;CbiBC&#10;DcABa"></textarea>
+          <textarea id="decIn" rows="5" placeholder="K&#10;fbBaC&#10;agAAb&#10;CbiBC&#10;DcABa"></textarea>
         </label>
         <div class="btnbar">
           <button class="act" id="decGo">復号する</button>
@@ -305,12 +315,12 @@
         <p class="err" id="decErr"></p>
       </div>
       <div class="card">
-        <span class="eyebrow">plaintext</span>
+        <span class="eyebrow">もとのぶん</span>
         <h2>元の文章</h2>
         <div class="plain" id="decOut"></div>
         <div class="readout">
-          <div><dt>基準文字</dt><dd class="v-out" id="dcBase">—</dd></div>
-          <div><dt>基準値</dt><dd class="v-in" id="dcVal">—</dd></div>
+          <div><dt>基準文字</dt><dd id="dcBase">—</dd></div>
+          <div><dt>基準値</dt><dd id="dcVal">—</dd></div>
           <div><dt>文字数</dt><dd id="dcLen">—</dd></div>
         </div>
       </div>
@@ -321,17 +331,17 @@
   <section class="view" id="v-pro" role="tabpanel" aria-labelledby="t-pro" hidden>
     <div class="split">
       <div class="card">
-        <span class="eyebrow">disclosure</span>
-        <h2>載せる項目を選ぶ</h2>
+        <span class="eyebrow">えらぶ</span>
+        <h2>載せる項目</h2>
         <div class="toggles" id="procToggles"></div>
-        <div class="btnbar" style="margin-top:16px">
+        <div class="btnbar" style="margin-top:18px">
           <button class="ghost" id="allOn">すべて選ぶ</button>
           <button class="ghost" id="allOff">すべて外す</button>
         </div>
-        <p class="note">ここで選んだ項目だけが手順画像に載ります。暗号画像には手順は一切入りません。</p>
+        <p class="note">ここで選んだ項目だけが手順画像に載ります。暗号画像には手順は入りません。</p>
       </div>
       <div class="card">
-        <span class="eyebrow">handout</span>
+        <span class="eyebrow">てじゅんしょ</span>
         <h2>手順画像</h2>
         <canvas id="proc"></canvas>
         <p class="empty" id="procEmpty" hidden>項目を選ぶと画像になります</p>
@@ -384,8 +394,7 @@ function encrypt(text, baseChar){
   rows = flip(rows, n);
 
   // 手順5 — 基準値
-  const col = centerCol(n);
-  const baseVal = parseInt(rows[CENTER_ROW][col], 16);
+  const baseVal = parseInt(rows[CENTER_ROW][centerCol(n)], 16);
 
   // 手順6 — アルファベット化
   const bi = SEQ.indexOf(baseChar);
@@ -444,132 +453,190 @@ function decrypt(payload){
 }
 
 /* ============================================================
+   紙とインク
+   ============================================================ */
+const INK = "#2b3648", INK_R = 43, INK_G = 54, INK_B = 72;
+const ink = a => `rgba(${INK_R},${INK_G},${INK_B},${a})`;
+const NE = -Math.PI/4;                 // 北東（環を読む位置）
+const TILT = Math.PI/4;                // 暗号文の傾き。1行目が北東の辺に乗る
+const STEP = Math.PI*2/52;
+const MONO = `ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace`;
+const MINCHO = `"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif`;
+
+/* 種から決まる乱数。描き直しても同じ紙・同じ手ぶれになる */
+function rng(seed){
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const seedOf = s => {
+  let h = 2166136261;
+  for(let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+};
+
+/* 紙は一度描いたら使い回す */
+const paperCache = new Map();
+function paper(W, H){
+  const key = W + "x" + H;
+  if(paperCache.has(key)) return paperCache.get(key);
+  const c = document.createElement("canvas");
+  c.width = W; c.height = H;
+  const x = c.getContext("2d");
+  const r = rng(seedOf(key));
+
+  x.fillStyle = "#eae0cb"; x.fillRect(0,0,W,H);
+
+  let g = x.createRadialGradient(W*.33, H*.2, 0, W*.33, H*.2, Math.max(W,H)*.72);
+  g.addColorStop(0, "rgba(253,248,236,.92)"); g.addColorStop(1, "rgba(253,248,236,0)");
+  x.fillStyle = g; x.fillRect(0,0,W,H);
+
+  // 染み
+  for(let i=0;i<16;i++){
+    const px = r()*W, py = r()*H, pr = 18 + r()*64;
+    const fg = x.createRadialGradient(px,py,0,px,py,pr);
+    const a = .05 + r()*.07;
+    fg.addColorStop(0, `rgba(146,106,64,${a})`);
+    fg.addColorStop(1, "rgba(146,106,64,0)");
+    x.fillStyle = fg; x.beginPath(); x.arc(px,py,pr,0,Math.PI*2); x.fill();
+  }
+
+  // 繊維
+  x.lineWidth = 1;
+  const fibers = Math.round(W*H/900);
+  for(let i=0;i<fibers;i++){
+    const px = r()*W, py = r()*H, th = r()*Math.PI, len = 2 + r()*7;
+    x.strokeStyle = r() < .5
+      ? `rgba(120,96,64,${.035 + r()*.05})`
+      : `rgba(255,252,242,${.05 + r()*.09})`;
+    x.beginPath();
+    x.moveTo(px,py);
+    x.lineTo(px + Math.cos(th)*len, py + Math.sin(th)*len);
+    x.stroke();
+  }
+
+  // 焼けた縁
+  g = x.createRadialGradient(W/2,H/2,Math.min(W,H)*.34, W/2,H/2, Math.max(W,H)*.78);
+  g.addColorStop(0,"rgba(138,106,70,0)"); g.addColorStop(1,"rgba(120,88,52,.26)");
+  x.fillStyle = g; x.fillRect(0,0,W,H);
+
+  paperCache.set(key, c);
+  return c;
+}
+
+/* 手で引いたような円 */
+function inkCircle(ctx, cx, cy, r0, rand, alpha, w){
+  for(let pass=0; pass<2; pass++){
+    ctx.strokeStyle = ink(alpha * (pass ? .5 : 1));
+    ctx.lineWidth = w;
+    ctx.beginPath();
+    const off = (rand()-.5)*1.6, offy = (rand()-.5)*1.6;
+    for(let i=0;i<=120;i++){
+      const th = i/120*Math.PI*2;
+      const rr = r0 + Math.sin(th*3 + r0) * 1.5 + Math.sin(th*7 + pass) * .9;
+      const px = cx + off + Math.cos(th)*rr, py = cy + offy + Math.sin(th)*rr;
+      i ? ctx.lineTo(px,py) : ctx.moveTo(px,py);
+    }
+    ctx.closePath(); ctx.stroke();
+  }
+}
+
+/* ============================================================
    暗号画像
    ============================================================ */
-const C = {
-  ground:"#101a2e", groundMid:"#1e2c4b",
-  gofun:"#f0e9da", kincha:"#c9a44c", shu:"#d2543a", line:"#4d6b78"
-};
-const NE = -Math.PI/4;
-const STEP = Math.PI*2/52;
-
 function diskLayout(n){
-  const cell = Math.max(26, Math.min(64, 500/n));
-  const gw = n*cell, gh = 4*cell*1.25;
+  const cell = Math.max(30, Math.min(70, 620/n));
+  const gw = n*cell, gh = 4*cell*1.5;
+  // 45度傾けた矩形の外接円。傾けても半径は変わらない
   const gr = Math.hypot(gw/2, gh/2);
-  const rIn  = Math.max(322, gr + 74);
-  const rOut = rIn + 64;
-  const R    = rOut + 58;
+  const rIn  = Math.max(292, gr + 50);
+  const rOut = rIn + 62;
+  const R    = rOut + 46;
   return { cell, gw, gh, rIn, rOut, R, W: R*2 };
 }
 
-/* innerOffset は基準値。アニメ用に小数を受け付ける */
 function drawDisk(ctx, st, opts){
   const { rows, n, baseIdx } = st;
   const innerOffset = (opts.innerOffset !== undefined) ? opts.innerOffset : st.baseVal;
   const L = diskLayout(n);
   const s = opts.scale || 1;
-  const titleH = opts.showTitle ? 132 : 40;
-  const W = L.W, H = L.W + titleH;
+  const bandH = opts.showTitle ? 122 : 34;
+  const W = L.W, H = L.W + bandH;
 
   ctx.canvas.width  = Math.round(W*s);
   ctx.canvas.height = Math.round(H*s);
   ctx.setTransform(s,0,0,s,0,0);
+  ctx.drawImage(paper(W,H), 0, 0);
 
-  // 地
-  ctx.fillStyle = C.ground;
-  ctx.fillRect(0,0,W,H);
   const cx = W/2, cy = L.R;
-  const g = ctx.createRadialGradient(cx,cy,0,cx,cy,L.R*1.25);
-  g.addColorStop(0, C.groundMid);
-  g.addColorStop(.62, "#182543");
-  g.addColorStop(1, C.ground);
-  ctx.fillStyle = g;
-  ctx.fillRect(0,0,W,H);
+  const r = rng(seedOf(rows.join("")+n));
 
-  // 目盛と輪郭
-  ctx.lineCap = "butt";
-  ring(ctx, cx, cy, L.rOut + 26, C.line, .30, 1.1);
-  ring(ctx, cx, cy, L.rOut - 25, C.line, .22, 1);
-  ring(ctx, cx, cy, L.rIn  + 24, C.line, .22, 1);
-  ring(ctx, cx, cy, L.rIn  - 27, C.line, .30, 1.1);
+  // 二重円 — どちらも同じインク
+  inkCircle(ctx, cx, cy, L.rOut + 24, r, .34, 1.1);
+  inkCircle(ctx, cx, cy, L.rOut - 24, r, .22, .9);
+  inkCircle(ctx, cx, cy, L.rIn  + 23, r, .22, .9);
+  inkCircle(ctx, cx, cy, L.rIn  - 25, r, .34, 1.1);
 
-  ticks(ctx, cx, cy, L.rOut + 15, L.rOut + 25, baseIdx,               C.kincha, .34);
-  ticks(ctx, cx, cy, L.rIn  - 25, L.rIn  - 15, baseIdx + innerOffset, C.shu,    .34);
+  ringLetters(ctx, cx, cy, L.rOut, baseIdx,               r, 27);
+  ringLetters(ctx, cx, cy, L.rIn,  baseIdx + innerOffset, r, 27);
 
-  // 外環＝基準文字が北東 ／ 内環＝基準値だけ回す
-  ringLetters(ctx, cx, cy, L.rOut, baseIdx,               C.kincha, 28);
-  ringLetters(ctx, cx, cy, L.rIn,  baseIdx + innerOffset, C.shu,    28);
-
-  // 北東の指標
+  // 暗号文 — 全体を北東へ傾ける（1行目が北東の辺に乗る）
   ctx.save();
-  ctx.translate(cx + Math.cos(NE)*(L.rOut+42), cy + Math.sin(NE)*(L.rOut+42));
-  ctx.rotate(NE);
-  ctx.fillStyle = C.gofun;
-  ctx.beginPath();
-  ctx.moveTo(-11,0); ctx.lineTo(0,-7); ctx.lineTo(11,0); ctx.lineTo(0,7);
-  ctx.closePath(); ctx.fill();
-  ctx.restore();
-
-  // 暗号文
-  ctx.fillStyle = C.gofun;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.font = `700 ${Math.round(L.cell*.7)}px ${MONO}`;
-  const rowH = L.cell*1.25;
-  const top = cy - (rowH*4)/2 + rowH/2;
+  ctx.translate(cx, cy);
+  ctx.rotate(opts.rot !== undefined ? opts.rot : TILT);
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.font = `600 ${Math.round(L.cell*.64)}px ${MONO}`;
+  const rowH = L.cell*1.5;
+  const top = -(rowH*4)/2 + rowH/2;
+  const left = -(n*L.cell)/2 + L.cell/2;
   rows.forEach((row, ri) => {
-    const left = cx - (n*L.cell)/2 + L.cell/2;
     [...row].forEach((ch, ci) => {
-      ctx.fillText(ch, left + ci*L.cell, top + ri*rowH);
+      ctx.save();
+      ctx.translate(left + ci*L.cell + (r()-.5)*2.4, top + ri*rowH + (r()-.5)*2.4);
+      ctx.rotate((r()-.5)*.05);
+      ctx.fillStyle = ink(.80 + r()*.16);
+      ctx.fillText(ch, 0, 0);
+      ctx.restore();
     });
   });
+  ctx.restore();
 
   // 題字
   if(opts.showTitle){
-    const ty = L.W + titleH/2 + 4;
-    const fs = 62, gap = fs*1.34;
+    const fs = 54, gap = fs*1.46, ty = L.W + bandH/2 - 2;
     const glyphs = [["無",1,1],["幾",-1,1],["暗",1,-1],["号",-1,-1]];
+    ctx.save();
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.font = `600 ${fs}px ${MINCHO}`;
-    ctx.fillStyle = C.gofun;
     glyphs.forEach((gl, i) => {
-      const x = cx + (i - 1.5)*gap;
       ctx.save();
-      ctx.translate(x, ty);
+      ctx.translate(cx + (i - 1.5)*gap + (r()-.5)*3, ty + (r()-.5)*3);
+      ctx.rotate((r()-.5)*.03);
       ctx.scale(gl[1], gl[2]);
+      ctx.fillStyle = ink(.82);
       ctx.fillText(gl[0], 0, 0);
       ctx.restore();
     });
+    ctx.restore();
   }
   return { W, H };
 }
-const MONO = `ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace`;
-const MINCHO = `"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif`;
 
-function ring(ctx,cx,cy,r,col,alpha,w){
-  ctx.save(); ctx.globalAlpha = alpha; ctx.strokeStyle = col; ctx.lineWidth = w;
-  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke(); ctx.restore();
-}
-function ticks(ctx,cx,cy,r1,r2,anchor,col,alpha){
-  ctx.save(); ctx.globalAlpha = alpha; ctx.strokeStyle = col; ctx.lineWidth = 1;
-  for(let i=0;i<52;i++){
-    const th = NE + (i - anchor + .5)*STEP;
-    ctx.beginPath();
-    ctx.moveTo(cx+Math.cos(th)*r1, cy+Math.sin(th)*r1);
-    ctx.lineTo(cx+Math.cos(th)*r2, cy+Math.sin(th)*r2);
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-function ringLetters(ctx,cx,cy,r,anchor,col,fs){
+function ringLetters(ctx, cx, cy, rad, anchor, r, fs){
   ctx.save();
-  ctx.fillStyle = col; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.font = `600 ${fs}px ${MONO}`;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.font = `500 ${fs}px ${MONO}`;
   for(let i=0;i<52;i++){
     const th = NE + (i - anchor)*STEP;
+    const rr = rad + (r()-.5)*3;
     ctx.save();
-    ctx.translate(cx+Math.cos(th)*r, cy+Math.sin(th)*r);
-    ctx.rotate(th + Math.PI/2);
+    ctx.translate(cx + Math.cos(th)*rr, cy + Math.sin(th)*rr);
+    ctx.rotate(th + Math.PI/2 + (r()-.5)*.07);
+    ctx.fillStyle = ink(.68 + r()*.2);
     ctx.fillText(SEQ[i], 0, 0);
     ctx.restore();
   }
@@ -602,18 +669,18 @@ const PROC = [
     "各桁の値と基準値の差分だけ、基準文字から換字列上を移動する。",
     "▸ ＋1 で列の後方へ1つ、−1 で前方へ1つ。",
     "例：基準文字が k なら ＋15 は E、−15 は z。" ]},
-  { id:"pr", n:"円",     t:"二重円の読み方", s:"外側が基準文字、内側が基準値", b:[
+  { id:"pr", n:"円",   t:"二重円の読み方", s:"外側が基準文字、内側が基準値", b:[
     "外環と内環はどちらも同じ換字列。",
     "北東に来ている文字を読む。外環が基準文字、内環がそこから基準値だけ進んだ文字。",
     "内環は外環を基準値の分だけ回した状態にある。" ]},
-  { id:"ps", n:"列",     t:"換字列", s:"52文字の並び", b:[
+  { id:"ps", n:"列",   t:"換字列", s:"52文字の並び", b:[
     "zyxwvutsrqponmlkjihgfedcba",
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
     "この2段を続けた52文字を1本の列として扱う。" ]},
-  { id:"pi", n:"性質",   t:"反転は二度で戻る", s:"手順3と4は自己逆元", b:[
+  { id:"pi", n:"性質", t:"反転は二度で戻る", s:"手順3と4は自己逆元", b:[
     "手順3は行の中身だけ、手順4は行の順番だけを操作するため、互いに干渉しない。",
     "どちらも2回実行すると元に戻る。" ]},
-  { id:"pd", n:"復号",   t:"戻し方", s:"手順6から順に遡る", b:[
+  { id:"pd", n:"復号", t:"戻し方", s:"手順6から順に遡る", b:[
     "北東から基準文字と基準値を読む。",
     "各文字を差分に戻し、基準値を足して16進に戻す。",
     "反転を戻し、1行の長さを文字数としてマスクを組み直し、XOR を戻す。",
@@ -622,70 +689,69 @@ const PROC = [
 
 function drawProc(ctx, ids, scale){
   const items = PROC.filter(p => ids.includes(p.id));
-  const s = scale || 1;
-  const W = 1000, PAD = 62;
+  const s = scale || 1, W = 1000, PAD = 64;
   const measure = document.createElement("canvas").getContext("2d");
 
-  // 高さを先に測る
-  let h = PAD + 96;
+  let h = PAD + 100;
   const blocks = items.map(p => {
     measure.font = `400 19px ${MINCHO}`;
-    const lines = p.b.flatMap(t => wrap(measure, t, W - PAD*2 - 74));
+    const lines = p.b.flatMap(t => wrap(measure, t, W - PAD*2 - 76));
     const bh = 46 + lines.length*33 + 30;
     h += bh;
     return { p, lines, bh };
   });
-  h += PAD - 30;
+  h += PAD - 26;
 
   ctx.canvas.width = Math.round(W*s);
   ctx.canvas.height = Math.round(h*s);
   ctx.setTransform(s,0,0,s,0,0);
+  ctx.drawImage(paper(W,h), 0, 0);
 
-  ctx.fillStyle = C.ground; ctx.fillRect(0,0,W,h);
-  const g = ctx.createLinearGradient(0,0,0,h);
-  g.addColorStop(0,"#1e2c4b"); g.addColorStop(1,"#101a2e");
-  ctx.fillStyle = g; ctx.fillRect(0,0,W,h);
-
-  // 見出し
+  const r = rng(seedOf(ids.join("")));
   ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = C.gofun;
-  ctx.font = `600 40px ${MINCHO}`;
-  const glyphs = [["無",1,1],["幾",-1,1],["暗",1,-1],["号",-1,-1]];
-  glyphs.forEach((gl,i) => {
+
+  // 題字
+  ctx.font = `600 38px ${MINCHO}`;
+  [["無",1,1],["幾",-1,1],["暗",1,-1],["号",-1,-1]].forEach((gl,i) => {
     ctx.save();
-    ctx.translate(PAD + i*52 + 20, PAD + 14);
+    ctx.translate(PAD + i*50 + 19, PAD + 12);
+    ctx.rotate((r()-.5)*.03);
     ctx.scale(gl[1], gl[2]);
-    ctx.fillText(gl[0], -20, 14);
+    ctx.fillStyle = ink(.86);
+    ctx.fillText(gl[0], -19, 13);
     ctx.restore();
   });
-  ctx.fillStyle = C.line;
-  ctx.font = `500 13px ${MONO}`;
-  ctx.fillText("PROCEDURE", PAD + 232, PAD + 22);
-  ctx.strokeStyle = C.line; ctx.globalAlpha = .4; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(PAD, PAD+52); ctx.lineTo(W-PAD, PAD+52); ctx.stroke();
-  ctx.globalAlpha = 1;
+  ctx.fillStyle = ink(.5);
+  ctx.font = `400 14px ${MINCHO}`;
+  ctx.fillText("てじゅん", PAD + 228, PAD + 20);
 
-  let y = PAD + 96;
+  // 手書きの罫
+  ctx.strokeStyle = ink(.3); ctx.lineWidth = 1;
+  ctx.beginPath();
+  for(let x0=PAD; x0<=W-PAD; x0+=12) ctx[x0===PAD?"moveTo":"lineTo"](x0, PAD+52+(r()-.5)*1.6);
+  ctx.stroke();
+
+  let y = PAD + 100;
   blocks.forEach(({p, lines, bh}) => {
-    ctx.strokeStyle = C.shu; ctx.globalAlpha = .55; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(PAD, y-6); ctx.lineTo(PAD, y + bh - 44); ctx.stroke();
-    ctx.globalAlpha = 1;
+    ctx.strokeStyle = "rgba(156,59,46,.6)"; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(PAD+(r()-.5), y-6);
+    ctx.lineTo(PAD+(r()-.5), y + bh - 44);
+    ctx.stroke();
 
-    ctx.fillStyle = C.kincha;
-    ctx.font = `500 13px ${MONO}`;
+    ctx.fillStyle = "rgba(138,106,70,.95)";
+    ctx.font = `400 14px ${MINCHO}`;
     ctx.fillText(p.n, PAD+20, y+6);
-    ctx.fillStyle = C.gofun;
+    ctx.fillStyle = ink(.92);
     ctx.font = `600 24px ${MINCHO}`;
-    ctx.fillText(p.t, PAD+74, y+8);
+    ctx.fillText(p.t, PAD+76, y+8);
 
-    ctx.fillStyle = C.gofun;
     ctx.font = `400 19px ${MINCHO}`;
     lines.forEach((ln, i) => {
-      ctx.globalAlpha = ln.startsWith("▸") ? 1 : .86;
-      ctx.fillStyle = ln.startsWith("▸") ? C.kincha : C.gofun;
-      ctx.fillText(ln, PAD+74, y + 46 + i*33);
+      const key = ln.startsWith("▸");
+      ctx.fillStyle = key ? "rgba(156,59,46,.95)" : ink(.8);
+      ctx.fillText(ln, PAD+76, y + 46 + i*33);
     });
-    ctx.globalAlpha = 1;
     y += bh;
   });
   return { W, H: h };
@@ -708,7 +774,6 @@ const $ = id => document.getElementById(id);
 let state = null, dispOffset = 0, animId = null;
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-// タブ
 const TABS = [["t-enc","v-enc"],["t-dec","v-dec"],["t-pro","v-pro"]];
 TABS.forEach(([tb,vw]) => {
   $(tb).addEventListener("click", () => {
@@ -721,7 +786,6 @@ TABS.forEach(([tb,vw]) => {
   });
 });
 
-// 基準文字
 const sel = $("baseSel");
 for(let i = KMIN; i <= KMAX; i++){
   const o = document.createElement("option");
@@ -738,36 +802,29 @@ $("showTitle").addEventListener("change", paint);
 function run(){
   const err = $("encErr");
   try{
-    const st = encrypt($("encIn").value.trim(), sel.value);
-    // 自己検算
-    const round = decrypt(toPayload(st));
-    if(round.text !== $("encIn").value.trim())
+    const raw = $("encIn").value.trim();
+    const st = encrypt(raw, sel.value);
+    if(decrypt(toPayload(st)).text !== raw)
       throw new Error("検算に失敗しました。入力を確認してください。");
     state = st;
     err.textContent = "";
-
-    $("encOut").innerHTML =
-      `<span class="lead">${st.innerChar}</span>\n` + st.rows.join("\n");
+    $("encOut").innerHTML = `<span class="lead">${st.innerChar}</span>\n` + st.rows.join("\n");
     $("roOut").textContent = st.baseChar;
     $("roIn").textContent  = `${st.innerChar}　${st.baseVal}`;
     $("roRot").textContent = (st.baseVal * 360/52).toFixed(1) + "°";
-
     animate(st.baseVal);
-  }catch(e){
-    err.textContent = e.message;
-  }
+  }catch(e){ err.textContent = e.message; }
 }
 
-function toPayload(st){ return st.innerChar + "\n" + st.rows.join("\n"); }
+const toPayload = st => st.innerChar + "\n" + st.rows.join("\n");
 
 function animate(target){
-  if(reduce || state === null){ dispOffset = target; paint(); return; }
+  if(reduce){ dispOffset = target; paint(); return; }
   cancelAnimationFrame(animId);
-  const from = dispOffset, t0 = performance.now(), dur = 520;
+  const from = dispOffset, t0 = performance.now(), dur = 560;
   const tick = now => {
     const k = Math.min(1, (now-t0)/dur);
-    const e = 1 - Math.pow(1-k, 3);
-    dispOffset = from + (target-from)*e;
+    dispOffset = from + (target-from)*(1 - Math.pow(1-k, 3));
     paint();
     if(k < 1) animId = requestAnimationFrame(tick);
   };
@@ -780,7 +837,6 @@ function paint(){
     { scale: 1, showTitle: $("showTitle").checked, innerOffset: dispOffset });
 }
 
-// 保存・コピー
 $("savePng").addEventListener("click", () => {
   if(!state) return;
   const c = document.createElement("canvas");
@@ -792,8 +848,9 @@ $("copyStr").addEventListener("click", async () => {
   const b = $("copyStr");
   try{
     await navigator.clipboard.writeText(toPayload(state));
-    b.textContent = "コピーしました"; setTimeout(() => b.textContent = "文字列をコピー", 1600);
-  }catch{ b.textContent = "コピーできません"; setTimeout(() => b.textContent = "文字列をコピー", 1600); }
+    b.textContent = "写しました";
+  }catch{ b.textContent = "コピーできません"; }
+  setTimeout(() => b.textContent = "文字列をコピー", 1600);
 });
 function save(canvas, name){
   canvas.toBlob(bl => {
@@ -803,7 +860,6 @@ function save(canvas, name){
   });
 }
 
-// 復号
 $("decGo").addEventListener("click", () => {
   const err = $("decErr");
   try{
@@ -820,7 +876,6 @@ $("decGo").addEventListener("click", () => {
   }
 });
 
-// 手順書
 const tg = $("procToggles");
 PROC.forEach(p => {
   const l = document.createElement("label");
@@ -829,22 +884,19 @@ PROC.forEach(p => {
   tg.appendChild(l);
 });
 tg.addEventListener("change", renderProc);
-$("allOn").addEventListener("click", () => { setAll(true); });
-$("allOff").addEventListener("click", () => { setAll(false); });
+$("allOn").addEventListener("click", () => setAll(true));
+$("allOff").addEventListener("click", () => setAll(false));
 function setAll(v){
   tg.querySelectorAll("input").forEach(i => i.checked = v);
   renderProc();
 }
-function chosen(){
-  return [...tg.querySelectorAll("input:checked")].map(i => i.value);
-}
+const chosen = () => [...tg.querySelectorAll("input:checked")].map(i => i.value);
 function renderProc(){
   const ids = chosen();
-  const cv = $("proc"), empty = $("procEmpty");
-  cv.hidden = ids.length === 0;
-  empty.hidden = ids.length !== 0;
+  $("proc").hidden = ids.length === 0;
+  $("procEmpty").hidden = ids.length !== 0;
   $("saveProc").disabled = ids.length === 0;
-  if(ids.length) drawProc(cv.getContext("2d"), ids, 1);
+  if(ids.length) drawProc($("proc").getContext("2d"), ids, 1);
 }
 $("saveProc").addEventListener("click", () => {
   const ids = chosen();
@@ -854,7 +906,6 @@ $("saveProc").addEventListener("click", () => {
   save(c, "無幾暗号_手順.png");
 });
 
-// 初期表示
 document.fonts?.ready.then(() => { paint(); renderProc(); });
 run();
 renderProc();
