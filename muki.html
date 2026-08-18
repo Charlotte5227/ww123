@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>無幾暗号</title>
+<style>
+  :root{
+    --ai:      #1a2742;  /* 藍 ground */
+    --ai-deep: #101a2e;  /* deeper ink for vignette */
+    --ai-lift: #223montant;
+    --panel:   #21304e;
+    --line:    #4d6b78;  /* 錆浅葱 */
+    --gofun:   #f0e9da;  /* 胡粉 */
+    --kincha:  #c9a44c;  /* 金茶 */
+    --shu:     #d2543a;  /* 朱 */
+    --muted:   #8fa3b8;
+    --mincho: "Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP","Songti SC",serif;
+    --gothic: "Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;
+    --mono: ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--ai-deep);
+    background-image:radial-gradient(ellipse at 50% 22%, #22335a 0%, #1a2742 42%, #0e1728 100%);
+    background-attachment:fixed;
+    color:var(--gofun);
+    font-family:var(--gothic);
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 20px 80px}
+
+  /* ---- masthead ---- */
+  .masthead{
+    display:flex;align-items:flex-end;justify-content:space-between;
+    gap:20px;flex-wrap:wrap;
+    padding-bottom:16px;margin-bottom:22px;
+    border-bottom:1px solid rgba(77,107,120,.42);
+  }
+  .brand{display:flex;align-items:baseline;gap:14px}
+  .brand h1{
+    font-family:var(--mincho);
+    font-size:clamp(30px,6vw,44px);
+    font-weight:600;margin:0;letter-spacing:.16em;
+    display:flex;gap:.06em;
+  }
+  .brand h1 span{display:inline-block}
+  .g-h{transform:scaleX(-1)}
+  .g-v{transform:scaleY(-1)}
+  .g-b{transform:scale(-1,-1)}
+  .brand small{
+    font-family:var(--mono);font-size:11px;letter-spacing:.28em;
+    color:var(--muted);text-transform:uppercase;
+  }
+
+  /* ---- tabs ---- */
+  .tabs{display:flex;gap:2px}
+  .tab{
+    font-family:var(--mincho);font-size:15px;letter-spacing:.1em;
+    background:transparent;color:var(--muted);
+    border:1px solid rgba(77,107,120,.42);border-bottom:none;
+    padding:9px 18px;cursor:pointer;
+    border-radius:3px 3px 0 0;transition:color .18s,background .18s;
+  }
+  .tab:hover{color:var(--gofun)}
+  .tab[aria-selected="true"]{
+    background:var(--panel);color:var(--kincha);
+    box-shadow:inset 0 2px 0 var(--shu);
+  }
+  .tab:focus-visible{outline:2px solid var(--kincha);outline-offset:2px}
+
+  /* ---- layout ---- */
+  .view[hidden]{display:none}
+  .split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:26px;align-items:start}
+  @media(max-width:860px){.split{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--panel);
+    border:1px solid rgba(77,107,120,.34);
+    border-radius:4px;
+    padding:20px;
+  }
+  .card + .card{margin-top:18px}
+
+  .eyebrow{
+    font-family:var(--mono);font-size:10px;letter-spacing:.3em;
+    color:var(--line);text-transform:uppercase;
+    margin:0 0 10px;display:block;
+  }
+  .card h2{
+    font-family:var(--mincho);font-size:17px;font-weight:600;
+    letter-spacing:.12em;margin:0 0 14px;color:var(--gofun);
+  }
+
+  label.field{display:block;margin-bottom:16px}
+  label.field > span{
+    display:block;font-size:12px;letter-spacing:.12em;
+    color:var(--muted);margin-bottom:6px;
+  }
+  textarea,select,input[type=text]{
+    width:100%;background:rgba(14,23,40,.66);
+    color:var(--gofun);
+    border:1px solid rgba(77,107,120,.5);border-radius:3px;
+    padding:11px 12px;font-family:var(--gothic);font-size:15px;
+    transition:border-color .18s;
+  }
+  textarea{resize:vertical;min-height:96px;line-height:1.8}
+  #decIn{font-family:var(--mono);letter-spacing:.14em;min-height:150px}
+  textarea:focus,select:focus,input:focus{outline:none;border-color:var(--kincha)}
+  select{font-family:var(--mono);letter-spacing:.1em}
+
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+  .row > label.field{flex:1;min-width:130px;margin-bottom:0}
+
+  button.act{
+    font-family:var(--mincho);font-size:15px;letter-spacing:.14em;
+    background:var(--shu);color:#fff8f0;
+    border:none;border-radius:3px;padding:11px 22px;cursor:pointer;
+    transition:filter .18s;
+  }
+  button.act:hover{filter:brightness(1.13)}
+  button.ghost{
+    font-family:var(--gothic);font-size:13px;letter-spacing:.08em;
+    background:transparent;color:var(--kincha);
+    border:1px solid rgba(201,164,76,.55);border-radius:3px;
+    padding:9px 16px;cursor:pointer;transition:background .18s;
+  }
+  button.ghost:hover{background:rgba(201,164,76,.13)}
+  button:focus-visible{outline:2px solid var(--kincha);outline-offset:2px}
+  button:disabled{opacity:.4;cursor:default;filter:none}
+
+  .btnbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+
+  /* ---- output ---- */
+  .out{
+    font-family:var(--mono);font-size:15px;letter-spacing:.2em;line-height:2;
+    background:rgba(14,23,40,.66);
+    border:1px solid rgba(77,107,120,.34);border-radius:3px;
+    padding:16px;white-space:pre;overflow-x:auto;
+    color:var(--gofun);min-height:60px;
+  }
+  .out .lead{color:var(--shu);font-weight:700}
+  .plain{
+    font-family:var(--mincho);font-size:20px;letter-spacing:.06em;
+    background:rgba(14,23,40,.66);
+    border:1px solid rgba(77,107,120,.34);border-radius:3px;
+    padding:16px;min-height:60px;word-break:break-all;white-space:pre-wrap;
+  }
+
+  .note{font-size:12.5px;color:var(--muted);margin:10px 0 0;line-height:1.75}
+  .err{color:var(--shu);font-size:13px;margin:10px 0 0;min-height:1.2em}
+
+  /* ---- disk ---- */
+  .diskwrap{
+    background:var(--ai-deep);
+    border:1px solid rgba(77,107,120,.34);border-radius:4px;
+    padding:12px;display:flex;justify-content:center;
+  }
+  canvas#disk{width:100%;height:auto;display:block;max-width:620px}
+
+  .readout{
+    display:flex;gap:26px;flex-wrap:wrap;
+    margin-top:14px;padding-top:14px;
+    border-top:1px solid rgba(77,107,120,.28);
+  }
+  .readout div{display:flex;flex-direction:column;gap:2px}
+  .readout dt{
+    font-family:var(--mono);font-size:10px;letter-spacing:.24em;
+    color:var(--line);text-transform:uppercase;
+  }
+  .readout dd{margin:0;font-family:var(--mono);font-size:19px;letter-spacing:.1em}
+  .v-out{color:var(--kincha)}
+  .v-in{color:var(--shu)}
+
+  /* ---- procedure toggles ---- */
+  .toggles{display:grid;grid-template-columns:1fr 1fr;gap:2px}
+  @media(max-width:620px){.toggles{grid-template-columns:1fr}}
+  .toggles label{
+    display:flex;align-items:flex-start;gap:10px;
+    padding:10px 12px;cursor:pointer;border-radius:3px;
+    transition:background .16s;
+  }
+  .toggles label:hover{background:rgba(77,107,120,.14)}
+  .toggles input{
+    appearance:none;width:15px;height:15px;flex:none;margin-top:5px;
+    border:1px solid var(--line);border-radius:2px;cursor:pointer;
+    transition:background .16s,border-color .16s;
+  }
+  .toggles input:checked{background:var(--kincha);border-color:var(--kincha)}
+  .toggles input:focus-visible{outline:2px solid var(--kincha);outline-offset:2px}
+  .toggles .tl{font-family:var(--mincho);font-size:14px;letter-spacing:.06em}
+  .toggles .ts{display:block;font-size:11.5px;color:var(--muted);letter-spacing:0}
+
+  canvas#proc{width:100%;height:auto;display:block;border-radius:3px}
+
+  .flag{
+    display:flex;align-items:center;gap:9px;
+    font-size:13px;color:var(--muted);cursor:pointer;margin-top:14px;
+  }
+  .flag input{
+    appearance:none;width:15px;height:15px;flex:none;
+    border:1px solid var(--line);border-radius:2px;cursor:pointer;
+    transition:background .16s,border-color .16s;
+  }
+  .flag input:checked{background:var(--kincha);border-color:var(--kincha)}
+  .flag input:focus-visible{outline:2px solid var(--kincha);outline-offset:2px}
+
+  .empty{
+    color:var(--line);font-family:var(--mincho);font-size:14px;
+    letter-spacing:.1em;text-align:center;padding:40px 10px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none!important;animation:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="brand">
+      <h1><span>無</span><span class="g-h">幾</span><span class="g-v">暗</span><span class="g-b">号</span></h1>
+      <small>muki cipher</small>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" id="t-enc" aria-selected="true" aria-controls="v-enc">暗号化</button>
+      <button class="tab" role="tab" id="t-dec" aria-selected="false" aria-controls="v-dec">復号</button>
+      <button class="tab" role="tab" id="t-pro" aria-selected="false" aria-controls="v-pro">手順書</button>
+    </nav>
+  </header>
+
+  <!-- ============ 暗号化 ============ -->
+  <section class="view" id="v-enc" role="tabpanel" aria-labelledby="t-enc">
+    <div class="split">
+
+      <div>
+        <div class="card">
+          <span class="eyebrow">plaintext</span>
+          <h2>元の文章</h2>
+          <label class="field">
+            <span>Unicode 4桁で表せる文字のみ</span>
+            <textarea id="encIn" placeholder="こんにちは">こんにちは</textarea>
+          </label>
+          <div class="row">
+            <label class="field">
+              <span>基準文字（k〜K）</span>
+              <select id="baseSel"></select>
+            </label>
+            <button class="ghost" id="reroll">引き直す</button>
+          </div>
+          <div class="btnbar" style="margin-top:16px">
+            <button class="act" id="encGo">暗号化する</button>
+          </div>
+          <p class="err" id="encErr"></p>
+        </div>
+
+        <div class="card">
+          <span class="eyebrow">text form</span>
+          <h2>文字列</h2>
+          <div class="out" id="encOut"></div>
+          <p class="note">先頭の1文字が基準値を表します。復号にはこの形式を使ってください。</p>
+          <div class="btnbar" style="margin-top:12px">
+            <button class="ghost" id="copyStr">文字列をコピー</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="eyebrow">disk</span>
+        <h2>暗号画像</h2>
+        <div class="diskwrap"><canvas id="disk"></canvas></div>
+        <div class="readout">
+          <div><dt>outer / 基準文字</dt><dd class="v-out" id="roOut">—</dd></div>
+          <div><dt>inner / 基準値</dt><dd class="v-in" id="roIn">—</dd></div>
+          <div><dt>rotation</dt><dd id="roRot">—</dd></div>
+        </div>
+        <label class="flag"><input type="checkbox" id="showTitle" checked>題字を入れる</label>
+        <div class="btnbar" style="margin-top:14px">
+          <button class="ghost" id="savePng">画像を保存</button>
+        </div>
+        <p class="note">二重円は同じ換字列です。内側は基準値の分だけ回っており、この回転角そのものが基準値を表します。</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ 復号 ============ -->
+  <section class="view" id="v-dec" role="tabpanel" aria-labelledby="t-dec" hidden>
+    <div class="split">
+      <div class="card">
+        <span class="eyebrow">ciphertext</span>
+        <h2>暗号文</h2>
+        <label class="field">
+          <span>先頭の1文字＋4行を貼り付け</span>
+          <textarea id="decIn" placeholder="K&#10;fbBaC&#10;agAAb&#10;CbiBC&#10;DcABa"></textarea>
+        </label>
+        <div class="btnbar">
+          <button class="act" id="decGo">復号する</button>
+        </div>
+        <p class="err" id="decErr"></p>
+      </div>
+      <div class="card">
+        <span class="eyebrow">plaintext</span>
+        <h2>元の文章</h2>
+        <div class="plain" id="decOut"></div>
+        <div class="readout">
+          <div><dt>基準文字</dt><dd class="v-out" id="dcBase">—</dd></div>
+          <div><dt>基準値</dt><dd class="v-in" id="dcVal">—</dd></div>
+          <div><dt>文字数</dt><dd id="dcLen">—</dd></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 手順書 ============ -->
+  <section class="view" id="v-pro" role="tabpanel" aria-labelledby="t-pro" hidden>
+    <div class="split">
+      <div class="card">
+        <span class="eyebrow">disclosure</span>
+        <h2>載せる項目を選ぶ</h2>
+        <div class="toggles" id="procToggles"></div>
+        <div class="btnbar" style="margin-top:16px">
+          <button class="ghost" id="allOn">すべて選ぶ</button>
+          <button class="ghost" id="allOff">すべて外す</button>
+        </div>
+        <p class="note">ここで選んだ項目だけが手順画像に載ります。暗号画像には手順は一切入りません。</p>
+      </div>
+      <div class="card">
+        <span class="eyebrow">handout</span>
+        <h2>手順画像</h2>
+        <canvas id="proc"></canvas>
+        <p class="empty" id="procEmpty" hidden>項目を選ぶと画像になります</p>
+        <div class="btnbar" style="margin-top:14px">
+          <button class="ghost" id="saveProc">画像を保存</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   核となる暗号処理
+   ============================================================ */
+const SEQ = "zyxwvutsrqponmlkjihgfedcbaABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const KMIN = SEQ.indexOf('k');   // 15
+const KMAX = SEQ.indexOf('K');   // 36
+
+const centerCol = n => (n % 2 === 0) ? n/2 : (n-1)/2;
+const CENTER_ROW = 1;            // 中央2行のうち上側
+
+function encrypt(text, baseChar){
+  const chars = Array.from(text);
+  if(chars.length === 0) throw new Error("文章が空です。");
+  for(const c of chars){
+    if(c.codePointAt(0) > 0xFFFF)
+      throw new Error(`「${c}」はUnicode4桁で表せません。`);
+    if(c === "\n" || c === "\r")
+      throw new Error("改行は使えません。1行で入力してください。");
+  }
+  const n = chars.length;
+
+  // 手順1 — Unicode化とXOR偽装
+  let digits = "";
+  chars.forEach((c, i) => {
+    const h = c.codePointAt(0).toString(16).toUpperCase().padStart(4,"0");
+    for(let d = 0; d < 4; d++){
+      const mask = (n + (i+1) + (d+1)) % 16;
+      digits += (parseInt(h[d],16) ^ mask).toString(16).toUpperCase();
+    }
+  });
+
+  // 手順2 — N桁ごとに改行（必ず4行）
+  let rows = [];
+  for(let i = 0; i < digits.length; i += n) rows.push(digits.slice(i, i+n));
+
+  // 手順3・4 — 反転（自己逆元）
+  rows = flip(rows, n);
+
+  // 手順5 — 基準値
+  const col = centerCol(n);
+  const baseVal = parseInt(rows[CENTER_ROW][col], 16);
+
+  // 手順6 — アルファベット化
+  const bi = SEQ.indexOf(baseChar);
+  const cipher = rows.map(r =>
+    [...r].map(ch => SEQ[bi + (parseInt(ch,16) - baseVal)]).join("")
+  );
+
+  return { rows: cipher, n, baseChar, baseIdx: bi, baseVal, innerChar: SEQ[bi + baseVal] };
+}
+
+/* 手順3＋4。2回かけると元に戻る */
+function flip(rows, n){
+  const half = Math.floor(n/2);
+  const a = rows.map(r => r.slice(0,half) + [...r.slice(half)].reverse().join(""));
+  const h = Math.floor(a.length/2);
+  return a.slice(0,h).concat(a.slice(h).reverse());
+}
+
+function decrypt(payload){
+  const tok = payload.trim().split(/\s+/).filter(Boolean);
+  if(tok.length < 2) throw new Error("先頭の1文字と4行が必要です。");
+  const front = tok[0];
+  if(front.length !== 1 || SEQ.indexOf(front) < 0)
+    throw new Error("先頭は換字列の1文字にしてください。");
+  const rows = tok.slice(1);
+  if(rows.length !== 4) throw new Error(`本体は4行です（${rows.length}行あります）。`);
+  const n = rows[0].length;
+  if(rows.some(r => r.length !== n)) throw new Error("4行の長さが揃っていません。");
+  if(rows.some(r => [...r].some(c => SEQ.indexOf(c) < 0)))
+    throw new Error("換字列にない文字が混ざっています。");
+
+  const baseChar = rows[CENTER_ROW][centerCol(n)];
+  const bi = SEQ.indexOf(baseChar);
+  const baseVal = SEQ.indexOf(front) - bi;
+  if(baseVal < 0 || baseVal > 15)
+    throw new Error("先頭の文字と中央が噛み合いません。");
+
+  const hexRows = rows.map(r => [...r].map(ch => {
+    const v = SEQ.indexOf(ch) - bi + baseVal;
+    if(v < 0 || v > 15) throw new Error("値が16進の範囲を外れました。");
+    return v.toString(16).toUpperCase();
+  }).join(""));
+
+  const digits = flip(hexRows, n).join("");   // 反転を戻す
+
+  let text = "";
+  for(let i = 0; i < n; i++){
+    let h = "";
+    for(let d = 0; d < 4; d++){
+      const mask = (n + (i+1) + (d+1)) % 16;
+      h += (parseInt(digits[i*4+d],16) ^ mask).toString(16);
+    }
+    text += String.fromCodePoint(parseInt(h,16));
+  }
+  return { text, baseChar, baseVal, n };
+}
+
+/* ============================================================
+   暗号画像
+   ============================================================ */
+const C = {
+  ground:"#101a2e", groundMid:"#1e2c4b",
+  gofun:"#f0e9da", kincha:"#c9a44c", shu:"#d2543a", line:"#4d6b78"
+};
+const NE = -Math.PI/4;
+const STEP = Math.PI*2/52;
+
+function diskLayout(n){
+  const cell = Math.max(26, Math.min(64, 500/n));
+  const gw = n*cell, gh = 4*cell*1.25;
+  const gr = Math.hypot(gw/2, gh/2);
+  const rIn  = Math.max(322, gr + 74);
+  const rOut = rIn + 64;
+  const R    = rOut + 58;
+  return { cell, gw, gh, rIn, rOut, R, W: R*2 };
+}
+
+/* innerOffset は基準値。アニメ用に小数を受け付ける */
+function drawDisk(ctx, st, opts){
+  const { rows, n, baseIdx } = st;
+  const innerOffset = (opts.innerOffset !== undefined) ? opts.innerOffset : st.baseVal;
+  const L = diskLayout(n);
+  const s = opts.scale || 1;
+  const titleH = opts.showTitle ? 132 : 40;
+  const W = L.W, H = L.W + titleH;
+
+  ctx.canvas.width  = Math.round(W*s);
+  ctx.canvas.height = Math.round(H*s);
+  ctx.setTransform(s,0,0,s,0,0);
+
+  // 地
+  ctx.fillStyle = C.ground;
+  ctx.fillRect(0,0,W,H);
+  const cx = W/2, cy = L.R;
+  const g = ctx.createRadialGradient(cx,cy,0,cx,cy,L.R*1.25);
+  g.addColorStop(0, C.groundMid);
+  g.addColorStop(.62, "#182543");
+  g.addColorStop(1, C.ground);
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,W,H);
+
+  // 目盛と輪郭
+  ctx.lineCap = "butt";
+  ring(ctx, cx, cy, L.rOut + 26, C.line, .30, 1.1);
+  ring(ctx, cx, cy, L.rOut - 25, C.line, .22, 1);
+  ring(ctx, cx, cy, L.rIn  + 24, C.line, .22, 1);
+  ring(ctx, cx, cy, L.rIn  - 27, C.line, .30, 1.1);
+
+  ticks(ctx, cx, cy, L.rOut + 15, L.rOut + 25, baseIdx,               C.kincha, .34);
+  ticks(ctx, cx, cy, L.rIn  - 25, L.rIn  - 15, baseIdx + innerOffset, C.shu,    .34);
+
+  // 外環＝基準文字が北東 ／ 内環＝基準値だけ回す
+  ringLetters(ctx, cx, cy, L.rOut, baseIdx,               C.kincha, 28);
+  ringLetters(ctx, cx, cy, L.rIn,  baseIdx + innerOffset, C.shu,    28);
+
+  // 北東の指標
+  ctx.save();
+  ctx.translate(cx + Math.cos(NE)*(L.rOut+42), cy + Math.sin(NE)*(L.rOut+42));
+  ctx.rotate(NE);
+  ctx.fillStyle = C.gofun;
+  ctx.beginPath();
+  ctx.moveTo(-11,0); ctx.lineTo(0,-7); ctx.lineTo(11,0); ctx.lineTo(0,7);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+
+  // 暗号文
+  ctx.fillStyle = C.gofun;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `700 ${Math.round(L.cell*.7)}px ${MONO}`;
+  const rowH = L.cell*1.25;
+  const top = cy - (rowH*4)/2 + rowH/2;
+  rows.forEach((row, ri) => {
+    const left = cx - (n*L.cell)/2 + L.cell/2;
+    [...row].forEach((ch, ci) => {
+      ctx.fillText(ch, left + ci*L.cell, top + ri*rowH);
+    });
+  });
+
+  // 題字
+  if(opts.showTitle){
+    const ty = L.W + titleH/2 + 4;
+    const fs = 62, gap = fs*1.34;
+    const glyphs = [["無",1,1],["幾",-1,1],["暗",1,-1],["号",-1,-1]];
+    ctx.font = `600 ${fs}px ${MINCHO}`;
+    ctx.fillStyle = C.gofun;
+    glyphs.forEach((gl, i) => {
+      const x = cx + (i - 1.5)*gap;
+      ctx.save();
+      ctx.translate(x, ty);
+      ctx.scale(gl[1], gl[2]);
+      ctx.fillText(gl[0], 0, 0);
+      ctx.restore();
+    });
+  }
+  return { W, H };
+}
+const MONO = `ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace`;
+const MINCHO = `"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif`;
+
+function ring(ctx,cx,cy,r,col,alpha,w){
+  ctx.save(); ctx.globalAlpha = alpha; ctx.strokeStyle = col; ctx.lineWidth = w;
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke(); ctx.restore();
+}
+function ticks(ctx,cx,cy,r1,r2,anchor,col,alpha){
+  ctx.save(); ctx.globalAlpha = alpha; ctx.strokeStyle = col; ctx.lineWidth = 1;
+  for(let i=0;i<52;i++){
+    const th = NE + (i - anchor + .5)*STEP;
+    ctx.beginPath();
+    ctx.moveTo(cx+Math.cos(th)*r1, cy+Math.sin(th)*r1);
+    ctx.lineTo(cx+Math.cos(th)*r2, cy+Math.sin(th)*r2);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+function ringLetters(ctx,cx,cy,r,anchor,col,fs){
+  ctx.save();
+  ctx.fillStyle = col; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.font = `600 ${fs}px ${MONO}`;
+  for(let i=0;i<52;i++){
+    const th = NE + (i - anchor)*STEP;
+    ctx.save();
+    ctx.translate(cx+Math.cos(th)*r, cy+Math.sin(th)*r);
+    ctx.rotate(th + Math.PI/2);
+    ctx.fillText(SEQ[i], 0, 0);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+/* ============================================================
+   手順画像
+   ============================================================ */
+const PROC = [
+  { id:"p1", n:"手順1", t:"Unicode化とXOR偽装", s:"各文字を16進4桁にし、マスクとXORを取る", b:[
+    "元の文章の各文字を Unicode 16進4桁で表す。",
+    "各桁について次のマスクとの XOR を取り、結果を16進1桁で書く。",
+    "▸ マスク ＝ （文字数 ＋ 文字位置 ＋ 桁番号） mod 16",
+    "文字位置・桁番号はいずれも1始まり。" ]},
+  { id:"p2", n:"手順2", t:"改行", s:"文字数ごとに折り返す", b:[
+    "得られた桁を順に並べ、元の文章の文字数ごとに改行する。",
+    "総桁数は文字数の4倍なので、行数は必ず4行になる。" ]},
+  { id:"p3", n:"手順3", t:"行内の反転", s:"各行の後半をひっくり返す", b:[
+    "各行を半分で割り、後半を反転する。",
+    "半分にできない場合は、後半を1文字多くする。" ]},
+  { id:"p4", n:"手順4", t:"行の反転", s:"後半の行をひっくり返す", b:[
+    "全体の後半半分の行を反転する。" ]},
+  { id:"p5", n:"手順5", t:"基準値の特定", s:"中央の桁を読む", b:[
+    "できあがった4行から、全体の中央を取る。",
+    "▸ 中央が4桁のときは右上、2桁のときは上。",
+    "その桁の値が基準値となる。" ]},
+  { id:"p6", n:"手順6", t:"アルファベット化", s:"基準値との差分を文字に置き換える", b:[
+    "換字列の k 〜 K からランダムに1文字を選び、基準文字とする。",
+    "各桁の値と基準値の差分だけ、基準文字から換字列上を移動する。",
+    "▸ ＋1 で列の後方へ1つ、−1 で前方へ1つ。",
+    "例：基準文字が k なら ＋15 は E、−15 は z。" ]},
+  { id:"pr", n:"円",     t:"二重円の読み方", s:"外側が基準文字、内側が基準値", b:[
+    "外環と内環はどちらも同じ換字列。",
+    "北東に来ている文字を読む。外環が基準文字、内環がそこから基準値だけ進んだ文字。",
+    "内環は外環を基準値の分だけ回した状態にある。" ]},
+  { id:"ps", n:"列",     t:"換字列", s:"52文字の並び", b:[
+    "zyxwvutsrqponmlkjihgfedcba",
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    "この2段を続けた52文字を1本の列として扱う。" ]},
+  { id:"pi", n:"性質",   t:"反転は二度で戻る", s:"手順3と4は自己逆元", b:[
+    "手順3は行の中身だけ、手順4は行の順番だけを操作するため、互いに干渉しない。",
+    "どちらも2回実行すると元に戻る。" ]},
+  { id:"pd", n:"復号",   t:"戻し方", s:"手順6から順に遡る", b:[
+    "北東から基準文字と基準値を読む。",
+    "各文字を差分に戻し、基準値を足して16進に戻す。",
+    "反転を戻し、1行の長さを文字数としてマスクを組み直し、XOR を戻す。",
+    "16進4桁ごとに区切って Unicode として読む。" ]}
+];
+
+function drawProc(ctx, ids, scale){
+  const items = PROC.filter(p => ids.includes(p.id));
+  const s = scale || 1;
+  const W = 1000, PAD = 62;
+  const measure = document.createElement("canvas").getContext("2d");
+
+  // 高さを先に測る
+  let h = PAD + 96;
+  const blocks = items.map(p => {
+    measure.font = `400 19px ${MINCHO}`;
+    const lines = p.b.flatMap(t => wrap(measure, t, W - PAD*2 - 74));
+    const bh = 46 + lines.length*33 + 30;
+    h += bh;
+    return { p, lines, bh };
+  });
+  h += PAD - 30;
+
+  ctx.canvas.width = Math.round(W*s);
+  ctx.canvas.height = Math.round(h*s);
+  ctx.setTransform(s,0,0,s,0,0);
+
+  ctx.fillStyle = C.ground; ctx.fillRect(0,0,W,h);
+  const g = ctx.createLinearGradient(0,0,0,h);
+  g.addColorStop(0,"#1e2c4b"); g.addColorStop(1,"#101a2e");
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,h);
+
+  // 見出し
+  ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = C.gofun;
+  ctx.font = `600 40px ${MINCHO}`;
+  const glyphs = [["無",1,1],["幾",-1,1],["暗",1,-1],["号",-1,-1]];
+  glyphs.forEach((gl,i) => {
+    ctx.save();
+    ctx.translate(PAD + i*52 + 20, PAD + 14);
+    ctx.scale(gl[1], gl[2]);
+    ctx.fillText(gl[0], -20, 14);
+    ctx.restore();
+  });
+  ctx.fillStyle = C.line;
+  ctx.font = `500 13px ${MONO}`;
+  ctx.fillText("PROCEDURE", PAD + 232, PAD + 22);
+  ctx.strokeStyle = C.line; ctx.globalAlpha = .4; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(PAD, PAD+52); ctx.lineTo(W-PAD, PAD+52); ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  let y = PAD + 96;
+  blocks.forEach(({p, lines, bh}) => {
+    ctx.strokeStyle = C.shu; ctx.globalAlpha = .55; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(PAD, y-6); ctx.lineTo(PAD, y + bh - 44); ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = C.kincha;
+    ctx.font = `500 13px ${MONO}`;
+    ctx.fillText(p.n, PAD+20, y+6);
+    ctx.fillStyle = C.gofun;
+    ctx.font = `600 24px ${MINCHO}`;
+    ctx.fillText(p.t, PAD+74, y+8);
+
+    ctx.fillStyle = C.gofun;
+    ctx.font = `400 19px ${MINCHO}`;
+    lines.forEach((ln, i) => {
+      ctx.globalAlpha = ln.startsWith("▸") ? 1 : .86;
+      ctx.fillStyle = ln.startsWith("▸") ? C.kincha : C.gofun;
+      ctx.fillText(ln, PAD+74, y + 46 + i*33);
+    });
+    ctx.globalAlpha = 1;
+    y += bh;
+  });
+  return { W, H: h };
+}
+
+function wrap(ctx, text, max){
+  const out = []; let cur = "";
+  for(const ch of text){
+    if(ctx.measureText(cur+ch).width > max && cur){ out.push(cur); cur = ch; }
+    else cur += ch;
+  }
+  if(cur) out.push(cur);
+  return out;
+}
+
+/* ============================================================
+   画面
+   ============================================================ */
+const $ = id => document.getElementById(id);
+let state = null, dispOffset = 0, animId = null;
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// タブ
+const TABS = [["t-enc","v-enc"],["t-dec","v-dec"],["t-pro","v-pro"]];
+TABS.forEach(([tb,vw]) => {
+  $(tb).addEventListener("click", () => {
+    TABS.forEach(([b,v]) => {
+      const on = b === tb;
+      $(b).setAttribute("aria-selected", on);
+      $(v).hidden = !on;
+    });
+    if(vw === "v-pro") renderProc();
+  });
+});
+
+// 基準文字
+const sel = $("baseSel");
+for(let i = KMIN; i <= KMAX; i++){
+  const o = document.createElement("option");
+  o.value = SEQ[i]; o.textContent = SEQ[i];
+  sel.appendChild(o);
+}
+const roll = () => SEQ[KMIN + Math.floor(Math.random()*(KMAX-KMIN+1))];
+sel.value = roll();
+$("reroll").addEventListener("click", () => { sel.value = roll(); run(); });
+sel.addEventListener("change", run);
+$("encGo").addEventListener("click", run);
+$("showTitle").addEventListener("change", paint);
+
+function run(){
+  const err = $("encErr");
+  try{
+    const st = encrypt($("encIn").value.trim(), sel.value);
+    // 自己検算
+    const round = decrypt(toPayload(st));
+    if(round.text !== $("encIn").value.trim())
+      throw new Error("検算に失敗しました。入力を確認してください。");
+    state = st;
+    err.textContent = "";
+
+    $("encOut").innerHTML =
+      `<span class="lead">${st.innerChar}</span>\n` + st.rows.join("\n");
+    $("roOut").textContent = st.baseChar;
+    $("roIn").textContent  = `${st.innerChar}　${st.baseVal}`;
+    $("roRot").textContent = (st.baseVal * 360/52).toFixed(1) + "°";
+
+    animate(st.baseVal);
+  }catch(e){
+    err.textContent = e.message;
+  }
+}
+
+function toPayload(st){ return st.innerChar + "\n" + st.rows.join("\n"); }
+
+function animate(target){
+  if(reduce || state === null){ dispOffset = target; paint(); return; }
+  cancelAnimationFrame(animId);
+  const from = dispOffset, t0 = performance.now(), dur = 520;
+  const tick = now => {
+    const k = Math.min(1, (now-t0)/dur);
+    const e = 1 - Math.pow(1-k, 3);
+    dispOffset = from + (target-from)*e;
+    paint();
+    if(k < 1) animId = requestAnimationFrame(tick);
+  };
+  animId = requestAnimationFrame(tick);
+}
+
+function paint(){
+  if(!state) return;
+  drawDisk($("disk").getContext("2d"), state,
+    { scale: 1, showTitle: $("showTitle").checked, innerOffset: dispOffset });
+}
+
+// 保存・コピー
+$("savePng").addEventListener("click", () => {
+  if(!state) return;
+  const c = document.createElement("canvas");
+  drawDisk(c.getContext("2d"), state, { scale: 2, showTitle: $("showTitle").checked });
+  save(c, "無幾暗号.png");
+});
+$("copyStr").addEventListener("click", async () => {
+  if(!state) return;
+  const b = $("copyStr");
+  try{
+    await navigator.clipboard.writeText(toPayload(state));
+    b.textContent = "コピーしました"; setTimeout(() => b.textContent = "文字列をコピー", 1600);
+  }catch{ b.textContent = "コピーできません"; setTimeout(() => b.textContent = "文字列をコピー", 1600); }
+});
+function save(canvas, name){
+  canvas.toBlob(bl => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(bl); a.download = name; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1200);
+  });
+}
+
+// 復号
+$("decGo").addEventListener("click", () => {
+  const err = $("decErr");
+  try{
+    const r = decrypt($("decIn").value);
+    err.textContent = "";
+    $("decOut").textContent = r.text;
+    $("dcBase").textContent = r.baseChar;
+    $("dcVal").textContent  = r.baseVal;
+    $("dcLen").textContent  = r.n;
+  }catch(e){
+    err.textContent = e.message;
+    $("decOut").textContent = "";
+    $("dcBase").textContent = $("dcVal").textContent = $("dcLen").textContent = "—";
+  }
+});
+
+// 手順書
+const tg = $("procToggles");
+PROC.forEach(p => {
+  const l = document.createElement("label");
+  l.innerHTML = `<input type="checkbox" value="${p.id}" checked>
+    <span><span class="tl">${p.t}</span><span class="ts">${p.s}</span></span>`;
+  tg.appendChild(l);
+});
+tg.addEventListener("change", renderProc);
+$("allOn").addEventListener("click", () => { setAll(true); });
+$("allOff").addEventListener("click", () => { setAll(false); });
+function setAll(v){
+  tg.querySelectorAll("input").forEach(i => i.checked = v);
+  renderProc();
+}
+function chosen(){
+  return [...tg.querySelectorAll("input:checked")].map(i => i.value);
+}
+function renderProc(){
+  const ids = chosen();
+  const cv = $("proc"), empty = $("procEmpty");
+  cv.hidden = ids.length === 0;
+  empty.hidden = ids.length !== 0;
+  $("saveProc").disabled = ids.length === 0;
+  if(ids.length) drawProc(cv.getContext("2d"), ids, 1);
+}
+$("saveProc").addEventListener("click", () => {
+  const ids = chosen();
+  if(!ids.length) return;
+  const c = document.createElement("canvas");
+  drawProc(c.getContext("2d"), ids, 2);
+  save(c, "無幾暗号_手順.png");
+});
+
+// 初期表示
+document.fonts?.ready.then(() => { paint(); renderProc(); });
+run();
+renderProc();
+</script>
+</body>
+</html>
