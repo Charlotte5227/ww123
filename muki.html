@@ -223,6 +223,41 @@
   }
   .flag input{margin-top:0}
 
+  /* ---- 手順の展開 ---- */
+  details.steps{
+    margin-top:18px;padding-top:14px;
+    border-top:1px solid rgba(43,54,72,.22);
+  }
+  details.steps > summary{
+    cursor:pointer;list-style:none;display:flex;align-items:center;gap:9px;
+    font-family:var(--mincho);font-size:14px;letter-spacing:.12em;
+    color:var(--ink-soft);transition:color .16s;
+  }
+  details.steps > summary:hover{color:var(--ink)}
+  details.steps > summary::-webkit-details-marker{display:none}
+  details.steps > summary::before{
+    content:"＋";font-family:var(--mono);font-size:13px;
+    width:19px;height:19px;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    border:1px solid rgba(43,54,72,.34);border-radius:1px;color:var(--wax);
+  }
+  details.steps[open] > summary::before{content:"−"}
+  details.steps > summary:focus-visible{outline:2px solid var(--wax);outline-offset:3px}
+  .stepbox{margin-top:16px}
+  .stepbox .st + .st{margin-top:18px;padding-top:16px;border-top:1px dashed rgba(43,54,72,.2)}
+  .stepbox h3{
+    font-family:var(--mincho);font-size:14.5px;font-weight:600;
+    letter-spacing:.1em;margin:0;color:var(--ink);
+  }
+  .stepbox .sub{font-size:11.5px;color:var(--ink-soft);margin:2px 0 8px;line-height:1.6}
+  .stepbox pre{
+    margin:0;font-family:var(--mono);font-size:13.5px;line-height:1.85;
+    letter-spacing:.08em;color:var(--ink);
+    white-space:pre;overflow-x:auto;
+    padding:9px 11px;background:rgba(43,54,72,.045);
+    border-left:2px solid rgba(156,59,46,.45);
+  }
+
   .empty{
     color:var(--ink-soft);font-family:var(--mincho);font-size:14px;
     letter-spacing:.12em;text-align:center;padding:46px 10px;
@@ -278,6 +313,10 @@
           <div class="btnbar" style="margin-top:12px">
             <button class="ghost" id="copyStr">文字列をコピー</button>
           </div>
+          <details class="steps" id="encSteps">
+            <summary>この文章が暗号になるまで</summary>
+            <div class="stepbox" id="encStepBody"></div>
+          </details>
         </div>
       </div>
 
@@ -307,7 +346,7 @@
         <h2>暗号文</h2>
         <label class="field">
           <span>先頭の1文字＋4行を貼り付け</span>
-          <textarea id="decIn" rows="5" placeholder="K&#10;fbBaC&#10;agAAb&#10;CbiBC&#10;DcABa"></textarea>
+          <textarea id="decIn" rows="5" placeholder="M&#10;hdacA&#10;cibbd&#10;AdkaA&#10;Bebac"></textarea>
         </label>
         <div class="btnbar">
           <button class="act" id="decGo">復号する</button>
@@ -323,6 +362,10 @@
           <div><dt>基準値</dt><dd id="dcVal">—</dd></div>
           <div><dt>文字数</dt><dd id="dcLen">—</dd></div>
         </div>
+        <details class="steps" id="decSteps" hidden>
+          <summary>この暗号が文章に戻るまで</summary>
+          <div class="stepbox" id="decStepBody"></div>
+        </details>
       </div>
     </div>
   </section>
@@ -362,8 +405,7 @@ const SEQ = "zyxwvutsrqponmlkjihgfedcbaABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const KMIN = SEQ.indexOf('k');   // 15
 const KMAX = SEQ.indexOf('K');   // 36
 
-const centerCol = n => (n % 2 === 0) ? n/2 : (n-1)/2;
-const CENTER_ROW = 1;            // 中央2行のうち上側
+// 基準は暗号文全体の右上、すなわち1行目の末尾。行の長さによらない
 
 function encrypt(text, baseChar){
   const chars = Array.from(text);
@@ -375,43 +417,64 @@ function encrypt(text, baseChar){
       throw new Error("改行は使えません。1行で入力してください。");
   }
   const n = chars.length;
+  const trace = [];
 
   // 手順1 — Unicode化とXOR偽装
-  let digits = "";
+  let digits = "", log1 = [];
   chars.forEach((c, i) => {
     const h = c.codePointAt(0).toString(16).toUpperCase().padStart(4,"0");
+    let masks = [], out = "";
     for(let d = 0; d < 4; d++){
       const mask = (n + (i+1) + (d+1)) % 16;
-      digits += (parseInt(h[d],16) ^ mask).toString(16).toUpperCase();
+      masks.push(mask.toString(16).toUpperCase());
+      out += (parseInt(h[d],16) ^ mask).toString(16).toUpperCase();
     }
+    digits += out;
+    log1.push(`${c}  U+${h}  ⊕ ${masks.join(" ")}  →  ${out}`);
   });
+  trace.push({t:"手順1　Unicode化とXOR偽装",
+    s:`マスク ＝ (${n} ＋ 文字位置 ＋ 桁番号) mod 16`, b:log1.join("\n")});
 
   // 手順2 — N桁ごとに改行（必ず4行）
   let rows = [];
   for(let i = 0; i < digits.length; i += n) rows.push(digits.slice(i, i+n));
+  trace.push({t:"手順2　文字数ごとに改行", s:`${n}桁ずつ折り返す`, b:rows.join("\n")});
 
   // 手順3・4 — 反転（自己逆元）
-  rows = flip(rows, n);
+  const r3 = flipRow(rows, n);
+  trace.push({t:"手順3　行内の反転", s:`各行を ${Math.floor(n/2)}｜${n-Math.floor(n/2)} で割り、後半を反転`, b:r3.join("\n")});
+  rows = flipOrder(r3);
+  trace.push({t:"手順4　行の反転", s:"後半の行を反転（3行目と4行目を入れ替え）", b:rows.join("\n")});
 
-  // 手順5 — 基準値
-  const baseVal = parseInt(rows[CENTER_ROW][centerCol(n)], 16);
+  // 手順5 — 基準値（右上）
+  const baseVal = parseInt(rows[0][n-1], 16);
+  trace.push({t:"手順5　基準値", s:"1行目の末尾を読む",
+    b:`右上 ＝ ${rows[0][n-1]} ＝ ${baseVal}`});
 
   // 手順6 — アルファベット化
   const bi = SEQ.indexOf(baseChar);
   const cipher = rows.map(r =>
     [...r].map(ch => SEQ[bi + (parseInt(ch,16) - baseVal)]).join("")
   );
+  trace.push({t:"手順6　アルファベット化",
+    s:`基準文字 ${baseChar} から、値と基準値の差分だけ換字列を移動`, b:cipher.join("\n")});
 
-  return { rows: cipher, n, baseChar, baseIdx: bi, baseVal, innerChar: SEQ[bi + baseVal] };
+  return { rows: cipher, n, baseChar, baseIdx: bi, baseVal,
+           innerChar: SEQ[bi + baseVal], trace };
 }
 
-/* 手順3＋4。2回かけると元に戻る */
-function flip(rows, n){
+/* 手順3 — 各行の後半を反転 */
+function flipRow(rows, n){
   const half = Math.floor(n/2);
-  const a = rows.map(r => r.slice(0,half) + [...r.slice(half)].reverse().join(""));
-  const h = Math.floor(a.length/2);
-  return a.slice(0,h).concat(a.slice(h).reverse());
+  return rows.map(r => r.slice(0,half) + [...r.slice(half)].reverse().join(""));
 }
+/* 手順4 — 後半の行を反転 */
+function flipOrder(rows){
+  const h = Math.floor(rows.length/2);
+  return rows.slice(0,h).concat(rows.slice(h).reverse());
+}
+/* 手順3＋4。互いに干渉せず、2回かけると元に戻る */
+function flip(rows, n){ return flipOrder(flipRow(rows, n)); }
 
 function decrypt(payload){
   const tok = payload.trim().split(/\s+/).filter(Boolean);
@@ -426,30 +489,47 @@ function decrypt(payload){
   if(rows.some(r => [...r].some(c => SEQ.indexOf(c) < 0)))
     throw new Error("換字列にない文字が混ざっています。");
 
-  const baseChar = rows[CENTER_ROW][centerCol(n)];
+  const baseChar = rows[0][n-1];
   const bi = SEQ.indexOf(baseChar);
   const baseVal = SEQ.indexOf(front) - bi;
   if(baseVal < 0 || baseVal > 15)
-    throw new Error("先頭の文字と中央が噛み合いません。");
+    throw new Error("先頭の文字と右上が噛み合いません。");
+
+  const trace = [{t:"基準を読む", s:"右上が基準文字、先頭の1文字が基準値",
+    b:`右上 ＝ ${baseChar}（基準文字）\n先頭 ＝ ${front}\n基準値 ＝ ${baseVal}\n文字数 ＝ ${n}`}];
 
   const hexRows = rows.map(r => [...r].map(ch => {
     const v = SEQ.indexOf(ch) - bi + baseVal;
     if(v < 0 || v > 15) throw new Error("値が16進の範囲を外れました。");
     return v.toString(16).toUpperCase();
   }).join(""));
+  trace.push({t:"手順6を戻す　16進に戻す",
+    s:"各文字を差分に戻し、基準値を足す", b:hexRows.join("\n")});
 
-  const digits = flip(hexRows, n).join("");   // 反転を戻す
+  const u4 = flipOrder(hexRows);
+  trace.push({t:"手順4を戻す　行の反転", s:"もう一度同じ操作をかける", b:u4.join("\n")});
+  const u3 = flipRow(u4, n);
+  trace.push({t:"手順3を戻す　行内の反転", s:"もう一度同じ操作をかける", b:u3.join("\n")});
 
-  let text = "";
+  const digits = u3.join("");
+  trace.push({t:"手順2を戻す　桁を連結", s:`${digits.length}桁に戻る`, b:digits});
+
+  let text = "", log = [];
   for(let i = 0; i < n; i++){
-    let h = "";
+    let h = "", masks = [];
     for(let d = 0; d < 4; d++){
       const mask = (n + (i+1) + (d+1)) % 16;
+      masks.push(mask.toString(16).toUpperCase());
       h += (parseInt(digits[i*4+d],16) ^ mask).toString(16);
     }
-    text += String.fromCodePoint(parseInt(h,16));
+    const c = String.fromCodePoint(parseInt(h,16));
+    text += c;
+    log.push(`${digits.slice(i*4,i*4+4)}  ⊕ ${masks.join(" ")}  →  U+${h.toUpperCase()}  ${c}`);
   }
-  return { text, baseChar, baseVal, n };
+  trace.push({t:"手順1を戻す　XORとUnicode",
+    s:`マスク ＝ (${n} ＋ 文字位置 ＋ 桁番号) mod 16`, b:log.join("\n")});
+
+  return { text, baseChar, baseVal, n, trace };
 }
 
 /* ============================================================
@@ -459,6 +539,7 @@ const INK = "#2b3648", INK_R = 43, INK_G = 54, INK_B = 72;
 const ink = a => `rgba(${INK_R},${INK_G},${INK_B},${a})`;
 const NE = -Math.PI/4;                 // 北東（環を読む位置）
 const TILT = Math.PI/4;                // 暗号文の傾き。1行目が北東の辺に乗る
+const THICK = 3.2;                     // × と囲みの線の太さ（すべて同じ）
 const STEP = Math.PI*2/52;
 const MONO = `ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace`;
 const MINCHO = `"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif`;
@@ -548,71 +629,108 @@ function inkCircle(ctx, cx, cy, r0, rand, alpha, w){
 /* ============================================================
    暗号画像
    ============================================================ */
-function diskLayout(n){
+function diskLayout(n, showTitle){
   const cell = Math.max(30, Math.min(70, 620/n));
-  const gw = n*cell, gh = 4*cell*1.5;
-  // 45度傾けた矩形の外接円。傾けても半径は変わらない
-  const gr = Math.hypot(gw/2, gh/2);
-  const rIn  = Math.max(292, gr + 50);
+  const gw = n*cell, gh = 4*cell;              // 方眼に合わせ、行間はちょうど1マス
+  const gr = Math.hypot(gw/2, gh/2);           // 傾けても外接円は変わらない
+  const rIn  = Math.max(292, gr + 64);
   const rOut = rIn + 62;
-  const R    = rOut + 46;
-  return { cell, gw, gh, rIn, rOut, R, W: R*2 };
+  const pad  = showTitle ? 62 : 40;
+  const S    = Math.round((rOut + pad)*2);     // 画像は正方形
+  const cy   = showTitle ? rOut + 2 : S/2;
+  return { cell, gw, gh, rIn, rOut, S, cx: S/2, cy };
 }
 
 function drawDisk(ctx, st, opts){
   const { rows, n, baseIdx } = st;
   const innerOffset = (opts.innerOffset !== undefined) ? opts.innerOffset : st.baseVal;
-  const L = diskLayout(n);
+  const showTitle = !!opts.showTitle;
+  const L = diskLayout(n, showTitle);
   const s = opts.scale || 1;
-  const bandH = opts.showTitle ? 122 : 34;
-  const W = L.W, H = L.W + bandH;
+  const S = L.S, cell = L.cell, cx = L.cx, cy = L.cy;
 
-  ctx.canvas.width  = Math.round(W*s);
-  ctx.canvas.height = Math.round(H*s);
+  ctx.canvas.width = ctx.canvas.height = Math.round(S*s);
   ctx.setTransform(s,0,0,s,0,0);
-  ctx.drawImage(paper(W,H), 0, 0);
+  ctx.drawImage(paper(S,S), 0, 0);
 
-  const cx = W/2, cy = L.R;
   const r = rng(seedOf(rows.join("")+n));
+  const tilt = (opts.rot !== undefined) ? opts.rot : TILT;
 
-  // 二重円 — どちらも同じインク
-  inkCircle(ctx, cx, cy, L.rOut + 24, r, .34, 1.1);
-  inkCircle(ctx, cx, cy, L.rOut - 24, r, .22, .9);
-  inkCircle(ctx, cx, cy, L.rIn  + 23, r, .22, .9);
-  inkCircle(ctx, cx, cy, L.rIn  - 25, r, .34, 1.1);
-
-  ringLetters(ctx, cx, cy, L.rOut, baseIdx,               r, 27);
-  ringLetters(ctx, cx, cy, L.rIn,  baseIdx + innerOffset, r, 27);
-
-  // 暗号文 — 全体を北東へ傾ける（1行目が北東の辺に乗る）
+  // ===== 傾ける前の正方形の上ですべてを組む =====
   ctx.save();
   ctx.translate(cx, cy);
-  ctx.rotate(opts.rot !== undefined ? opts.rot : TILT);
+  ctx.rotate(tilt);
+  const OX = -cx, OY = S - cy;                 // 原点＝正方形の左下
+  const reach = S*1.15;
+  const last  = Math.ceil(S/cell);
+
+  // 罫線（画像全体に届かせる）
+  ctx.strokeStyle = ink(.17); ctx.lineWidth = .9;
+  const i0 = Math.floor((-reach - OX)/cell), i1 = Math.ceil((reach - OX)/cell);
+  for(let i=i0;i<=i1;i++){
+    const px = OX + i*cell;
+    ctx.beginPath(); ctx.moveTo(px,-reach); ctx.lineTo(px,reach); ctx.stroke();
+  }
+  const j0 = Math.floor((OY - reach)/cell), j1 = Math.ceil((OY + reach)/cell);
+  for(let j=j0;j<=j1;j++){
+    const py = OY - j*cell;
+    ctx.beginPath(); ctx.moveTo(-reach,py); ctx.lineTo(reach,py); ctx.stroke();
+  }
+
+  // × ＝ 原点から文字数ぶん進んだ交差点だけ、半マス分太く
+  ctx.strokeStyle = ink(.44); ctx.lineWidth = THICK;
+  for(let i=0;i<=last;i+=n) for(let j=0;j<=last;j+=n){
+    const px = OX + i*cell, py = OY - j*cell;
+    ctx.beginPath(); ctx.moveTo(px-cell/2,py); ctx.lineTo(px+cell/2,py); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(px,py-cell/2); ctx.lineTo(px,py+cell/2); ctx.stroke();
+  }
+
+  // 目盛り（南端・西端、原点から）
+  ctx.fillStyle = ink(.5);
+  ctx.font = `400 ${Math.round(cell*.26)}px ${MONO}`;
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  for(let i=0;i<=last;i++) ctx.fillText(String(i), OX + i*cell, OY + cell*.16);
+  ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  for(let j=1;j<=last;j++) ctx.fillText(String(j), OX - cell*.16, OY - j*cell);
+
+  // 暗号文を方眼に合わせる
+  const left = OX + Math.round((-L.gw/2 - OX)/cell)*cell;
+  const top  = OY - Math.round((OY + L.gh/2)/cell)*cell;
+
+  // 囲み — 全体と、右上（基準）の一マス。太さは × と同じ
+  ctx.strokeStyle = ink(.44); ctx.lineWidth = THICK;
+  ctx.strokeRect(left, top, L.gw, L.gh);
+  ctx.strokeRect(left + (n-1)*cell, top, cell, cell);
+
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.font = `600 ${Math.round(L.cell*.64)}px ${MONO}`;
-  const rowH = L.cell*1.5;
-  const top = -(rowH*4)/2 + rowH/2;
-  const left = -(n*L.cell)/2 + L.cell/2;
+  ctx.font = `600 ${Math.round(cell*.6)}px ${MONO}`;
   rows.forEach((row, ri) => {
     [...row].forEach((ch, ci) => {
       ctx.save();
-      ctx.translate(left + ci*L.cell + (r()-.5)*2.4, top + ri*rowH + (r()-.5)*2.4);
+      ctx.translate(left + ci*cell + cell/2 + (r()-.5)*2,
+                    top  + ri*cell + cell/2 + (r()-.5)*2);
       ctx.rotate((r()-.5)*.05);
-      ctx.fillStyle = ink(.80 + r()*.16);
+      ctx.fillStyle = ink(.88 + r()*.1);
       ctx.fillText(ch, 0, 0);
       ctx.restore();
     });
   });
   ctx.restore();
 
-  // 題字
-  if(opts.showTitle){
-    const fs = 54, gap = fs*1.46, ty = L.W + bandH/2 - 2;
-    const glyphs = [["無",1,1],["幾",-1,1],["暗",1,-1],["号",-1,-1]];
+  // ===== 円と題字は傾けない =====
+  inkCircle(ctx, cx, cy, L.rOut + 24, r, .34, 1.1);
+  inkCircle(ctx, cx, cy, L.rOut - 24, r, .22, .9);
+  inkCircle(ctx, cx, cy, L.rIn  + 23, r, .22, .9);
+  inkCircle(ctx, cx, cy, L.rIn  - 25, r, .34, 1.1);
+  ringLetters(ctx, cx, cy, L.rOut, baseIdx,               r, 27);
+  ringLetters(ctx, cx, cy, L.rIn,  baseIdx + innerOffset, r, 27);
+
+  if(showTitle){
+    const fs = 50, gap = fs*1.48, ty = cy + L.rOut + 72;
     ctx.save();
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.font = `600 ${fs}px ${MINCHO}`;
-    glyphs.forEach((gl, i) => {
+    [["無",1,1],["幾",-1,1],["暗",1,-1],["号",-1,-1]].forEach((gl, i) => {
       ctx.save();
       ctx.translate(cx + (i - 1.5)*gap + (r()-.5)*3, ty + (r()-.5)*3);
       ctx.rotate((r()-.5)*.03);
@@ -623,7 +741,7 @@ function drawDisk(ctx, st, opts){
     });
     ctx.restore();
   }
-  return { W, H };
+  return { W: S, H: S };
 }
 
 function ringLetters(ctx, cx, cy, rad, anchor, r, fs){
@@ -660,9 +778,9 @@ const PROC = [
     "半分にできない場合は、後半を1文字多くする。" ]},
   { id:"p4", n:"手順4", t:"行の反転", s:"後半の行をひっくり返す", b:[
     "全体の後半半分の行を反転する。" ]},
-  { id:"p5", n:"手順5", t:"基準値の特定", s:"中央の桁を読む", b:[
-    "できあがった4行から、全体の中央を取る。",
-    "▸ 中央が4桁のときは右上、2桁のときは上。",
+  { id:"p5", n:"手順5", t:"基準値の特定", s:"右上の桁を読む", b:[
+    "できあがった4行の、全体の右上の桁を取る。",
+    "▸ すなわち1行目の末尾。行がいくら長くても変わらない。",
     "その桁の値が基準値となる。" ]},
   { id:"p6", n:"手順6", t:"アルファベット化", s:"基準値との差分を文字に置き換える", b:[
     "換字列の k 〜 K からランダムに1文字を選び、基準文字とする。",
@@ -812,11 +930,20 @@ function run(){
     $("roOut").textContent = st.baseChar;
     $("roIn").textContent  = `${st.innerChar}　${st.baseVal}`;
     $("roRot").textContent = (st.baseVal * 360/52).toFixed(1) + "°";
+    renderTrace($("encStepBody"), st.trace);
     animate(st.baseVal);
   }catch(e){ err.textContent = e.message; }
 }
 
 const toPayload = st => st.innerChar + "\n" + st.rows.join("\n");
+
+const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function renderTrace(el, trace){
+  el.innerHTML = trace.map(x =>
+    `<div class="st"><h3>${esc(x.t)}</h3>` +
+    (x.s ? `<p class="sub">${esc(x.s)}</p>` : "") +
+    `<pre>${esc(x.b)}</pre></div>`).join("");
+}
 
 function animate(target){
   if(reduce){ dispOffset = target; paint(); return; }
@@ -869,10 +996,13 @@ $("decGo").addEventListener("click", () => {
     $("dcBase").textContent = r.baseChar;
     $("dcVal").textContent  = r.baseVal;
     $("dcLen").textContent  = r.n;
+    renderTrace($("decStepBody"), r.trace);
+    $("decSteps").hidden = false;
   }catch(e){
     err.textContent = e.message;
     $("decOut").textContent = "";
     $("dcBase").textContent = $("dcVal").textContent = $("dcLen").textContent = "—";
+    $("decSteps").hidden = true;
   }
 });
 
