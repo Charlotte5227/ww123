@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>象徴暗号 — SYMBOL</title>
+<style>
+  :root{
+    --ground:#061B2C;
+    --plate:#0A2B47;
+    --plate-hi:#0E3556;
+    --line:#E6EFF6;
+    --chalk:#D6E4EF;
+    --dim:#7E9BB4;
+    --dimmer:#54728C;
+    --signal:#F0B429;
+    --rule:rgba(214,228,239,.16);
+    --rule-soft:rgba(214,228,239,.07);
+    --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,"Liberation Mono",monospace;
+    --body:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--ground);
+    color:var(--chalk);
+    font-family:var(--body);
+    font-size:15px;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      repeating-linear-gradient(0deg,transparent 0 39px,var(--rule-soft) 39px 40px),
+      repeating-linear-gradient(90deg,transparent 0 39px,var(--rule-soft) 39px 40px);
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px 96px}
+
+  header.masthead{padding:64px 0 40px;border-bottom:1px solid var(--rule)}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.34em;text-transform:uppercase;
+    color:var(--dim);margin:0 0 22px}
+  h1{margin:0;font-family:var(--mono);font-weight:500;
+    font-size:clamp(38px,7vw,68px);letter-spacing:.16em;line-height:1;color:var(--line)}
+  h1 .jp{display:block;font-family:var(--body);font-weight:600;letter-spacing:.28em;
+    font-size:clamp(19px,3vw,26px);color:var(--chalk);margin-bottom:16px}
+  .lede{max-width:60ch;color:var(--dim);margin:26px 0 0;font-size:14.5px}
+
+  section{padding:44px 0;border-bottom:1px solid var(--rule)}
+  section:last-of-type{border-bottom:0}
+  .sec-head{display:flex;align-items:baseline;gap:16px;margin:0 0 22px}
+  .sec-no{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--dimmer)}
+  h2{margin:0;font-size:16px;font-weight:600;letter-spacing:.14em}
+  .hint{color:var(--dim);font-size:13px;margin:-8px 0 22px;max-width:64ch}
+  .hint code{font-family:var(--mono);color:var(--chalk);background:var(--plate);
+    padding:1px 5px;border-radius:2px}
+
+  label.fld{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.24em;
+    text-transform:uppercase;color:var(--dimmer);margin:0 0 9px}
+
+  textarea{width:100%;background:var(--plate);color:var(--line);border:1px solid var(--rule);
+    border-radius:2px;padding:14px 16px;font-family:var(--body);font-size:15px;line-height:1.75;
+    resize:vertical}
+  textarea.code{font-family:var(--mono);font-size:15px;line-height:2}
+  textarea:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible,
+  input:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;margin:18px 0 0}
+  .ctl{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--dim)}
+  select{background:var(--plate);color:var(--chalk);border:1px solid var(--rule);border-radius:2px;
+    padding:6px 10px;font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+  input[type=checkbox]{accent-color:var(--signal);width:15px;height:15px}
+
+  button{background:transparent;color:var(--chalk);border:1px solid var(--rule);border-radius:2px;
+    padding:10px 20px;font-family:var(--mono);font-size:11px;letter-spacing:.2em;
+    text-transform:uppercase;cursor:pointer;transition:background .18s,border-color .18s,color .18s}
+  button:hover{background:var(--plate-hi);border-color:var(--dim);color:var(--line)}
+  button.key{border-color:var(--signal);color:var(--signal)}
+  button.key:hover{background:rgba(240,180,41,.1)}
+  .btnrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+
+  .plate-frame{margin-top:26px;background:var(--plate);border:1px solid var(--rule);padding:10px;
+    overflow:hidden}
+  canvas{display:block;width:100%;height:auto}
+  .plate-note{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;color:var(--dimmer);
+    margin-top:12px;text-transform:uppercase}
+
+  details{border:1px solid var(--rule);border-radius:2px;background:var(--plate);margin-top:26px}
+  summary{cursor:pointer;padding:14px 18px;font-family:var(--mono);font-size:11px;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--dim);list-style:none}
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"+ ";color:var(--signal)}
+  details[open] summary::before{content:"\2013 "}
+  .tablewrap{overflow-x:auto;padding:0 18px 18px}
+  table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:12.5px}
+  th,td{text-align:left;padding:8px 16px 8px 0;border-bottom:1px solid var(--rule-soft);white-space:nowrap}
+  th{color:var(--dimmer);font-weight:400;font-size:10px;letter-spacing:.2em;text-transform:uppercase}
+  td.sig{color:var(--signal)}
+
+  .status{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;margin-top:14px;
+    min-height:18px;color:var(--dim)}
+  .status.bad{color:var(--signal)}
+
+  @media (max-width:760px){.wrap{padding:0 18px 72px}header.masthead{padding:44px 0 32px}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">人形三十六体による記号体系 &nbsp;/&nbsp; GF(2^24)</p>
+  <h1><span class="jp">象徴暗号</span>SYMBOL</h1>
+  <p class="lede">文章を Unicode から有限体の乗法逆元へ送り、36進7桁に畳んで、36体の人形に置き換えます。人形は両腕の向きと手先の印で36通り。先頭には値域と多項式を示す3体の見出しが立ちます。</p>
+</header>
+
+<section>
+  <div class="sec-head"><span class="sec-no">01</span><h2>暗号化</h2></div>
+  <label class="fld" for="plain">平文</label>
+  <textarea id="plain" rows="3" spellcheck="false">ようこそ&#128171;</textarea>
+  <div class="controls">
+    <div class="ctl"><label class="fld" style="margin:0" for="cols">列数</label>
+      <select id="cols">
+        <option value="7">7 — 1文字1行</option>
+        <option value="14" selected>14 — 2文字1行</option>
+        <option value="21">21 — 3文字1行</option>
+      </select></div>
+    <div class="ctl"><input type="checkbox" id="useHeader" checked><label for="useHeader">見出しを付ける</label></div>
+    <div class="ctl"><input type="checkbox" id="useTitleBlock" checked><label for="useTitleBlock">表題欄を入れる</label></div>
+    <div class="ctl"><input type="checkbox" id="useLabels"><label for="useLabels">記号名を添える</label></div>
+  </div>
+
+  <div class="plate-frame"><canvas id="plate"></canvas></div>
+  <p class="plate-note" id="plateNote"></p>
+  <div class="btnrow">
+    <button class="key" id="savePng">図版を保存</button>
+    <button id="copyB36">36進表記をコピー</button>
+  </div>
+  <p class="status" id="encStatus"></p>
+
+  <details>
+    <summary>変換過程</summary>
+    <div class="tablewrap">
+      <table id="stepsTable">
+        <thead><tr><th>文字</th><th>符号位置</th><th>逆元</th><th>8進8桁</th><th>32ビット</th><th>36進7桁</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </details>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-no">02</span><h2>文字表記</h2></div>
+  <p class="hint">1体を2文字で書きます。左腕は下が <code>/</code>、水平が <code>-</code>、上が <code>\</code>。右腕は下が <code>\</code>、水平が <code>-</code>、上が <code>/</code>。印のある腕だけ全角にします。</p>
+  <textarea id="notation" class="code" rows="8" spellcheck="false" readonly></textarea>
+  <div class="controls">
+    <div class="ctl"><input type="checkbox" id="wrapNotation" checked><label for="wrapNotation">1文字ごとに改行する</label></div>
+  </div>
+  <div class="btnrow"><button id="copyNotation">表記をコピー</button></div>
+  <p class="status" id="notStatus"></p>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-no">03</span><h2>復号</h2></div>
+  <p class="hint">文字表記でも36進表記でも読み取ります。空白と改行は無視します。</p>
+  <label class="fld" for="cipher">暗号文</label>
+  <textarea id="cipher" class="code" rows="4" spellcheck="false"></textarea>
+  <div class="btnrow"><button class="key" id="doDecode">平文に戻す</button></div>
+  <p class="status" id="decStatus"></p>
+  <div style="margin-top:18px">
+    <label class="fld" for="decoded">平文</label>
+    <textarea id="decoded" rows="3" readonly></textarea>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-no">04</span><h2>記号表</h2></div>
+  <p class="hint">左腕が12の位、右腕が4の位、印が1の位。印は無し・左・右・両方の4通りです。</p>
+  <div class="plate-frame"><canvas id="chart"></canvas></div>
+  <div class="btnrow"><button id="saveChart">記号表を保存</button></div>
+</section>
+
+</div>
+
+<script>
+"use strict";
+
+/* ===== 有限体 GF(2^24)   x^24 + x^4 + x^3 + x + 1 ===== */
+var RED = 0x1B;
+function gfMul(a, b){
+  var r = 0;
+  while (b){
+    if (b & 1) r ^= a;
+    b >>>= 1;
+    a <<= 1;
+    if (a & 0x1000000) a ^= (0x1000000 | RED);
+    a &= 0xFFFFFF;
+  }
+  return r >>> 0;
+}
+function gfInv(a){
+  if (a === 0) return 0;
+  var r = 1, base = a, e = 0xFFFFFE;
+  while (e){ if (e & 1) r = gfMul(r, base); base = gfMul(base, base); e >>>= 1; }
+  return r;
+}
+
+/* ===== 暗号化・復号 ===== */
+var D36 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+var HEADER = "1Z141YM000EZ0B11VSKBY";
+
+function encodeCodePoint(cp){
+  var inv = gfInv(cp);
+  var oct = inv.toString(8);
+  while (oct.length < 8) oct = "0" + oct;
+  var n = 0;
+  for (var i = 0; i < 8; i++) n = n * 16 + (parseInt(oct.charAt(i), 8) + 8);
+  var b36 = n.toString(36).toUpperCase();
+  while (b36.length < 7) b36 = "0" + b36;
+  return { inv: inv, oct: oct, n: n, b36: b36 };
+}
+function decodeBlock(b36){
+  var n = 0, i, idx;
+  for (i = 0; i < b36.length; i++){
+    idx = D36.indexOf(b36.charAt(i));
+    if (idx < 0) return null;
+    n = n * 36 + idx;
+  }
+  if (n > 0xFFFFFFFF) return null;
+  var oct = "";
+  for (i = 7; i >= 0; i--){
+    var nib = Math.floor(n / Math.pow(16, i)) % 16;
+    if (nib < 8) return null;
+    oct += String(nib - 8);
+  }
+  var v = parseInt(oct, 8);
+  if (v === 0) return null;
+  return gfInv(v);
+}
+
+/* ===== 記号の分解   値 = 12*左腕 + 4*右腕 + 旗 ===== */
+function partsOf(v){ return { L: Math.floor(v / 12), R: Math.floor(v / 4) % 3, F: v % 4 }; }
+function valueOf(L, R, F){ return 12 * L + 4 * R + F; }
+
+var LEFT_CH  = ["/", "-", "\\"];
+var RIGHT_CH = ["\\", "-", "/"];
+var TO_WIDE   = { "/": "\uFF0F", "-": "\uFF0D", "\\": "\uFF3C" };
+var FROM_WIDE = { "\uFF0F": "/", "\uFF0D": "-", "\uFF3C": "\\" };
+
+function notateValue(v){
+  var p = partsOf(v), l = LEFT_CH[p.L], r = RIGHT_CH[p.R];
+  return ((p.F === 1 || p.F === 3) ? TO_WIDE[l] : l) +
+         ((p.F === 2 || p.F === 3) ? TO_WIDE[r] : r);
+}
+function notateBlock(b36){
+  var s = "";
+  for (var i = 0; i < b36.length; i++) s += notateValue(D36.indexOf(b36.charAt(i)));
+  return s;
+}
+function parseNotation(str){
+  var chars = str.replace(/\s+/g, "").split("");
+  if (chars.length % 2 !== 0) return { err: "記号が途中で切れています。2文字で1体になります。" };
+  var out = "";
+  for (var i = 0; i < chars.length; i += 2){
+    var a = chars[i], b = chars[i + 1];
+    var aw = Object.prototype.hasOwnProperty.call(FROM_WIDE, a);
+    var bw = Object.prototype.hasOwnProperty.call(FROM_WIDE, b);
+    var ah = aw ? FROM_WIDE[a] : a, bh = bw ? FROM_WIDE[b] : b;
+    var L = LEFT_CH.indexOf(ah), R = RIGHT_CH.indexOf(bh);
+    if (L < 0 || R < 0){
+      return { err: (i + 1) + "文字目に読めない記号があります。使えるのは / - \\ とその全角だけです。" };
+    }
+    out += D36.charAt(valueOf(L, R, (aw ? 1 : 0) + (bw ? 2 : 0)));
+  }
+  return { b36: out };
+}
+
+/* ===== 人形の作図 ===== */
+var FIG_W = 100, FIG_H = 150;
+var HEAD_Y = 24, HEAD_R = 12.5, SHOULDER_Y = 52, HIP_Y = 95, ARM_LEN = 42;
+var DIAG = Math.SQRT1_2;
+var ARM_DIR = [[-DIAG, DIAG], [-1, 0], [-DIAG, -DIAG]];   /* 下・水平・上（左腕基準） */
+
+function drawFigure(ctx, cx, cy, s, v, col){
+  var p = partsOf(v);
+  function X(x){ return cx + (x - 50) * s; }
+  function Y(y){ return cy + (y - 75) * s; }
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.lineWidth = 4.2 * s;
+
+  ctx.strokeStyle = col.line;
+  ctx.beginPath();
+  ctx.moveTo(X(50), Y(HEAD_Y + HEAD_R)); ctx.lineTo(X(50), Y(HIP_Y));
+  ctx.moveTo(X(50), Y(HIP_Y)); ctx.lineTo(X(27), Y(142));
+  ctx.moveTo(X(50), Y(HIP_Y)); ctx.lineTo(X(73), Y(142));
+  ctx.stroke();
+  ctx.fillStyle = col.line;
+  ctx.beginPath(); ctx.arc(X(50), Y(HEAD_Y), HEAD_R * s, 0, Math.PI * 2); ctx.fill();
+
+  var arms = [
+    { dir: ARM_DIR[p.L], flag: (p.F === 1 || p.F === 3) },
+    { dir: [-ARM_DIR[p.R][0], ARM_DIR[p.R][1]], flag: (p.F === 2 || p.F === 3) }
+  ];
+  for (var i = 0; i < 2; i++){
+    var a = arms[i];
+    var tx = 50 + a.dir[0] * ARM_LEN, ty = SHOULDER_Y + a.dir[1] * ARM_LEN;
+    ctx.strokeStyle = a.flag ? col.signal : col.line;
+    ctx.beginPath(); ctx.moveTo(X(50), Y(SHOULDER_Y)); ctx.lineTo(X(tx), Y(ty)); ctx.stroke();
+    /* 手先の印。頭と同じ円形にして、人形をひとつの字形として読ませる */
+    ctx.fillStyle = a.flag ? col.signal : col.line;
+    ctx.beginPath();
+    ctx.arc(X(tx), Y(ty), (a.flag ? 8 : 3.6) * s, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+/* ===== 図版 ===== */
+var COL = { plate:"#0A2B47", grid:"rgba(214,228,239,.075)", rule:"rgba(214,228,239,.22)",
+            line:"#E6EFF6", signal:"#F0B429", dim:"#7E9BB4", dimmer:"#54728C" };
+var CELL_W = 92, CELL_H = 132, PAD = 46, TITLE_H = 78;
+var FIG_S = Math.min((CELL_W - 10) / 104, (CELL_H - 12) / FIG_H);
+var MONO = "ui-monospace,Menlo,Consolas,monospace";
+var SANS = "system-ui,-apple-system,'Hiragino Kaku Gothic ProN',sans-serif";
+
+function toValues(s){
+  var v = [];
+  for (var i = 0; i < s.length; i++) v.push(D36.indexOf(s.charAt(i)));
+  return v;
+}
+function buildRows(headBlocks, bodyBlocks, cols){
+  /* 見出しも本文と地続きに流す。切れ目を図の形で教えないため */
+  var rows = [], flat = toValues(headBlocks.join("") + bodyBlocks.join("")), i;
+  for (i = 0; i < flat.length; i += cols) rows.push({ vals: flat.slice(i, i + cols) });
+  return rows;
+}
+
+function drawPlate(canvas, rows, cols, opts, progress){
+  var scale = opts.exportScale || Math.min(window.devicePixelRatio || 1, 2);
+  var i, r;
+  var W = PAD * 2 + cols * CELL_W;
+  var H = PAD * 2 + rows.length * CELL_H + (opts.titleBlock ? TITLE_H : 0);
+  canvas.width = Math.round(W * scale);
+  canvas.height = Math.round(H * scale);
+  canvas.style.aspectRatio = W + " / " + H;
+  var ctx = canvas.getContext("2d");
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+
+  ctx.fillStyle = COL.plate; ctx.fillRect(0, 0, W, H);
+
+  ctx.strokeStyle = COL.grid; ctx.lineWidth = 1;
+  for (var x = PAD; x <= W - PAD; x += 23){
+    ctx.beginPath(); ctx.moveTo(x + .5, PAD - 14); ctx.lineTo(x + .5, H - PAD + 14); ctx.stroke();
+  }
+  for (var y0 = PAD - 14; y0 <= H - PAD + 14; y0 += 23){
+    ctx.beginPath(); ctx.moveTo(PAD - 14, y0 + .5); ctx.lineTo(W - PAD + 14, y0 + .5); ctx.stroke();
+  }
+
+  ctx.strokeStyle = COL.rule; ctx.lineWidth = 1;
+  ctx.strokeRect(PAD - 14.5, PAD - 14.5, W - (PAD - 14) * 2, H - (PAD - 14) * 2);
+  var marks = [[PAD - 14, PAD - 14], [W - PAD + 14, PAD - 14],
+               [PAD - 14, H - PAD + 14], [W - PAD + 14, H - PAD + 14]];
+  for (i = 0; i < marks.length; i++){
+    ctx.beginPath();
+    ctx.moveTo(marks[i][0] - 7, marks[i][1]); ctx.lineTo(marks[i][0] + 7, marks[i][1]);
+    ctx.moveTo(marks[i][0], marks[i][1] - 7); ctx.lineTo(marks[i][0], marks[i][1] + 7);
+    ctx.stroke();
+  }
+
+  var y = PAD, idx = 0, total = 0;
+  for (i = 0; i < rows.length; i++) total += rows[i].vals.length;
+  for (i = 0; i < rows.length; i++){
+    r = rows[i];
+    for (var k = 0; k < r.vals.length; k++){
+      var alpha = 1;
+      if (progress < 1){
+        alpha = (progress * (total + 12) - idx) / 6;
+        alpha = alpha < 0 ? 0 : (alpha > 1 ? 1 : alpha);
+      }
+      idx++;
+      if (alpha <= 0) continue;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      var cx = PAD + k * CELL_W + CELL_W / 2;
+      var cy = y + CELL_H / 2 - (opts.labels ? 8 : 0);
+      drawFigure(ctx, cx, cy, FIG_S, r.vals[k], COL);
+      if (opts.labels){
+        ctx.textAlign = "center";
+        ctx.fillStyle = COL.dim;
+        ctx.font = "500 12px " + MONO;
+        ctx.fillText(D36.charAt(r.vals[k]) + "  " + notateValue(r.vals[k]), cx, y + CELL_H - 4);
+      }
+      ctx.restore();
+    }
+    y += CELL_H;
+  }
+
+  if (opts.titleBlock){
+    var bx = PAD - 14, by = H - PAD + 14 - TITLE_H, bw = W - (PAD - 14) * 2;
+    ctx.strokeStyle = COL.rule; ctx.lineWidth = 1;
+    ctx.strokeRect(bx + .5, by + .5, bw, TITLE_H);
+    ctx.textAlign = "left";
+    ctx.fillStyle = COL.line;
+    ctx.font = "600 19px " + SANS;
+    ctx.fillText("象徴暗号", bx + 18, by + 32);
+    ctx.fillStyle = COL.dimmer;
+    ctx.font = "500 10px " + MONO;
+    ctx.fillText("S Y M B O L", bx + 18, by + 54);
+    /* 平文の長さが漏れるため、数量は一切刷らない */
+    var fx = bx + bw - 210;
+    ctx.strokeStyle = COL.rule;
+    ctx.beginPath(); ctx.moveTo(fx + .5, by); ctx.lineTo(fx + .5, by + TITLE_H); ctx.stroke();
+    ctx.fillStyle = COL.dimmer;
+    ctx.font = "500 9.5px " + MONO;
+    ctx.fillText("作成", fx + 18, by + 30);
+    ctx.fillStyle = COL.line;
+    ctx.font = "500 15px " + MONO;
+    ctx.fillText(opts.date, fx + 18, by + 54);
+  }
+}
+
+/* ===== 記号表 ===== */
+function drawChart(canvas, exportScale){
+  var scale = exportScale || Math.min(window.devicePixelRatio || 1, 2);
+  var cw = 92, ch = 134, pad = 42, gap = 24, headH = 34;
+  var panelW = cw * 3 + 20;
+  var W = pad * 2 + panelW * 4 + gap * 3;
+  var H = pad * 2 + headH + ch * 3 + 12;
+  canvas.width = Math.round(W * scale);
+  canvas.height = Math.round(H * scale);
+  canvas.style.aspectRatio = W + " / " + H;
+  var ctx = canvas.getContext("2d");
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  ctx.fillStyle = COL.plate; ctx.fillRect(0, 0, W, H);
+
+  var names = ["印なし", "左に印", "右に印", "両手に印"];
+  for (var p = 0; p < 4; p++){
+    var px = pad + p * (panelW + gap);
+    ctx.strokeStyle = COL.rule; ctx.lineWidth = 1;
+    ctx.strokeRect(px + .5, pad + .5, panelW, headH + ch * 3 + 4);
+    ctx.fillStyle = COL.dimmer;
+    ctx.font = "500 10px " + MONO;
+    ctx.textAlign = "left";
+    ctx.fillText("F = " + p, px + 14, pad + 22);
+    ctx.fillStyle = p === 0 ? COL.dim : COL.signal;
+    ctx.font = "500 12px " + SANS;
+    ctx.textAlign = "right";
+    ctx.fillText(names[p], px + panelW - 14, pad + 22);
+
+    for (var r = 0; r < 3; r++){
+      for (var c = 0; c < 3; c++){
+        var v = valueOf(c, r, p);
+        var cx = px + 10 + c * cw + cw / 2;
+        var cy = pad + headH + r * ch + ch / 2 - 10;
+        drawFigure(ctx, cx, cy, Math.min((cw - 16) / FIG_W, (ch - 30) / FIG_H), v, COL);
+        var baseY = pad + headH + r * ch + ch - 10;
+        ctx.textAlign = "right";
+        ctx.fillStyle = COL.line;
+        ctx.font = "500 15px " + MONO;
+        ctx.fillText(D36.charAt(v), cx - 4, baseY);
+        ctx.textAlign = "left";
+        ctx.fillStyle = COL.dim;
+        ctx.font = "500 13px " + MONO;
+        ctx.fillText(notateValue(v), cx + 8, baseY);
+      }
+    }
+  }
+}
+
+/* ===== 画面 ===== */
+function $(id){ return document.getElementById(id); }
+var plainEl = $("plain"), plateEl = $("plate"), notationEl = $("notation");
+var current = { head: [], body: [], cols: 14 };
+var anim = null;
+
+function codePoints(str){
+  var out = [], i = 0, cp;
+  while (i < str.length){ cp = str.codePointAt(i); out.push(cp); i += cp > 0xFFFF ? 2 : 1; }
+  return out;
+}
+function todayStamp(){ return new Date().toISOString().slice(0, 10); }
+
+function encodeNow(animate){
+  var cps = codePoints(plainEl.value);
+  var body = [], steps = [], i;
+  for (i = 0; i < cps.length; i++){
+    if (cps[i] === 0) continue;                       /* 0 は逆元を持たない */
+    var e = encodeCodePoint(cps[i]);
+    body.push(e.b36);
+    var hex = cps[i].toString(16).toUpperCase();
+    while (hex.length < 6) hex = "0" + hex;
+    var ihex = e.inv.toString(16).toUpperCase();
+    while (ihex.length < 6) ihex = "0" + ihex;
+    var bin = e.n.toString(2);
+    while (bin.length < 32) bin = "0" + bin;
+    steps.push([String.fromCodePoint(cps[i]), hex, ihex, e.oct, bin, e.b36]);
+  }
+  var head = $("useHeader").checked
+    ? [HEADER.slice(0, 7), HEADER.slice(7, 14), HEADER.slice(14, 21)] : [];
+  current = { head: head, body: body, cols: parseInt($("cols").value, 10) };
+
+  var tb = $("stepsTable").getElementsByTagName("tbody")[0];
+  tb.innerHTML = "";
+  for (i = 0; i < steps.length; i++){
+    var tr = document.createElement("tr");
+    for (var j = 0; j < steps[i].length; j++){
+      var td = document.createElement("td");
+      td.textContent = steps[i][j];
+      if (j === 5) td.className = "sig";
+      tr.appendChild(td);
+    }
+    tb.appendChild(tr);
+  }
+
+  var count = current.head.join("").length + current.body.join("").length;
+  $("plateNote").textContent = body.length ? "平文 " + body.length + " 文字 / 記号 " + count + " 体" : "";
+  $("encStatus").textContent = ""; $("encStatus").className = "status";
+
+  renderPlate(animate);
+  renderNotation();
+}
+
+function renderPlate(animate){
+  var opts = { labels: $("useLabels").checked, titleBlock: $("useTitleBlock").checked,
+               date: todayStamp() };
+  var rows = buildRows(current.head, current.body, current.cols);
+  if (!rows.length){
+    plateEl.width = 8; plateEl.height = 8; plateEl.style.aspectRatio = "1 / 1";
+    return;
+  }
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (anim) cancelAnimationFrame(anim);
+  if (!animate || reduced){ drawPlate(plateEl, rows, current.cols, opts, 1); return; }
+  var t0 = performance.now(), dur = 700;
+  function step(t){
+    var p = Math.min(1, (t - t0) / dur);
+    drawPlate(plateEl, rows, current.cols, opts, p * p * (3 - 2 * p));
+    if (p < 1) anim = requestAnimationFrame(step);
+  }
+  anim = requestAnimationFrame(step);
+}
+
+function renderNotation(){
+  var all = current.head.concat(current.body), lines = [], i;
+  for (i = 0; i < all.length; i++) lines.push(notateBlock(all[i]));
+  notationEl.value = $("wrapNotation").checked ? lines.join("\n") : lines.join("");
+  notationEl.rows = Math.min(14, Math.max(4, lines.length + 1));
+}
+
+function saveCanvas(drawFn, name, statusEl, msg){
+  var tmp = document.createElement("canvas");
+  drawFn(tmp);
+  tmp.toBlob(function(blob){
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1500);
+    if (statusEl){ statusEl.textContent = msg; statusEl.className = "status"; }
+  }, "image/png");
+}
+function copyText(text, statusEl, okMsg){
+  if (!navigator.clipboard){
+    statusEl.textContent = "この環境ではコピーできません。選択して写してください。";
+    statusEl.className = "status bad"; return;
+  }
+  navigator.clipboard.writeText(text).then(function(){
+    statusEl.textContent = okMsg; statusEl.className = "status";
+  }, function(){
+    statusEl.textContent = "コピーできませんでした。選択して写してください。";
+    statusEl.className = "status bad";
+  });
+}
+
+$("savePng").addEventListener("click", function(){
+  var rows = buildRows(current.head, current.body, current.cols);
+  if (!rows.length){
+    $("encStatus").textContent = "平文が空です。文章を入れてから保存してください。";
+    $("encStatus").className = "status bad"; return;
+  }
+  var opts = { labels: $("useLabels").checked, titleBlock: $("useTitleBlock").checked,
+               exportScale: 2, date: todayStamp() };
+  saveCanvas(function(c){ drawPlate(c, rows, current.cols, opts, 1); },
+             "symbol-plate.png", $("encStatus"), "図版を保存しました。");
+});
+$("saveChart").addEventListener("click", function(){
+  saveCanvas(function(c){ drawChart(c, 2); }, "symbol-chart.png");
+});
+$("copyB36").addEventListener("click", function(){
+  copyText(current.head.join("") + current.body.join(""), $("encStatus"), "36進表記をコピーしました。");
+});
+$("copyNotation").addEventListener("click", function(){
+  copyText(notationEl.value, $("notStatus"), "表記をコピーしました。");
+});
+
+$("doDecode").addEventListener("click", function(){
+  var raw = $("cipher").value, st = $("decStatus"), out = $("decoded");
+  out.value = "";
+  var compact = raw.replace(/\s+/g, "");
+  if (!compact){ st.textContent = "暗号文が空です。"; st.className = "status bad"; return; }
+
+  var b36;
+  if (/^[0-9A-Za-z]+$/.test(compact)){
+    b36 = compact.toUpperCase();
+  } else {
+    var r = parseNotation(raw);
+    if (r.err){ st.textContent = r.err; st.className = "status bad"; return; }
+    b36 = r.b36;
+  }
+  var headFound = false;
+  if (b36.indexOf(HEADER) === 0){ b36 = b36.slice(HEADER.length); headFound = true; }
+  if (b36.length % 7 !== 0){
+    st.textContent = "記号の数が7の倍数になっていません（" + b36.length + "体）。1文字は7体です。";
+    st.className = "status bad"; return;
+  }
+  var chars = [];
+  for (var i = 0; i < b36.length; i += 7){
+    var cp = decodeBlock(b36.slice(i, i + 7));
+    if (cp === null || cp > 0x10FFFF){
+      st.textContent = (i / 7 + 1) + "文字目が読み取れません。この7体は正しい暗号文になっていません。";
+      st.className = "status bad"; return;
+    }
+    chars.push(String.fromCodePoint(cp));
+  }
+  out.value = chars.join("");
+  st.textContent = chars.length + " 文字を復号しました。" +
+                   (headFound ? "見出しを確認しました。" : "見出しはありませんでした。");
+  st.className = "status";
+});
+
+plainEl.addEventListener("input", function(){ encodeNow(false); });
+["cols", "useHeader", "useTitleBlock", "useLabels"].forEach(function(id){
+  $(id).addEventListener("change", function(){ encodeNow(false); });
+});
+$("wrapNotation").addEventListener("change", renderNotation);
+
+encodeNow(true);
+drawChart($("chart"));
+(function(){
+  var cps = codePoints("ようこそ\uD83D\uDCAB"), s = HEADER;
+  for (var i = 0; i < cps.length; i++) s += encodeCodePoint(cps[i]).b36;
+  $("cipher").value = s;
+})();
+</script>
+</body>
+</html>
