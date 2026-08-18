@@ -405,7 +405,18 @@ const SEQ = "zyxwvutsrqponmlkjihgfedcbaABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const KMIN = SEQ.indexOf('k');   // 15
 const KMAX = SEQ.indexOf('K');   // 36
 
-// 基準は暗号文全体の右上、すなわち1行目の末尾。行の長さによらない
+// 基準は N 桁目（行優先で数えて文字数番目の桁）
+/* 総桁数 4N を、正方形に最も近い整数比の長方形に組む。
+   Nが素数のときは 4×N のままになる（4Nの約数が乏しいため） */
+function gridShape(n){
+  const D = 4*n;
+  let best = [1, D];
+  for(let r = 1; r*r <= D; r++){
+    if(D % r) continue;
+    if((D/r)/r < best[1]/best[0]) best = [r, D/r];
+  }
+  return { rows: best[0], cols: best[1] };
+}
 
 function encrypt(text, baseChar){
   const chars = Array.from(text);
@@ -435,21 +446,26 @@ function encrypt(text, baseChar){
   trace.push({t:"手順1　Unicode化とXOR偽装",
     s:`マスク ＝ (${n} ＋ 文字位置 ＋ 桁番号) mod 16`, b:log1.join("\n")});
 
-  // 手順2 — N桁ごとに改行（必ず4行）
+  // 手順2 — 正方形に最も近い形に組む
+  const SH = gridShape(n), C = SH.cols, R = SH.rows;
   let rows = [];
-  for(let i = 0; i < digits.length; i += n) rows.push(digits.slice(i, i+n));
-  trace.push({t:"手順2　文字数ごとに改行", s:`${n}桁ずつ折り返す`, b:rows.join("\n")});
+  for(let i = 0; i < digits.length; i += C) rows.push(digits.slice(i, i+C));
+  trace.push({t:"手順2　正方形に近い形に組む",
+    s:`総桁数 ${4*n} を ${R}行 × ${C}列 に（縦横比 ${(C/R).toFixed(2)}）`, b:rows.join("\n")});
 
   // 手順3・4 — 反転（自己逆元）
-  const r3 = flipRow(rows, n);
-  trace.push({t:"手順3　行内の反転", s:`各行を ${Math.floor(n/2)}｜${n-Math.floor(n/2)} で割り、後半を反転`, b:r3.join("\n")});
+  const r3 = flipRow(rows, C);
+  trace.push({t:"手順3　行内の反転",
+    s:`各行を ${Math.floor(C/2)}｜${C-Math.floor(C/2)} で割り、後半を反転`, b:r3.join("\n")});
   rows = flipOrder(r3);
-  trace.push({t:"手順4　行の反転", s:"後半の行を反転（3行目と4行目を入れ替え）", b:rows.join("\n")});
+  trace.push({t:"手順4　行の反転",
+    s:`${Math.floor(R/2)}行｜${R-Math.floor(R/2)}行 で割り、後半の行を反転`, b:rows.join("\n")});
 
-  // 手順5 — 基準値（右上）
-  const baseVal = parseInt(rows[0][n-1], 16);
-  trace.push({t:"手順5　基準値", s:"1行目の末尾を読む",
-    b:`右上 ＝ ${rows[0][n-1]} ＝ ${baseVal}`});
+  // 手順5 — 基準値（N桁目）
+  const flat = rows.join("");
+  const baseVal = parseInt(flat[n-1], 16);
+  trace.push({t:"手順5　基準値", s:`行優先で数えて ${n} 桁目を読む`,
+    b:`${n}桁目 ＝ ${flat[n-1]} ＝ ${baseVal}　（${Math.floor((n-1)/C)+1}行目 ${(n-1)%C+1}列目）`});
 
   // 手順6 — アルファベット化
   const bi = SEQ.indexOf(baseChar);
@@ -459,7 +475,7 @@ function encrypt(text, baseChar){
   trace.push({t:"手順6　アルファベット化",
     s:`基準文字 ${baseChar} から、値と基準値の差分だけ換字列を移動`, b:cipher.join("\n")});
 
-  return { rows: cipher, n, baseChar, baseIdx: bi, baseVal,
+  return { rows: cipher, n, cols: C, nrows: R, baseChar, baseIdx: bi, baseVal,
            innerChar: SEQ[bi + baseVal], trace };
 }
 
@@ -483,20 +499,27 @@ function decrypt(payload){
   if(front.length !== 1 || SEQ.indexOf(front) < 0)
     throw new Error("先頭は換字列の1文字にしてください。");
   const rows = tok.slice(1);
-  if(rows.length !== 4) throw new Error(`本体は4行です（${rows.length}行あります）。`);
-  const n = rows[0].length;
-  if(rows.some(r => r.length !== n)) throw new Error("4行の長さが揃っていません。");
+  if(rows.length < 2) throw new Error("本体が足りません。");
+  const C = rows[0].length, R = rows.length;
+  if(rows.some(r => r.length !== C)) throw new Error("各行の長さが揃っていません。");
   if(rows.some(r => [...r].some(c => SEQ.indexOf(c) < 0)))
     throw new Error("換字列にない文字が混ざっています。");
+  const D = R*C;
+  if(D % 4) throw new Error(`総桁数 ${D} が4の倍数ではありません。`);
+  const n = D/4;
+  const sh = gridShape(n);
+  if(sh.rows !== R || sh.cols !== C)
+    throw new Error(`${n}文字なら ${sh.rows}行×${sh.cols}列 のはずです。`);
 
-  const baseChar = rows[0][n-1];
+  const baseChar = rows.join("")[n-1];
   const bi = SEQ.indexOf(baseChar);
   const baseVal = SEQ.indexOf(front) - bi;
   if(baseVal < 0 || baseVal > 15)
     throw new Error("先頭の文字と右上が噛み合いません。");
 
-  const trace = [{t:"基準を読む", s:"右上が基準文字、先頭の1文字が基準値",
-    b:`右上 ＝ ${baseChar}（基準文字）\n先頭 ＝ ${front}\n基準値 ＝ ${baseVal}\n文字数 ＝ ${n}`}];
+  const trace = [{t:"基準を読む", s:"総桁数を4で割れば文字数が出る",
+    b:`${R}行 × ${C}列 ＝ ${D}桁\n文字数 ＝ ${D} ÷ 4 ＝ ${n}\n`+
+      `${n}桁目 ＝ ${baseChar}（基準文字）\n先頭 ＝ ${front}\n基準値 ＝ ${baseVal}`}];
 
   const hexRows = rows.map(r => [...r].map(ch => {
     const v = SEQ.indexOf(ch) - bi + baseVal;
@@ -508,7 +531,7 @@ function decrypt(payload){
 
   const u4 = flipOrder(hexRows);
   trace.push({t:"手順4を戻す　行の反転", s:"もう一度同じ操作をかける", b:u4.join("\n")});
-  const u3 = flipRow(u4, n);
+  const u3 = flipRow(u4, C);
   trace.push({t:"手順3を戻す　行内の反転", s:"もう一度同じ操作をかける", b:u3.join("\n")});
 
   const digits = u3.join("");
@@ -529,7 +552,7 @@ function decrypt(payload){
   trace.push({t:"手順1を戻す　XORとUnicode",
     s:`マスク ＝ (${n} ＋ 文字位置 ＋ 桁番号) mod 16`, b:log.join("\n")});
 
-  return { text, baseChar, baseVal, n, trace };
+  return { text, baseChar, baseVal, n, cols: C, nrows: R, trace };
 }
 
 /* ============================================================
@@ -630,15 +653,23 @@ function inkCircle(ctx, cx, cy, r0, rand, alpha, w){
    暗号画像
    ============================================================ */
 function diskLayout(n, showTitle){
-  const cell = Math.max(30, Math.min(70, 620/n));
-  const gw = n*cell, gh = 4*cell;              // 方眼に合わせ、行間はちょうど1マス
+  const SH = gridShape(n);
+  const cell = Math.max(24, Math.min(70, 640/Math.max(SH.cols, SH.rows)));
+  const gw = SH.cols*cell, gh = SH.rows*cell;  // 方眼に合わせ、1桁がちょうど1マス
   const gr = Math.hypot(gw/2, gh/2);           // 傾けても外接円は変わらない
   const rIn  = Math.max(292, gr + 64);
   const rOut = rIn + 62;
-  const pad  = showTitle ? 62 : 40;
-  const S    = Math.round((rOut + pad)*2);     // 画像は正方形
-  const cy   = showTitle ? rOut + 2 : S/2;
-  return { cell, gw, gh, rIn, rOut, S, cx: S/2, cy };
+  const Ro   = rOut + 24;                      // 外側の輪郭まで
+  // 題字は一文字あたり整数マス。字の大きさは 50 を基準に、枠に収まるぶんだけ縮める
+  const box  = Math.max(1, Math.ceil(46/cell)) * cell;
+  const tfs  = Math.min(50, box*.92);
+  const half = .3536 * 5 * box;                // 45度傾けたときの張り出し
+  const TOP  = 44;
+  const BOT  = showTitle ? Math.round(2*half + 44 + cell) : 44;
+  const S    = Math.round(2*Ro + TOP + BOT);   // 画像は正方形
+  const cy   = TOP + Ro;
+  return { cell, gw, gh, rIn, rOut, S, cx: S/2, cy, box, tfs,
+           cols: SH.cols, nrows: SH.rows, titleY: cy + Ro + BOT/2 };
 }
 
 function drawDisk(ctx, st, opts){
@@ -679,7 +710,8 @@ function drawDisk(ctx, st, opts){
 
   // × ＝ 原点から文字数ぶん進んだ交差点だけ、半マス分太く
   ctx.strokeStyle = ink(.44); ctx.lineWidth = THICK;
-  for(let i=0;i<=last;i+=n) for(let j=0;j<=last;j+=n){
+  const stepN = Math.max(1, n);
+  for(let i=0;i<=last;i+=stepN) for(let j=0;j<=last;j+=stepN){
     const px = OX + i*cell, py = OY - j*cell;
     ctx.beginPath(); ctx.moveTo(px-cell/2,py); ctx.lineTo(px+cell/2,py); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(px,py-cell/2); ctx.lineTo(px,py+cell/2); ctx.stroke();
@@ -697,10 +729,11 @@ function drawDisk(ctx, st, opts){
   const left = OX + Math.round((-L.gw/2 - OX)/cell)*cell;
   const top  = OY - Math.round((OY + L.gh/2)/cell)*cell;
 
-  // 囲み — 全体と、右上（基準）の一マス。太さは × と同じ
+  // 囲み — 全体と、N桁目（基準）の一マス。太さは × と同じ
   ctx.strokeStyle = ink(.44); ctx.lineWidth = THICK;
   ctx.strokeRect(left, top, L.gw, L.gh);
-  ctx.strokeRect(left + (n-1)*cell, top, cell, cell);
+  ctx.strokeRect(left + ((n-1) % L.cols)*cell,
+                 top  + Math.floor((n-1) / L.cols)*cell, cell, cell);
 
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
   ctx.font = `600 ${Math.round(cell*.6)}px ${MONO}`;
@@ -715,9 +748,27 @@ function drawDisk(ctx, st, opts){
       ctx.restore();
     });
   });
+  // 題字 — 一文字ずつマスに収める
+  if(showTitle){
+    const box = L.box;
+    const d   = (L.titleY - cy) * Math.SQRT1_2;      // 傾けた座標系での中心
+    const tlx = OX + Math.round((d - 2*box - OX)/cell)*cell;
+    const tly = OY - Math.round((OY - (d - box/2))/cell)*cell;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.font = `600 ${Math.round(L.tfs)}px ${MINCHO}`;
+    [["無",1,1],["幾",-1,1],["暗",1,-1],["号",-1,-1]].forEach((gl, i) => {
+      ctx.save();
+      ctx.translate(tlx + i*box + box/2 + (r()-.5)*2, tly + box/2 + (r()-.5)*2);
+      ctx.rotate((r()-.5)*.03);
+      ctx.scale(gl[1], gl[2]);
+      ctx.fillStyle = ink(.82);
+      ctx.fillText(gl[0], 0, 0);
+      ctx.restore();
+    });
+  }
   ctx.restore();
 
-  // ===== 円と題字は傾けない =====
+  // ===== 円は傾けない =====
   inkCircle(ctx, cx, cy, L.rOut + 24, r, .34, 1.1);
   inkCircle(ctx, cx, cy, L.rOut - 24, r, .22, .9);
   inkCircle(ctx, cx, cy, L.rIn  + 23, r, .22, .9);
@@ -725,22 +776,6 @@ function drawDisk(ctx, st, opts){
   ringLetters(ctx, cx, cy, L.rOut, baseIdx,               r, 27);
   ringLetters(ctx, cx, cy, L.rIn,  baseIdx + innerOffset, r, 27);
 
-  if(showTitle){
-    const fs = 50, gap = fs*1.48, ty = cy + L.rOut + 72;
-    ctx.save();
-    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.font = `600 ${fs}px ${MINCHO}`;
-    [["無",1,1],["幾",-1,1],["暗",1,-1],["号",-1,-1]].forEach((gl, i) => {
-      ctx.save();
-      ctx.translate(cx + (i - 1.5)*gap + (r()-.5)*3, ty + (r()-.5)*3);
-      ctx.rotate((r()-.5)*.03);
-      ctx.scale(gl[1], gl[2]);
-      ctx.fillStyle = ink(.82);
-      ctx.fillText(gl[0], 0, 0);
-      ctx.restore();
-    });
-    ctx.restore();
-  }
   return { W: S, H: S };
 }
 
@@ -770,18 +805,20 @@ const PROC = [
     "各桁について次のマスクとの XOR を取り、結果を16進1桁で書く。",
     "▸ マスク ＝ （文字数 ＋ 文字位置 ＋ 桁番号） mod 16",
     "文字位置・桁番号はいずれも1始まり。" ]},
-  { id:"p2", n:"手順2", t:"改行", s:"文字数ごとに折り返す", b:[
-    "得られた桁を順に並べ、元の文章の文字数ごとに改行する。",
-    "総桁数は文字数の4倍なので、行数は必ず4行になる。" ]},
+  { id:"p2", n:"手順2", t:"組み直し", s:"正方形に最も近い形に折り返す", b:[
+    "得られた桁を順に並べ、正方形に最も近い整数比の長方形に組む。",
+    "▸ 総桁数は文字数の4倍。その約数のうち、平方根に最も近い組を選ぶ。",
+    "文字数が素数のときは 4行 × 文字数列 になる。" ]},
   { id:"p3", n:"手順3", t:"行内の反転", s:"各行の後半をひっくり返す", b:[
     "各行を半分で割り、後半を反転する。",
     "半分にできない場合は、後半を1文字多くする。" ]},
   { id:"p4", n:"手順4", t:"行の反転", s:"後半の行をひっくり返す", b:[
-    "全体の後半半分の行を反転する。" ]},
-  { id:"p5", n:"手順5", t:"基準値の特定", s:"右上の桁を読む", b:[
-    "できあがった4行の、全体の右上の桁を取る。",
-    "▸ すなわち1行目の末尾。行がいくら長くても変わらない。",
-    "その桁の値が基準値となる。" ]},
+    "全体の後半半分の行を反転する。",
+    "半分にできない場合は、後半を1行多くする。" ]},
+  { id:"p5", n:"手順5", t:"基準値の特定", s:"文字数番目の桁を読む", b:[
+    "できあがった盤面を行優先で数え、文字数と同じ番目の桁を取る。",
+    "▸ 4行に組んだときの1行目の末尾にあたる位置。",
+    "その桁の値が基準値となる。画像ではこの一マスが囲まれている。" ]},
   { id:"p6", n:"手順6", t:"アルファベット化", s:"基準値との差分を文字に置き換える", b:[
     "換字列の k 〜 K からランダムに1文字を選び、基準文字とする。",
     "各桁の値と基準値の差分だけ、基準文字から換字列上を移動する。",
@@ -801,7 +838,7 @@ const PROC = [
   { id:"pd", n:"復号", t:"戻し方", s:"手順6から順に遡る", b:[
     "北東から基準文字と基準値を読む。",
     "各文字を差分に戻し、基準値を足して16進に戻す。",
-    "反転を戻し、1行の長さを文字数としてマスクを組み直し、XOR を戻す。",
+    "反転を戻し、総桁数を4で割って文字数を出し、マスクを組み直して XOR を戻す。",
     "16進4桁ごとに区切って Unicode として読む。" ]}
 ];
 
