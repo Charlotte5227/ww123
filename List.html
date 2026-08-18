@@ -13,7 +13,7 @@
             --text-main: #333333;
             --text-sub: #777777;
             --border-color: #E0E0E0;
-            --item-height: 60px; /* 1行の高さ */
+            --item-height: 60px;
         }
 
         * {
@@ -36,14 +36,13 @@
         .app-container {
             background-color: var(--card-bg);
             width: 100%;
-            max-width: 480px; /* PCでもスマホでも見やすい幅 */
+            max-width: 500px;
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             overflow: hidden;
             position: relative;
         }
 
-        /* 画面切り替え用のスタイル */
         .screen {
             display: none;
             padding: 30px 20px;
@@ -68,7 +67,6 @@
 
         /* --- 一覧画面のスタイル --- */
         .list-wrapper {
-            /* 最大5行分(60px × 5)の高さを指定し、超過分はスクロール */
             max-height: calc(var(--item-height) * 5);
             overflow-y: auto;
             border: 1px solid var(--border-color);
@@ -77,7 +75,6 @@
             background: #FAFAFA;
         }
 
-        /* カスタムスクロールバー（PC用） */
         .list-wrapper::-webkit-scrollbar { width: 6px; }
         .list-wrapper::-webkit-scrollbar-track { background: transparent; }
         .list-wrapper::-webkit-scrollbar-thumb { background: #CCC; border-radius: 3px; }
@@ -90,7 +87,7 @@
             display: flex;
             align-items: center;
             height: var(--item-height);
-            padding: 0 15px;
+            padding: 0 10px;
             border-bottom: 1px solid var(--border-color);
             transition: background 0.2s;
         }
@@ -104,16 +101,44 @@
         .item-number {
             font-size: 14px;
             color: var(--text-sub);
-            width: 30px;
+            width: 24px;
             flex-shrink: 0;
+            text-align: right;
+            margin-right: 12px;
         }
 
         .item-symbol {
             font-size: 20px;
-            width: 40px;
+            width: 30px;
             text-align: center;
             flex-shrink: 0;
-            margin-right: 10px;
+        }
+
+        .move-btns {
+            display: flex;
+            gap: 2px;
+            margin: 0 10px;
+            flex-shrink: 0;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 8px 4px;
+            border-radius: 4px;
+            transition: background 0.2s, opacity 0.2s;
+        }
+        .icon-btn:hover:not(:disabled) {
+            background-color: #E2E8F0;
+        }
+        .icon-btn:active:not(:disabled) {
+            background-color: #CBD5E1;
+        }
+        .icon-btn:disabled {
+            opacity: 0.2;
+            cursor: default;
         }
 
         .item-link {
@@ -123,79 +148,105 @@
             font-weight: 500;
             white-space: nowrap;
             overflow: hidden;
-            text-overflow: ellipsis; /* 長いテキストは「...」で省略 */
-            width: 100%;
+            text-overflow: ellipsis;
+            flex-grow: 1;
         }
         .item-link:hover {
             text-decoration: underline;
         }
 
-        /* --- 追加画面のスタイル --- */
-        .form-group {
-            margin-bottom: 16px;
+        .delete-btn {
+            font-size: 18px;
+            margin-left: 5px;
+            padding: 8px;
+        }
+        .delete-btn:hover {
+            background-color: #FEE2E2;
         }
 
+        /* --- ボタン・フォーム共通スタイル --- */
+        .form-group { margin-bottom: 16px; }
         label {
-            display: block;
-            font-size: 14px;
-            margin-bottom: 6px;
-            color: var(--text-sub);
+            display: block; font-size: 14px; margin-bottom: 6px; color: var(--text-sub);
         }
-
-        input[type="text"],
-        input[type="url"] {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 16px; /* スマホでのズーム防止のため16px以上 */
-            outline: none;
-            transition: border 0.2s;
+        input[type="text"], input[type="url"] {
+            width: 100%; padding: 12px 16px; border: 1px solid var(--border-color);
+            border-radius: 8px; font-size: 16px; outline: none; transition: border 0.2s;
         }
         input:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
         }
 
-        /* --- ボタン共通スタイル --- */
         .btn {
-            display: block;
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s;
+            display: block; width: 100%; padding: 14px; border: none;
+            border-radius: 8px; font-size: 16px; font-weight: bold;
+            cursor: pointer; text-align: center; transition: all 0.2s;
         }
-        
         .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
+            background-color: var(--primary-color); color: white;
             box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
         }
         .btn-primary:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-2px);
+            background-color: var(--primary-hover); transform: translateY(-2px);
         }
-
         .btn-secondary {
-            background-color: transparent;
-            color: var(--text-sub);
-            margin-top: 10px;
+            background-color: transparent; color: var(--text-sub); margin-top: 10px;
         }
-        .btn-secondary:hover {
-            background-color: #EEEEEE;
+        .btn-secondary:hover { background-color: #EEEEEE; }
+        
+        .btn-danger {
+            background-color: #E53E3E; color: white;
+        }
+        .btn-danger:hover { background-color: #C53030; }
+
+        .empty-state {
+            text-align: center; padding: 30px 10px; color: var(--text-sub); font-size: 14px;
         }
 
-        /* データがない時の表示 */
-        .empty-state {
+        /* --- カスタム確認ポップアップ（モーダル） --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 320px;
             text-align: center;
-            padding: 30px 10px;
-            color: var(--text-sub);
-            font-size: 14px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.show .modal-content {
+            transform: translateY(0);
+        }
+        .modal-text {
+            font-size: 16px;
+            color: var(--text-main);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .modal-actions .btn {
+            padding: 12px;
+            margin-top: 0; /* secondaryのデフォルトマージンを打ち消し */
         }
     </style>
 </head>
@@ -206,9 +257,7 @@
     <div id="view-list" class="screen active">
         <h1>暗号一覧表</h1>
         <div class="list-wrapper">
-            <ul id="link-list" class="list">
-                <!-- JavaScriptでここにリストが生成されます -->
-            </ul>
+            <ul id="link-list" class="list"></ul>
         </div>
         <button id="btn-go-to-add" class="btn btn-primary">追加ボタン</button>
     </div>
@@ -232,32 +281,47 @@
     </div>
 </div>
 
+<!-- カスタム確認ポップアップ -->
+<div id="delete-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div id="delete-modal-text" class="modal-text">本当に削除しますか？</div>
+        <div class="modal-actions">
+            <button id="btn-cancel-delete" class="btn btn-secondary" style="background-color:#f0f0f0;">やめる</button>
+            <button id="btn-confirm-delete" class="btn btn-danger">削除する</button>
+        </div>
+    </div>
+</div>
+
 <script>
-    // ブラウザのLocalStorageからデータを取得（なければ初期データ）
     let links = JSON.parse(localStorage.getItem('cryptoLinks')) || [
         { symbol: '🔐', name: 'サンプルリンク', url: 'https://example.com' }
     ];
 
-    // DOM要素の取得
     const viewList = document.getElementById('view-list');
     const viewAdd = document.getElementById('view-add');
     const listUl = document.getElementById('link-list');
     
-    // 入力フォーム要素
     const inputSymbol = document.getElementById('input-symbol');
     const inputName = document.getElementById('input-name');
     const inputUrl = document.getElementById('input-url');
 
-    // 画面切り替え関数
+    // ポップアップ用の要素
+    const modalOverlay = document.getElementById('delete-modal');
+    const modalText = document.getElementById('delete-modal-text');
+    let deleteTargetIndex = null; // 削除対象の番号を一時保存する変数
+
     function switchScreen(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
     }
 
-    // リストを描画する関数
+    function saveAndRender() {
+        localStorage.setItem('cryptoLinks', JSON.stringify(links));
+        renderList();
+    }
+
     function renderList() {
         listUl.innerHTML = '';
-        
         if (links.length === 0) {
             listUl.innerHTML = '<div class="empty-state">データがありません。<br>下のボタンから追加してください。</div>';
             return;
@@ -267,75 +331,116 @@
             const li = document.createElement('li');
             li.className = 'list-item';
             
-            // 安全のため、ユーザー入力をエスケープして表示
+            const upDisabled = index === 0 ? 'disabled' : '';
+            const downDisabled = index === links.length - 1 ? 'disabled' : '';
+
             li.innerHTML = `
                 <span class="item-number">${index + 1}</span>
                 <span class="item-symbol">${escapeHTML(item.symbol)}</span>
+                <div class="move-btns">
+                    <button class="icon-btn" onclick="moveItemUp(${index})" title="上に移動" ${upDisabled}>⬆️</button>
+                    <button class="icon-btn" onclick="moveItemDown(${index})" title="下に移動" ${downDisabled}>⬇️</button>
+                </div>
                 <a href="${escapeHTML(item.url)}" target="_blank" class="item-link" rel="noopener noreferrer">${escapeHTML(item.name)}</a>
+                <button class="icon-btn delete-btn" onclick="openDeleteModal(${index})" title="削除">🗑️</button>
             `;
             listUl.appendChild(li);
         });
     }
 
-    // 簡単なXSS対策（エスケープ処理）
+    // --- ポップアップ（モーダル）の処理 ---
+
+    // ゴミ箱ボタンを押した時
+    window.openDeleteModal = function(index) {
+        deleteTargetIndex = index; // 何番目を消すか記憶
+        // エスケープ処理をして安全に名前を表示
+        modalText.innerHTML = `「<strong>${escapeHTML(links[index].name)}</strong>」<br>を削除してもよろしいですか？`;
+        modalOverlay.style.display = 'flex';
+        // 少し遅延させてclassを付与し、フワッと表示するアニメーションを適用
+        setTimeout(() => modalOverlay.classList.add('show'), 10);
+    };
+
+    // ポップアップを閉じる処理
+    function closeDeleteModal() {
+        modalOverlay.classList.remove('show');
+        setTimeout(() => {
+            modalOverlay.style.display = 'none';
+            deleteTargetIndex = null;
+        }, 300); // アニメーションが終わるのを待ってから非表示
+    }
+
+    // 「やめる」ボタンを押した時
+    document.getElementById('btn-cancel-delete').addEventListener('click', closeDeleteModal);
+
+    // ポップアップの背景の暗い部分を押した時もキャンセル扱いにする
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) closeDeleteModal();
+    });
+
+    // 「削除する」ボタンを押した時
+    document.getElementById('btn-confirm-delete').addEventListener('click', () => {
+        if (deleteTargetIndex !== null) {
+            links.splice(deleteTargetIndex, 1);
+            saveAndRender();
+            closeDeleteModal();
+        }
+    });
+
+    // --- その他のアクション ---
+
+    window.moveItemUp = function(index) {
+        if (index > 0) {
+            const temp = links[index];
+            links[index] = links[index - 1];
+            links[index - 1] = temp;
+            saveAndRender();
+        }
+    };
+
+    window.moveItemDown = function(index) {
+        if (index < links.length - 1) {
+            const temp = links[index];
+            links[index] = links[index + 1];
+            links[index + 1] = temp;
+            saveAndRender();
+        }
+    };
+
     function escapeHTML(str) {
         return str.replace(/[&<>'"]/g, 
             tag => ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                "'": '&#39;',
-                '"': '&quot;'
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
             }[tag])
         );
     }
 
-    // --- イベントリスナー ---
-
-    // 一覧画面 -> 追加画面
     document.getElementById('btn-go-to-add').addEventListener('click', () => {
-        // フォームをリセットしてから移動
-        inputSymbol.value = '';
-        inputName.value = '';
-        inputUrl.value = '';
+        inputSymbol.value = ''; inputName.value = ''; inputUrl.value = '';
         switchScreen('view-add');
     });
 
-    // 追加画面 -> キャンセル
     document.getElementById('btn-cancel').addEventListener('click', () => {
         switchScreen('view-list');
     });
 
-    // アイテムを追加する処理
     document.getElementById('btn-add-item').addEventListener('click', () => {
-        const symbol = inputSymbol.value.trim() || '🔗'; // 空白の場合はデフォルト記号
+        const symbol = inputSymbol.value.trim() || '🔗';
         const name = inputName.value.trim();
         const url = inputUrl.value.trim();
 
-        // バリデーション
         if (!name || !url) {
             alert('名前設定とURL設定は必須です。');
             return;
         }
         
-        // URLの簡易チェック（httpから始まっていなければ付与）
         let finalUrl = url;
-        if (!/^https?:\/\//i.test(finalUrl)) {
-            finalUrl = 'https://' + finalUrl;
-        }
+        if (!/^https?:\/\//i.test(finalUrl)) finalUrl = 'https://' + finalUrl;
 
-        // データを配列に追加
         links.push({ symbol, name, url: finalUrl });
-        
-        // LocalStorageに保存
-        localStorage.setItem('cryptoLinks', JSON.stringify(links));
-
-        // リストを再描画して元の画面に戻る
-        renderList();
+        saveAndRender();
         switchScreen('view-list');
     });
 
-    // 初回読み込み時の描画
     renderList();
 </script>
 
