@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>暗号一覧表</title>
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --primary-hover: #357ABD;
+            --bg-color: #F4F7F6;
+            --card-bg: #FFFFFF;
+            --text-main: #333333;
+            --text-sub: #777777;
+            --border-color: #E0E0E0;
+            --item-height: 60px; /* 1行の高さ */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 480px; /* PCでもスマホでも見やすい幅 */
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 画面切り替え用のスタイル */
+        .screen {
+            display: none;
+            padding: 30px 20px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 20px;
+            text-align: center;
+            margin-bottom: 24px;
+            color: var(--text-main);
+            font-weight: bold;
+        }
+
+        /* --- 一覧画面のスタイル --- */
+        .list-wrapper {
+            /* 最大5行分(60px × 5)の高さを指定し、超過分はスクロール */
+            max-height: calc(var(--item-height) * 5);
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            background: #FAFAFA;
+        }
+
+        /* カスタムスクロールバー（PC用） */
+        .list-wrapper::-webkit-scrollbar { width: 6px; }
+        .list-wrapper::-webkit-scrollbar-track { background: transparent; }
+        .list-wrapper::-webkit-scrollbar-thumb { background: #CCC; border-radius: 3px; }
+
+        .list {
+            list-style: none;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            height: var(--item-height);
+            padding: 0 15px;
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.2s;
+        }
+        .list-item:last-child {
+            border-bottom: none;
+        }
+        .list-item:hover {
+            background-color: #F0F5FA;
+        }
+
+        .item-number {
+            font-size: 14px;
+            color: var(--text-sub);
+            width: 30px;
+            flex-shrink: 0;
+        }
+
+        .item-symbol {
+            font-size: 20px;
+            width: 40px;
+            text-align: center;
+            flex-shrink: 0;
+            margin-right: 10px;
+        }
+
+        .item-link {
+            font-size: 16px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis; /* 長いテキストは「...」で省略 */
+            width: 100%;
+        }
+        .item-link:hover {
+            text-decoration: underline;
+        }
+
+        /* --- 追加画面のスタイル --- */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: var(--text-sub);
+        }
+
+        input[type="text"],
+        input[type="url"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px; /* スマホでのズーム防止のため16px以上 */
+            outline: none;
+            transition: border 0.2s;
+        }
+        input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+
+        /* --- ボタン共通スタイル --- */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--text-sub);
+            margin-top: 10px;
+        }
+        .btn-secondary:hover {
+            background-color: #EEEEEE;
+        }
+
+        /* データがない時の表示 */
+        .empty-state {
+            text-align: center;
+            padding: 30px 10px;
+            color: var(--text-sub);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- 画面1: 一覧画面 -->
+    <div id="view-list" class="screen active">
+        <h1>暗号一覧表</h1>
+        <div class="list-wrapper">
+            <ul id="link-list" class="list">
+                <!-- JavaScriptでここにリストが生成されます -->
+            </ul>
+        </div>
+        <button id="btn-go-to-add" class="btn btn-primary">追加ボタン</button>
+    </div>
+
+    <!-- 画面2: 追加画面 -->
+    <div id="view-add" class="screen">
+        <h1>リンク追加</h1>
+        <form id="add-form">
+            <div class="form-group">
+                <input type="text" id="input-symbol" placeholder="記号設定 (例: 🔑)">
+            </div>
+            <div class="form-group">
+                <input type="text" id="input-name" placeholder="名前設定 (例: ポータルサイト)">
+            </div>
+            <div class="form-group">
+                <input type="url" id="input-url" placeholder="URL設定 (例: https://...)">
+            </div>
+            <button type="button" id="btn-add-item" class="btn btn-primary">追加</button>
+            <button type="button" id="btn-cancel" class="btn btn-secondary">キャンセルして戻る</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // ブラウザのLocalStorageからデータを取得（なければ初期データ）
+    let links = JSON.parse(localStorage.getItem('cryptoLinks')) || [
+        { symbol: '🔐', name: 'サンプルリンク', url: 'https://example.com' }
+    ];
+
+    // DOM要素の取得
+    const viewList = document.getElementById('view-list');
+    const viewAdd = document.getElementById('view-add');
+    const listUl = document.getElementById('link-list');
+    
+    // 入力フォーム要素
+    const inputSymbol = document.getElementById('input-symbol');
+    const inputName = document.getElementById('input-name');
+    const inputUrl = document.getElementById('input-url');
+
+    // 画面切り替え関数
+    function switchScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    // リストを描画する関数
+    function renderList() {
+        listUl.innerHTML = '';
+        
+        if (links.length === 0) {
+            listUl.innerHTML = '<div class="empty-state">データがありません。<br>下のボタンから追加してください。</div>';
+            return;
+        }
+
+        links.forEach((item, index) => {
+            const li = document.createElement('li');
+            li.className = 'list-item';
+            
+            // 安全のため、ユーザー入力をエスケープして表示
+            li.innerHTML = `
+                <span class="item-number">${index + 1}</span>
+                <span class="item-symbol">${escapeHTML(item.symbol)}</span>
+                <a href="${escapeHTML(item.url)}" target="_blank" class="item-link" rel="noopener noreferrer">${escapeHTML(item.name)}</a>
+            `;
+            listUl.appendChild(li);
+        });
+    }
+
+    // 簡単なXSS対策（エスケープ処理）
+    function escapeHTML(str) {
+        return str.replace(/[&<>'"]/g, 
+            tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag])
+        );
+    }
+
+    // --- イベントリスナー ---
+
+    // 一覧画面 -> 追加画面
+    document.getElementById('btn-go-to-add').addEventListener('click', () => {
+        // フォームをリセットしてから移動
+        inputSymbol.value = '';
+        inputName.value = '';
+        inputUrl.value = '';
+        switchScreen('view-add');
+    });
+
+    // 追加画面 -> キャンセル
+    document.getElementById('btn-cancel').addEventListener('click', () => {
+        switchScreen('view-list');
+    });
+
+    // アイテムを追加する処理
+    document.getElementById('btn-add-item').addEventListener('click', () => {
+        const symbol = inputSymbol.value.trim() || '🔗'; // 空白の場合はデフォルト記号
+        const name = inputName.value.trim();
+        const url = inputUrl.value.trim();
+
+        // バリデーション
+        if (!name || !url) {
+            alert('名前設定とURL設定は必須です。');
+            return;
+        }
+        
+        // URLの簡易チェック（httpから始まっていなければ付与）
+        let finalUrl = url;
+        if (!/^https?:\/\//i.test(finalUrl)) {
+            finalUrl = 'https://' + finalUrl;
+        }
+
+        // データを配列に追加
+        links.push({ symbol, name, url: finalUrl });
+        
+        // LocalStorageに保存
+        localStorage.setItem('cryptoLinks', JSON.stringify(links));
+
+        // リストを再描画して元の画面に戻る
+        renderList();
+        switchScreen('view-list');
+    });
+
+    // 初回読み込み時の描画
+    renderList();
+</script>
+
+</body>
+</html>
