@@ -563,6 +563,7 @@ const ink = a => `rgba(${INK_R},${INK_G},${INK_B},${a})`;
 const NE = -Math.PI/4;                 // 北東（環を読む位置）
 const TILT = Math.PI/4;                // 暗号文の傾き。1行目が北東の辺に乗る
 const THICK = 3.2;                     // × と囲みの線の太さ（すべて同じ）
+const XSTEP = 5;                       // × を打つ間隔（マス）
 const STEP = Math.PI*2/52;
 const MONO = `ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace`;
 const MINCHO = `"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif`;
@@ -708,10 +709,10 @@ function drawDisk(ctx, st, opts){
     ctx.beginPath(); ctx.moveTo(-reach,py); ctx.lineTo(reach,py); ctx.stroke();
   }
 
-  // × ＝ 原点から文字数ぶん進んだ交差点だけ、半マス分太く
+  // × ＝ 原点から5マスごとの交差点だけ、半マス分太く
+  //   文字数は □ が持つので、ここは方眼の目盛りとして一定間隔にする
   ctx.strokeStyle = ink(.44); ctx.lineWidth = THICK;
-  const stepN = Math.max(1, n);
-  for(let i=0;i<=last;i+=stepN) for(let j=0;j<=last;j+=stepN){
+  for(let i=0;i<=last;i+=XSTEP) for(let j=0;j<=last;j+=XSTEP){
     const px = OX + i*cell, py = OY - j*cell;
     ctx.beginPath(); ctx.moveTo(px-cell/2,py); ctx.lineTo(px+cell/2,py); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(px,py-cell/2); ctx.lineTo(px,py+cell/2); ctx.stroke();
