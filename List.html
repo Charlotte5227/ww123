@@ -166,88 +166,54 @@
 
         /* --- ボタン・フォーム共通スタイル --- */
         .form-group { margin-bottom: 16px; }
-        label {
-            display: block; font-size: 14px; margin-bottom: 6px; color: var(--text-sub);
-        }
+        label { display: block; font-size: 14px; margin-bottom: 6px; color: var(--text-sub); }
         input[type="text"], input[type="url"] {
             width: 100%; padding: 12px 16px; border: 1px solid var(--border-color);
             border-radius: 8px; font-size: 16px; outline: none; transition: border 0.2s;
         }
-        input:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
-        }
+        input:focus { border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2); }
 
         .btn {
             display: block; width: 100%; padding: 14px; border: none;
             border-radius: 8px; font-size: 16px; font-weight: bold;
             cursor: pointer; text-align: center; transition: all 0.2s;
         }
-        .btn-primary {
-            background-color: var(--primary-color); color: white;
-            box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
-        }
-        .btn-primary:hover {
-            background-color: var(--primary-hover); transform: translateY(-2px);
-        }
-        .btn-secondary {
-            background-color: transparent; color: var(--text-sub); margin-top: 10px;
-        }
+        .btn-primary { background-color: var(--primary-color); color: white; box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3); }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
+        .btn-secondary { background-color: transparent; color: var(--text-sub); margin-top: 10px; border: 1px solid var(--border-color); }
         .btn-secondary:hover { background-color: #EEEEEE; }
-        
-        .btn-danger {
-            background-color: #E53E3E; color: white;
-        }
+        .btn-danger { background-color: #E53E3E; color: white; }
         .btn-danger:hover { background-color: #C53030; }
 
-        .empty-state {
-            text-align: center; padding: 30px 10px; color: var(--text-sub); font-size: 14px;
+        /* データ書き出し・読み込みボタン用レイアウト */
+        .data-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
         }
+        .data-actions .btn {
+            margin-top: 0;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        .empty-state { text-align: center; padding: 30px 10px; color: var(--text-sub); font-size: 14px; }
 
         /* --- カスタム確認ポップアップ（モーダル） --- */
         .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); z-index: 1000; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.3s ease;
         }
-        .modal-overlay.show {
-            display: flex;
-            opacity: 1;
-        }
+        .modal-overlay.show { display: flex; opacity: 1; }
         .modal-content {
-            background-color: var(--card-bg);
-            padding: 24px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 320px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            transform: translateY(-20px);
-            transition: transform 0.3s ease;
+            background-color: var(--card-bg); padding: 24px; border-radius: 12px; width: 90%; max-width: 320px;
+            text-align: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); transform: translateY(-20px); transition: transform 0.3s ease;
         }
-        .modal-overlay.show .modal-content {
-            transform: translateY(0);
-        }
-        .modal-text {
-            font-size: 16px;
-            color: var(--text-main);
-            margin-bottom: 20px;
-            line-height: 1.5;
-        }
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-        }
-        .modal-actions .btn {
-            padding: 12px;
-            margin-top: 0; /* secondaryのデフォルトマージンを打ち消し */
-        }
+        .modal-overlay.show .modal-content { transform: translateY(0); }
+        .modal-text { font-size: 16px; color: var(--text-main); margin-bottom: 20px; line-height: 1.5; }
+        .modal-actions { display: flex; gap: 10px; }
+        .modal-actions .btn { padding: 12px; margin-top: 0; border: none; }
     </style>
 </head>
 <body>
@@ -260,6 +226,14 @@
             <ul id="link-list" class="list"></ul>
         </div>
         <button id="btn-go-to-add" class="btn btn-primary">追加ボタン</button>
+        
+        <!-- データ書き出し・読み込みボタン -->
+        <div class="data-actions">
+            <button id="btn-export" class="btn btn-secondary" title="データをファイルとして保存します">📤 書き出し</button>
+            <button id="btn-import-trigger" class="btn btn-secondary" title="ファイルからデータを読み込みます">📥 読み込み</button>
+            <!-- 実際のファイル選択用input（画面上は非表示） -->
+            <input type="file" id="input-import" accept=".json" style="display: none;">
+        </div>
     </div>
 
     <!-- 画面2: 追加画面 -->
@@ -276,7 +250,7 @@
                 <input type="url" id="input-url" placeholder="URL設定 (例: https://...)">
             </div>
             <button type="button" id="btn-add-item" class="btn btn-primary">追加</button>
-            <button type="button" id="btn-cancel" class="btn btn-secondary">キャンセルして戻る</button>
+            <button type="button" id="btn-cancel" class="btn btn-secondary" style="border:none;">キャンセルして戻る</button>
         </form>
     </div>
 </div>
@@ -286,7 +260,7 @@
     <div class="modal-content">
         <div id="delete-modal-text" class="modal-text">本当に削除しますか？</div>
         <div class="modal-actions">
-            <button id="btn-cancel-delete" class="btn btn-secondary" style="background-color:#f0f0f0;">やめる</button>
+            <button id="btn-cancel-delete" class="btn btn-secondary" style="background-color:#f0f0f0; border:none;">やめる</button>
             <button id="btn-confirm-delete" class="btn btn-danger">削除する</button>
         </div>
     </div>
@@ -305,10 +279,9 @@
     const inputName = document.getElementById('input-name');
     const inputUrl = document.getElementById('input-url');
 
-    // ポップアップ用の要素
     const modalOverlay = document.getElementById('delete-modal');
     const modalText = document.getElementById('delete-modal-text');
-    let deleteTargetIndex = null; // 削除対象の番号を一時保存する変数
+    let deleteTargetIndex = null;
 
     function switchScreen(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -348,36 +321,81 @@
         });
     }
 
-    // --- ポップアップ（モーダル）の処理 ---
+    // --- ファイル書き出し (Export) ---
+    document.getElementById('btn-export').addEventListener('click', () => {
+        // 現在のデータをJSON形式の文字列に変換
+        const dataStr = JSON.stringify(links, null, 2);
+        // テキストファイル(Blob)として作成
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        // ダウンロード用のリンクを擬似的に作ってクリックさせる
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'crypto_links_data.json'; // 保存されるファイル名
+        a.click();
+        
+        URL.revokeObjectURL(url);
+    });
 
-    // ゴミ箱ボタンを押した時
+    // --- ファイル読み込み (Import) ---
+    // ボタンを押したら、隠してある<input type="file">をクリックしたことにする
+    document.getElementById('btn-import-trigger').addEventListener('click', () => {
+        document.getElementById('input-import').click();
+    });
+
+    // ファイルが選択された時の処理
+    document.getElementById('input-import').addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                // 読み込んだテキストをJavaScriptの配列に変換
+                const importedData = JSON.parse(e.target.result);
+                
+                // データが配列形式か確認してから上書き
+                if (Array.isArray(importedData)) {
+                    links = importedData;
+                    saveAndRender();
+                    alert('データの読み込みが完了しました。');
+                } else {
+                    alert('無効なデータ形式です。正しいJSONファイルを選択してください。');
+                }
+            } catch (error) {
+                alert('ファイルの読み込みに失敗しました。ファイルが破損している可能性があります。');
+            }
+        };
+        reader.readAsText(file);
+        
+        // 同じファイルを再度読み込めるように、選択状態をリセット
+        event.target.value = ''; 
+    });
+
+
+    // --- ポップアップ（モーダル）の処理 ---
     window.openDeleteModal = function(index) {
-        deleteTargetIndex = index; // 何番目を消すか記憶
-        // エスケープ処理をして安全に名前を表示
+        deleteTargetIndex = index;
         modalText.innerHTML = `「<strong>${escapeHTML(links[index].name)}</strong>」<br>を削除してもよろしいですか？`;
         modalOverlay.style.display = 'flex';
-        // 少し遅延させてclassを付与し、フワッと表示するアニメーションを適用
         setTimeout(() => modalOverlay.classList.add('show'), 10);
     };
 
-    // ポップアップを閉じる処理
     function closeDeleteModal() {
         modalOverlay.classList.remove('show');
         setTimeout(() => {
             modalOverlay.style.display = 'none';
             deleteTargetIndex = null;
-        }, 300); // アニメーションが終わるのを待ってから非表示
+        }, 300);
     }
 
-    // 「やめる」ボタンを押した時
     document.getElementById('btn-cancel-delete').addEventListener('click', closeDeleteModal);
 
-    // ポップアップの背景の暗い部分を押した時もキャンセル扱いにする
     modalOverlay.addEventListener('click', (e) => {
         if (e.target === modalOverlay) closeDeleteModal();
     });
 
-    // 「削除する」ボタンを押した時
     document.getElementById('btn-confirm-delete').addEventListener('click', () => {
         if (deleteTargetIndex !== null) {
             links.splice(deleteTargetIndex, 1);
@@ -387,7 +405,6 @@
     });
 
     // --- その他のアクション ---
-
     window.moveItemUp = function(index) {
         if (index > 0) {
             const temp = links[index];
@@ -408,9 +425,7 @@
 
     function escapeHTML(str) {
         return str.replace(/[&<>'"]/g, 
-            tag => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-            }[tag])
+            tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag])
         );
     }
 
