@@ -68,14 +68,17 @@
         /* --- 一覧画面のスタイル --- */
         .list-wrapper {
             max-height: calc(var(--item-height) * 5);
+            /* 縦・横どちらもはみ出た場合はスクロール可能にする */
             overflow-y: auto;
+            overflow-x: auto;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             margin-bottom: 20px;
             background: #FAFAFA;
         }
 
-        .list-wrapper::-webkit-scrollbar { width: 6px; }
+        /* カスタムスクロールバー（縦・横対応） */
+        .list-wrapper::-webkit-scrollbar { width: 6px; height: 6px; }
         .list-wrapper::-webkit-scrollbar-track { background: transparent; }
         .list-wrapper::-webkit-scrollbar-thumb { background: #CCC; border-radius: 3px; }
 
@@ -87,9 +90,11 @@
             display: flex;
             align-items: center;
             height: var(--item-height);
-            padding: 0 10px;
+            padding: 0 15px 0 10px;
             border-bottom: 1px solid var(--border-color);
             transition: background 0.2s;
+            /* 中身の長さに合わせて横幅を維持（狭い画面だと横スクロールが発生） */
+            min-width: max-content; 
         }
         .list-item:last-child {
             border-bottom: none;
@@ -130,39 +135,29 @@
             border-radius: 4px;
             transition: background 0.2s, opacity 0.2s;
         }
-        .icon-btn:hover:not(:disabled) {
-            background-color: #E2E8F0;
-        }
-        .icon-btn:active:not(:disabled) {
-            background-color: #CBD5E1;
-        }
-        .icon-btn:disabled {
-            opacity: 0.2;
-            cursor: default;
-        }
+        .icon-btn:hover:not(:disabled) { background-color: #E2E8F0; }
+        .icon-btn:active:not(:disabled) { background-color: #CBD5E1; }
+        .icon-btn:disabled { opacity: 0.2; cursor: default; }
 
         .item-link {
             font-size: 16px;
             color: var(--primary-color);
             text-decoration: none;
             font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            flex-grow: 1;
+            margin-right: 15px; /* ボタンとの間隔 */
         }
-        .item-link:hover {
-            text-decoration: underline;
+        .item-link:hover { text-decoration: underline; }
+
+        /* 編集・削除ボタンをまとめるコンテナ */
+        .action-btns {
+            display: flex;
+            gap: 4px;
+            margin-left: auto; /* 余白があれば右端に寄せる */
         }
 
-        .delete-btn {
-            font-size: 18px;
-            margin-left: 5px;
-            padding: 8px;
-        }
-        .delete-btn:hover {
-            background-color: #FEE2E2;
-        }
+        .edit-btn { font-size: 16px; padding: 8px; }
+        .delete-btn { font-size: 18px; padding: 8px; }
+        .delete-btn:hover { background-color: #FEE2E2; }
 
         /* --- ボタン・フォーム共通スタイル --- */
         .form-group { margin-bottom: 16px; }
@@ -185,21 +180,12 @@
         .btn-danger { background-color: #E53E3E; color: white; }
         .btn-danger:hover { background-color: #C53030; }
 
-        /* データ書き出し・読み込みボタン用レイアウト */
-        .data-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .data-actions .btn {
-            margin-top: 0;
-            padding: 10px;
-            font-size: 14px;
-        }
+        .data-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .data-actions .btn { margin-top: 0; padding: 10px; font-size: 14px; }
 
         .empty-state { text-align: center; padding: 30px 10px; color: var(--text-sub); font-size: 14px; }
 
-        /* --- カスタム確認ポップアップ（モーダル） --- */
+        /* --- カスタム確認ポップアップ --- */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.5); z-index: 1000; justify-content: center; align-items: center;
@@ -231,7 +217,6 @@
         <div class="data-actions">
             <button id="btn-export" class="btn btn-secondary" title="データをファイルとして保存します">📤 書き出し</button>
             <button id="btn-import-trigger" class="btn btn-secondary" title="ファイルからデータを読み込みます">📥 読み込み</button>
-            <!-- 実際のファイル選択用input（画面上は非表示） -->
             <input type="file" id="input-import" accept=".json" style="display: none;">
         </div>
     </div>
@@ -249,8 +234,26 @@
             <div class="form-group">
                 <input type="url" id="input-url" placeholder="URL設定 (例: https://...)">
             </div>
-            <button type="button" id="btn-add-item" class="btn btn-primary">追加</button>
-            <button type="button" id="btn-cancel" class="btn btn-secondary" style="border:none;">キャンセルして戻る</button>
+            <button type="button" id="btn-add-item" class="btn btn-primary">追加する</button>
+            <button type="button" id="btn-cancel-add" class="btn btn-secondary" style="border:none;">キャンセルして戻る</button>
+        </form>
+    </div>
+
+    <!-- 画面3: 編集画面 -->
+    <div id="view-edit" class="screen">
+        <h1>リンク編集</h1>
+        <form id="edit-form">
+            <div class="form-group">
+                <input type="text" id="edit-symbol" placeholder="記号設定 (例: 🔑)">
+            </div>
+            <div class="form-group">
+                <input type="text" id="edit-name" placeholder="名前設定 (例: ポータルサイト)">
+            </div>
+            <div class="form-group">
+                <input type="url" id="edit-url" placeholder="URL設定 (例: https://...)">
+            </div>
+            <button type="button" id="btn-save-edit" class="btn btn-primary">変更を保存する</button>
+            <button type="button" id="btn-cancel-edit" class="btn btn-secondary" style="border:none;">キャンセルして戻る</button>
         </form>
     </div>
 </div>
@@ -271,23 +274,20 @@
         { symbol: '🔐', name: 'サンプルリンク', url: 'https://example.com' }
     ];
 
-    const viewList = document.getElementById('view-list');
-    const viewAdd = document.getElementById('view-add');
     const listUl = document.getElementById('link-list');
-    
-    const inputSymbol = document.getElementById('input-symbol');
-    const inputName = document.getElementById('input-name');
-    const inputUrl = document.getElementById('input-url');
-
     const modalOverlay = document.getElementById('delete-modal');
     const modalText = document.getElementById('delete-modal-text');
+    
     let deleteTargetIndex = null;
+    let editTargetIndex = null; // 現在編集中のアイテムの番号
 
+    // --- 画面切り替え ---
     function switchScreen(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
     }
 
+    // --- 保存と描画 ---
     function saveAndRender() {
         localStorage.setItem('cryptoLinks', JSON.stringify(links));
         renderList();
@@ -315,66 +315,89 @@
                     <button class="icon-btn" onclick="moveItemDown(${index})" title="下に移動" ${downDisabled}>⬇️</button>
                 </div>
                 <a href="${escapeHTML(item.url)}" target="_blank" class="item-link" rel="noopener noreferrer">${escapeHTML(item.name)}</a>
-                <button class="icon-btn delete-btn" onclick="openDeleteModal(${index})" title="削除">🗑️</button>
+                
+                <!-- 編集・削除ボタン -->
+                <div class="action-btns">
+                    <button class="icon-btn edit-btn" onclick="openEditScreen(${index})" title="編集">✏️</button>
+                    <button class="icon-btn delete-btn" onclick="openDeleteModal(${index})" title="削除">🗑️</button>
+                </div>
             `;
             listUl.appendChild(li);
         });
     }
 
-    // --- ファイル書き出し (Export) ---
-    document.getElementById('btn-export').addEventListener('click', () => {
-        // 現在のデータをJSON形式の文字列に変換
-        const dataStr = JSON.stringify(links, null, 2);
-        // テキストファイル(Blob)として作成
-        const blob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        
-        // ダウンロード用のリンクを擬似的に作ってクリックさせる
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'crypto_links_data.json'; // 保存されるファイル名
-        a.click();
-        
-        URL.revokeObjectURL(url);
+    // --- 追加機能 ---
+    document.getElementById('btn-go-to-add').addEventListener('click', () => {
+        document.getElementById('input-symbol').value = ''; 
+        document.getElementById('input-name').value = ''; 
+        document.getElementById('input-url').value = '';
+        switchScreen('view-add');
     });
 
-    // --- ファイル読み込み (Import) ---
-    // ボタンを押したら、隠してある<input type="file">をクリックしたことにする
-    document.getElementById('btn-import-trigger').addEventListener('click', () => {
-        document.getElementById('input-import').click();
+    document.getElementById('btn-cancel-add').addEventListener('click', () => {
+        switchScreen('view-list');
     });
 
-    // ファイルが選択された時の処理
-    document.getElementById('input-import').addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
+    document.getElementById('btn-add-item').addEventListener('click', () => {
+        const symbol = document.getElementById('input-symbol').value.trim() || '🔗';
+        const name = document.getElementById('input-name').value.trim();
+        const url = document.getElementById('input-url').value.trim();
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                // 読み込んだテキストをJavaScriptの配列に変換
-                const importedData = JSON.parse(e.target.result);
-                
-                // データが配列形式か確認してから上書き
-                if (Array.isArray(importedData)) {
-                    links = importedData;
-                    saveAndRender();
-                    alert('データの読み込みが完了しました。');
-                } else {
-                    alert('無効なデータ形式です。正しいJSONファイルを選択してください。');
-                }
-            } catch (error) {
-                alert('ファイルの読み込みに失敗しました。ファイルが破損している可能性があります。');
-            }
-        };
-        reader.readAsText(file);
+        if (!name || !url) {
+            alert('名前設定とURL設定は必須です。');
+            return;
+        }
         
-        // 同じファイルを再度読み込めるように、選択状態をリセット
-        event.target.value = ''; 
+        let finalUrl = url;
+        if (!/^https?:\/\//i.test(finalUrl)) finalUrl = 'https://' + finalUrl;
+
+        links.push({ symbol, name, url: finalUrl });
+        saveAndRender();
+        switchScreen('view-list');
+    });
+
+    // --- 編集機能 ---
+    window.openEditScreen = function(index) {
+        editTargetIndex = index;
+        const item = links[index];
+        
+        // 既存のデータを入力欄にセット
+        document.getElementById('edit-symbol').value = item.symbol;
+        document.getElementById('edit-name').value = item.name;
+        document.getElementById('edit-url').value = item.url;
+        
+        switchScreen('view-edit');
+    };
+
+    document.getElementById('btn-cancel-edit').addEventListener('click', () => {
+        editTargetIndex = null;
+        switchScreen('view-list');
+    });
+
+    document.getElementById('btn-save-edit').addEventListener('click', () => {
+        if (editTargetIndex === null) return;
+
+        const symbol = document.getElementById('edit-symbol').value.trim() || '🔗';
+        const name = document.getElementById('edit-name').value.trim();
+        const url = document.getElementById('edit-url').value.trim();
+
+        if (!name || !url) {
+            alert('名前設定とURL設定は必須です。');
+            return;
+        }
+        
+        let finalUrl = url;
+        if (!/^https?:\/\//i.test(finalUrl)) finalUrl = 'https://' + finalUrl;
+
+        // 対象のデータを上書き
+        links[editTargetIndex] = { symbol, name, url: finalUrl };
+        saveAndRender();
+        editTargetIndex = null;
+        switchScreen('view-list');
     });
 
 
-    // --- ポップアップ（モーダル）の処理 ---
+    // --- 削除・ポップアップ機能 ---
     window.openDeleteModal = function(index) {
         deleteTargetIndex = index;
         modalText.innerHTML = `「<strong>${escapeHTML(links[index].name)}</strong>」<br>を削除してもよろしいですか？`;
@@ -404,7 +427,7 @@
         }
     });
 
-    // --- その他のアクション ---
+    // --- 並び替え機能 ---
     window.moveItemUp = function(index) {
         if (index > 0) {
             const temp = links[index];
@@ -423,39 +446,54 @@
         }
     };
 
+    // --- エクスポート/インポート機能 ---
+    document.getElementById('btn-export').addEventListener('click', () => {
+        const dataStr = JSON.stringify(links, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'crypto_links_data.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('btn-import-trigger').addEventListener('click', () => {
+        document.getElementById('input-import').click();
+    });
+
+    document.getElementById('input-import').addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                if (Array.isArray(importedData)) {
+                    links = importedData;
+                    saveAndRender();
+                    alert('データの読み込みが完了しました。');
+                } else {
+                    alert('無効なデータ形式です。');
+                }
+            } catch (error) {
+                alert('ファイルの読み込みに失敗しました。');
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = ''; 
+    });
+
+    // --- 補助機能 ---
     function escapeHTML(str) {
         return str.replace(/[&<>'"]/g, 
             tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag])
         );
     }
 
-    document.getElementById('btn-go-to-add').addEventListener('click', () => {
-        inputSymbol.value = ''; inputName.value = ''; inputUrl.value = '';
-        switchScreen('view-add');
-    });
-
-    document.getElementById('btn-cancel').addEventListener('click', () => {
-        switchScreen('view-list');
-    });
-
-    document.getElementById('btn-add-item').addEventListener('click', () => {
-        const symbol = inputSymbol.value.trim() || '🔗';
-        const name = inputName.value.trim();
-        const url = inputUrl.value.trim();
-
-        if (!name || !url) {
-            alert('名前設定とURL設定は必須です。');
-            return;
-        }
-        
-        let finalUrl = url;
-        if (!/^https?:\/\//i.test(finalUrl)) finalUrl = 'https://' + finalUrl;
-
-        links.push({ symbol, name, url: finalUrl });
-        saveAndRender();
-        switchScreen('view-list');
-    });
-
+    // 初回描画
     renderList();
 </script>
 
