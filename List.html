@@ -68,7 +68,6 @@
         /* --- 一覧画面のスタイル --- */
         .list-wrapper {
             max-height: calc(var(--item-height) * 5);
-            /* 縦・横どちらもはみ出た場合はスクロール可能にする */
             overflow-y: auto;
             overflow-x: auto;
             border: 1px solid var(--border-color);
@@ -77,13 +76,15 @@
             background: #FAFAFA;
         }
 
-        /* カスタムスクロールバー（縦・横対応） */
         .list-wrapper::-webkit-scrollbar { width: 6px; height: 6px; }
         .list-wrapper::-webkit-scrollbar-track { background: transparent; }
         .list-wrapper::-webkit-scrollbar-thumb { background: #CCC; border-radius: 3px; }
 
         .list {
             list-style: none;
+            /* ★変更点: リスト全体の幅を統一し、短い行も長い行も同じ幅にする */
+            min-width: 100%;
+            width: max-content; 
         }
 
         .list-item {
@@ -93,8 +94,6 @@
             padding: 0 15px 0 10px;
             border-bottom: 1px solid var(--border-color);
             transition: background 0.2s;
-            /* 中身の長さに合わせて横幅を維持（狭い画面だと横スクロールが発生） */
-            min-width: max-content; 
         }
         .list-item:last-child {
             border-bottom: none;
@@ -144,15 +143,17 @@
             color: var(--primary-color);
             text-decoration: none;
             font-weight: 500;
-            margin-right: 15px; /* ボタンとの間隔 */
+            margin-right: 15px;
+            /* ★変更点: 名前が短くても余白を全て埋めることで、右側のボタン位置を揃える */
+            flex-grow: 1;
         }
         .item-link:hover { text-decoration: underline; }
 
-        /* 編集・削除ボタンをまとめるコンテナ */
         .action-btns {
             display: flex;
             gap: 4px;
-            margin-left: auto; /* 余白があれば右端に寄せる */
+            margin-left: auto;
+            flex-shrink: 0; /* ★変更点: 画面が狭くてもボタンが潰れないようにする */
         }
 
         .edit-btn { font-size: 16px; padding: 8px; }
@@ -279,15 +280,13 @@
     const modalText = document.getElementById('delete-modal-text');
     
     let deleteTargetIndex = null;
-    let editTargetIndex = null; // 現在編集中のアイテムの番号
+    let editTargetIndex = null;
 
-    // --- 画面切り替え ---
     function switchScreen(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
     }
 
-    // --- 保存と描画 ---
     function saveAndRender() {
         localStorage.setItem('cryptoLinks', JSON.stringify(links));
         renderList();
@@ -316,7 +315,6 @@
                 </div>
                 <a href="${escapeHTML(item.url)}" target="_blank" class="item-link" rel="noopener noreferrer">${escapeHTML(item.name)}</a>
                 
-                <!-- 編集・削除ボタン -->
                 <div class="action-btns">
                     <button class="icon-btn edit-btn" onclick="openEditScreen(${index})" title="編集">✏️</button>
                     <button class="icon-btn delete-btn" onclick="openDeleteModal(${index})" title="削除">🗑️</button>
@@ -326,7 +324,6 @@
         });
     }
 
-    // --- 追加機能 ---
     document.getElementById('btn-go-to-add').addEventListener('click', () => {
         document.getElementById('input-symbol').value = ''; 
         document.getElementById('input-name').value = ''; 
@@ -334,9 +331,7 @@
         switchScreen('view-add');
     });
 
-    document.getElementById('btn-cancel-add').addEventListener('click', () => {
-        switchScreen('view-list');
-    });
+    document.getElementById('btn-cancel-add').addEventListener('click', () => switchScreen('view-list'));
 
     document.getElementById('btn-add-item').addEventListener('click', () => {
         const symbol = document.getElementById('input-symbol').value.trim() || '🔗';
@@ -356,16 +351,12 @@
         switchScreen('view-list');
     });
 
-    // --- 編集機能 ---
     window.openEditScreen = function(index) {
         editTargetIndex = index;
         const item = links[index];
-        
-        // 既存のデータを入力欄にセット
         document.getElementById('edit-symbol').value = item.symbol;
         document.getElementById('edit-name').value = item.name;
         document.getElementById('edit-url').value = item.url;
-        
         switchScreen('view-edit');
     };
 
@@ -389,15 +380,12 @@
         let finalUrl = url;
         if (!/^https?:\/\//i.test(finalUrl)) finalUrl = 'https://' + finalUrl;
 
-        // 対象のデータを上書き
         links[editTargetIndex] = { symbol, name, url: finalUrl };
         saveAndRender();
         editTargetIndex = null;
         switchScreen('view-list');
     });
 
-
-    // --- 削除・ポップアップ機能 ---
     window.openDeleteModal = function(index) {
         deleteTargetIndex = index;
         modalText.innerHTML = `「<strong>${escapeHTML(links[index].name)}</strong>」<br>を削除してもよろしいですか？`;
@@ -414,7 +402,6 @@
     }
 
     document.getElementById('btn-cancel-delete').addEventListener('click', closeDeleteModal);
-
     modalOverlay.addEventListener('click', (e) => {
         if (e.target === modalOverlay) closeDeleteModal();
     });
@@ -427,7 +414,6 @@
         }
     });
 
-    // --- 並び替え機能 ---
     window.moveItemUp = function(index) {
         if (index > 0) {
             const temp = links[index];
@@ -446,12 +432,10 @@
         }
     };
 
-    // --- エクスポート/インポート機能 ---
     document.getElementById('btn-export').addEventListener('click', () => {
         const dataStr = JSON.stringify(links, null, 2);
         const blob = new Blob([dataStr], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
-        
         const a = document.createElement('a');
         a.href = url;
         a.download = 'crypto_links_data.json';
@@ -486,14 +470,12 @@
         event.target.value = ''; 
     });
 
-    // --- 補助機能 ---
     function escapeHTML(str) {
         return str.replace(/[&<>'"]/g, 
             tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag])
         );
     }
 
-    // 初回描画
     renderList();
 </script>
 
