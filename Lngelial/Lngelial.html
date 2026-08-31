@@ -1,0 +1,497 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lngelial</title>
+<style>
+  :root{
+    --paper:#EDEDE5; --card:#F6F6F1; --ink:#181B21; --muted:#7B7E86;
+    --rule:rgba(24,27,33,.13);
+    --it:#1E6E4A; --fi:#2757B8; --af:#B0512B; --lng:#4B3B8F;
+    --jp:'Hiragino Mincho ProN','Yu Mincho','YuMincho','Noto Serif JP',serif;
+    --lat:'Iowan Old Style',Georgia,'Times New Roman',serif;
+    --ui:ui-sans-serif,-apple-system,'Hiragino Sans','Yu Gothic',system-ui,sans-serif;
+    --mono:ui-monospace,'SF Mono',Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--ui);
+       -webkit-font-smoothing:antialiased;padding:22px 16px 72px;max-width:760px;margin-inline:auto}
+  header{border-bottom:1.5px solid var(--ink);padding-bottom:12px;margin-bottom:18px}
+  h1{font-family:var(--lat);font-size:34px;font-weight:400;margin:0;letter-spacing:.16em;color:var(--lng)}
+  .sub{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+       color:var(--muted);margin-top:8px;display:flex;gap:13px;flex-wrap:wrap}
+  .sub .it b{color:var(--it)} .sub .fi b{color:var(--fi)} .sub .af b{color:var(--af)}
+
+  textarea{width:100%;min-height:92px;resize:vertical;padding:14px;background:var(--card);
+    border:1px solid var(--rule);border-radius:2px;font-family:var(--jp);font-size:19px;
+    line-height:1.75;color:var(--ink)}
+  textarea:focus,input:focus{outline:2px solid var(--ink);outline-offset:1px}
+  .bar{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
+  button{font-family:var(--ui);cursor:pointer;border-radius:2px}
+  #go{background:var(--lng);color:#fff;border:none;padding:11px 22px;font-size:15px;
+      letter-spacing:.06em;font-weight:600}
+  #go:disabled{opacity:.4;cursor:default}
+  .count{font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:auto}
+  .count.over{color:var(--af);font-weight:700}
+  .samples{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
+  .samples button,.ghost{background:transparent;border:1px solid var(--rule);color:var(--muted);
+    padding:5px 10px;font-size:12.5px}
+  .samples button{font-family:var(--jp);font-size:13px}
+  .samples button:hover,.ghost:hover{border-color:var(--ink);color:var(--ink)}
+
+  details{margin-top:14px;border-top:1px solid var(--rule);padding-top:10px}
+  summary{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+          color:var(--muted);cursor:pointer}
+  .hint{font-size:12.5px;line-height:1.7;color:var(--muted);margin:9px 0}
+  input[type=text],input[type=password]{width:100%;padding:9px 11px;background:var(--card);
+    border:1px solid var(--rule);border-radius:2px;font-family:var(--mono);font-size:13px;color:var(--ink)}
+  label.chk{display:flex;gap:7px;align-items:center;font-size:12.5px;color:var(--muted);margin-top:8px}
+
+  #out{margin-top:26px}
+  .note{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+        color:var(--muted);border-top:1px solid var(--rule);padding-top:8px;margin:22px 0 12px}
+  .cards{display:flex;flex-direction:column;gap:8px}
+  .tok{background:var(--card);border:1px solid var(--rule);border-left:3px solid var(--lng);
+       padding:12px 14px;animation:rise .3s ease both}
+  @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .rd{font-family:var(--jp);font-size:11px;color:var(--muted);letter-spacing:.1em}
+  .head{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+  .wd{font-family:var(--jp);font-size:25px;line-height:1.2}
+  .pos{font-size:11px;color:var(--muted);border:1px solid var(--rule);padding:2px 7px;border-radius:99px}
+  .lngw{font-family:var(--lat);font-size:26px;color:var(--lng);letter-spacing:.03em;margin:9px 0 2px}
+  .lngw .sfx{opacity:.5}
+  .gloss{margin-top:8px;border-top:1px solid var(--rule);padding-top:8px;
+         display:grid;grid-template-columns:24px 1fr;gap:3px 9px;align-items:baseline}
+  .lg{font-family:var(--mono);font-size:10px;letter-spacing:.14em;font-weight:700}
+  .lg.it{color:var(--it)} .lg.fi{color:var(--fi)} .lg.af{color:var(--af)}
+  .gv{font-family:var(--lat);font-size:16px}
+  .fn{display:flex;align-items:baseline;gap:9px;background:transparent;border:1px dashed var(--rule);
+      border-left:3px solid var(--rule);padding:7px 12px;animation:rise .3s ease both}
+  .fn .wd{font-size:18px;color:var(--muted)}
+  .fn .code{font-family:var(--lat);font-size:19px;color:var(--lng)}
+  .fn .pos{border:none;padding:0}
+
+  .sentence{background:var(--lng);color:#fff;padding:18px 16px;margin-top:4px;border-radius:2px}
+  .sentence .l{font-family:var(--mono);font-size:10px;letter-spacing:.2em;opacity:.65;
+               text-transform:uppercase;display:block;margin-bottom:9px}
+  .sentence p{font-family:var(--lat);font-size:21px;line-height:1.55;margin:0;letter-spacing:.02em}
+
+  #dict table{width:100%;border-collapse:collapse;margin-top:10px}
+  #dict th{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);text-align:left;font-weight:600;padding:5px 6px;border-bottom:1px solid var(--rule)}
+  #dict td{padding:7px 6px;border-bottom:1px solid var(--rule);font-size:14px;vertical-align:baseline}
+  #dict td.j{font-family:var(--jp);font-size:16px}
+  #dict td.l{font-family:var(--lat);color:var(--lng);font-size:16px}
+  #dict td.p{font-size:11.5px;color:var(--muted)}
+  .tools{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+  .msg{font-size:14px;color:var(--muted);line-height:1.7}
+  .msg.err{color:var(--af)}
+  .load{display:flex;gap:7px;align-items:center;color:var(--muted);font-size:14px}
+  .dot{width:7px;height:7px;background:var(--lng);border-radius:99px;animation:pulse 1s infinite}
+  .dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}
+  @keyframes pulse{0%,100%{opacity:.2}50%{opacity:1}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+
+<header>
+  <h1>Lngelial</h1>
+  <div class="sub">
+    <span>日本語 → 造語</span>
+    <span class="it"><b>IT</b></span><span class="fi"><b>FI</b></span><span class="af"><b>AF</b></span>
+  </div>
+</header>
+
+<textarea id="src" placeholder="日本語の文章を入力してください。&#10;例：今朝は雨が降っていたので、傘を持って駅まで歩いた。"></textarea>
+<div class="bar">
+  <button id="go">Lngelialに訳す</button>
+  <span class="count" id="count">0 / 120</span>
+</div>
+<div class="samples">
+  <button data-s="今朝は雨が降っていたので、傘を持って駅まで歩いた。">今朝は雨が…</button>
+  <button data-s="彼女は静かな部屋で古い手紙を読み返している。">彼女は静かな…</button>
+  <button data-s="これは果物じゃない。">これは果物じゃない。</button>
+  <button data-s="彼は何も言わないね。">彼は何も言わないね。</button>
+</div>
+
+<details id="keybox">
+  <summary>APIキーの設定</summary>
+  <p class="hint">ローカルで開いた場合は Anthropic の APIキー（<span style="font-family:var(--mono)">sk-ant-…</span>）が必要です。送信先は Anthropic のAPIのみです。</p>
+  <input id="key" type="password" placeholder="sk-ant-..." autocomplete="off">
+  <label class="chk"><input type="checkbox" id="keysave"> このブラウザに保存する</label>
+</details>
+
+<div id="out"></div>
+
+<div class="note">数詞（八進法）</div>
+<div>
+  <input type="text" id="nq" placeholder="例：668、-12、0.40625、+、√">
+  <p class="lngw" id="nout" style="margin-top:10px">—</p>
+</div>
+
+<div class="note">Lngelial 語彙帳 <span id="dcount"></span></div>
+<div id="dict">
+  <input type="text" id="dq" placeholder="日本語・Lngelial・品詞で検索">
+  <div id="dlist"></div>
+  <div class="tools">
+    <button class="ghost" id="dexp">書き出す（JSON）</button>
+    <button class="ghost" id="dimp">読み込む</button>
+    <button class="ghost" id="dclr">全消去</button>
+    <input type="file" id="dfile" accept=".json" hidden>
+  </div>
+</div>
+
+<script>
+/* ---------- 定数 ---------- */
+const LIMIT = 120;
+const SUF = {動詞:'gly',形容詞:'zal',形容動詞:'gal',副詞:'zail',連体詞:'gail',接続詞:'gol',感動詞:'zoy'};
+const NSUF = {git:'git',gint:'gint',geil:'geil',guel:'guel',gend:'gend',gold:'gold'};
+const NSUF_LABEL = {git:'形のあるもの',gint:'形のないもの',geil:'時間',guel:'場所',gend:'感情',gold:'神'};
+const PUNCT = {'、':',','。':'.','？':'?','！':'!','，':',','．':'.','・':' ','「':'"','」':'"'};
+
+/* ---------- 保存 ---------- */
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+let dict = {};
+try{ dict = JSON.parse(store.get('lngelial_dict') || '{}'); }catch(e){ dict = {}; }
+const saveDict = ()=>{ store.set('lngelial_dict', JSON.stringify(dict)); drawDict(); };
+
+const keyIn = document.getElementById('key'), keySave = document.getElementById('keysave');
+const savedKey = store.get('lngelial_key');
+if(savedKey){ keyIn.value = savedKey; keySave.checked = true; }
+keySave.onchange = ()=> keySave.checked && keyIn.value.trim()
+  ? store.set('lngelial_key', keyIn.value.trim()) : store.del('lngelial_key');
+keyIn.oninput = ()=> keySave.checked && store.set('lngelial_key', keyIn.value.trim());
+
+/* ---------- 入力 ---------- */
+const src=document.getElementById('src'), go=document.getElementById('go'),
+      out=document.getElementById('out'), cnt=document.getElementById('count');
+function tally(){
+  const n = src.value.length;
+  cnt.textContent = n + ' / ' + LIMIT;
+  cnt.classList.toggle('over', n > LIMIT);
+  go.disabled = n===0 || n>LIMIT;
+}
+src.oninput = tally; tally();
+document.querySelectorAll('.samples button').forEach(b=>{
+  b.onclick = ()=>{ src.value=b.dataset.s; tally(); run(); };
+});
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- プロンプト ---------- */
+const PROMPT = `あなたは日本語形態素解析器であり、人工言語 Lngelial の造語器です。出力は JSON 配列のみ。
+
+## 手順
+入力文を形態素に分割し、各語を次のいずれかに分類する。
+ kind="w"  自立語（名詞・代名詞・動詞・形容詞・形容動詞・副詞・連体詞・接続詞・感動詞）
+ kind="f"  助詞・助動詞
+ kind="n"  数詞・数式記号（漢数字や「ふたつ」なども 2 のように算用数字に直して t に入れる。
+           数詞の変換はこちらで行うので、Lngelial語は作らない。+ - × ÷ √ ^ = も kind="n"）
+ kind="p"  句読点・記号
+ kind="x"  接頭辞・接尾辞（Lngelialでは捨てる）
+
+## kind="w" の造語（Lngelial語幹）
+1. 基本形のイタリア語訳・フィンランド語訳・アフリカーンス語訳を出す。
+2. それぞれの一部を削り、イタリア語→フィンランド語→アフリカーンス語の順に繋いで1語にする。
+   目安：アフリカーンス語は先頭側を削り、イタリア語・フィンランド語は後半側を削る。ただし厳密ではなく、
+   元の3語の雰囲気が残ることを優先する。
+   【厳守】語幹は「元の3語からそれぞれ切り出した連続した文字列」を、その順に繋いだものでなければならない。
+   文字の置き換え・追加・並べ替えは一切禁止。読みやすさのために y を e に変える、母音を足す、
+   ä を a に直すといった操作もすべて禁止。ä ö ë à などは元の綴りのまま残す。
+   つまり語幹は必ず「イタリア語の連続した一部」＋「フィンランド語の連続した一部」＋「アフリカーンス語の連続した一部」。
+   切り出す位置を変えることでのみ読みやすさを調整する。語幹に品詞接尾辞は付けない。
+   例：歩く camminare/kävellä/loop → "cam"+"ävel"+"op" = "camävelop"（可）／"camkavoop"（不可：ä を a に変えている）
+3. 出力キー：stem（語幹）、it・fi・af（元の3語）、pos（品詞名）。
+4. 名詞・代名詞は nsuf に次の1つを文脈で選ぶ：
+   git=形のあるもの gint=形のないもの geil=時間 guel=場所 gend=感情 gold=神
+   代名詞は名詞として扱う。名詞以外は nsuf="" 。
+
+## kind="f" の対応表（code に入れる。複合は空白区切りで並べる。例 ながらも → "ser dax"）
+助詞 が(主格)=zax を=oru に=ask と(並列/引用)=fas へ=nes から=xat より=zix で=ors や=als の=fer
+ ので=mes ば=zet と(条件)=jug でも(逆接)=jat けれど=jes が(逆接)=jor のに=jer て/で=zit ながら=ser
+ し=sat たり=dar は=abs も=dax こそ=red さえ=dir でも(例示)=nos だって=vit まで=hes ばかり=ces
+ だけ=wey ほど=lat くらい/ぐらい=gos しか=tex など=hit か=lay な/なぁ=wet ね/ねぇ=las よ=yeo ぞ=zey する=zas
+助動詞 れる/られる=es せる/させる=siz ない/ぬ/ん=NEG たい/たがる=zat う/よう=kix た=io ます=zil
+ らしい=ols ようだ/ようです=tes そうだ/そうです=dil まい=liy だ/です=ray
+「じゃない」「ではない」「でない」「じゃありません」「ではありません」は、分解せず全体で1つの否定とし、
+kind="f", code="NEG" の1トークンにする（ors や abs を足さない）。「これは果物じゃない」なら
+ これ(w) / は(abs) / 果物(w) / じゃない(NEG) となり、Lngelial文は「…abs unt …git」になる。
+否定 unt は否定される自立語の直前に置かれ、それ以降を否定するので、文末の「ね」「よ」などは
+そのまま後ろに続く（言わないね → unt dianoêgly las）。表にない機能語は近い語の組み合わせで表す。
+
+## 既存語に見る切り出しの癖（必ずこの手つきに合わせる）
+ 私 io/minä/ek → ink ／ あなた tu/sinä/jy → viny ／ 名前 nome/nimi/naam → nim
+ 今 ora/nyt/nou → oyu ／ お米 riso/riisi/rys → risys ／ 食べ物 cibo/ruoka/kos → cirus
+ こんにちは ciao/hei/hallo → cihelo ／ さっき appena/äsken/netnou → apskelik
+ すごく molto/tosi/baie → moittie ／ 覚える ricordare/muistaa/onthou → ricuistou
+ いる essere/olla/is → èonis ／ する fare/tehdä/doen → feheng
+ 楽しい divertente/hauska/lekker → divesket ／ 美味しい delizioso/herkullinen/lekker → delikulik
+ 会話 conversazione/keskustelu/gesprek → convekustrek
+特徴：各語から1〜2音節ずつ、短く取る。語幹は3〜5音節程度に収める。長くしすぎない。
+è ä ö などの特殊文字はその位置のまま残す。
+
+## 訳し方の実例
+ 「私の名前は〇〇。」→ Inkgit fer nimgint abs 〇〇.
+ 「私は今、あなたとの会話を楽しんでいますよ。」
+  → Inkgit abs oyugeil, Vinygit jug fer convekustrekgint oru divesketzal zit èonisgly zil yeo.
+ 「あなたは何をしているの?」→ Vinygit abs nulitäksgit oru fehengly zit èonisgly fer?
+ 「私の好きな食べ物はお米だよ!」→ Inkgit fer pitosgal wet cirusgit abs risysgit ray yeo!
+注意：文頭は大文字。人を指す代名詞は git。「楽しんでいる」は 楽しい(形容詞)+て+いる と分解する。
+補助動詞の前でも「て」は zit として必ず残す。「〜な」（形容動詞の連体）は wet。
+文末の「の」は fer。「と（共格）」は jug。単独動詞の「する」は fehengly、接尾の「〜する」のみ zas。
+
+## 出力形式（JSON配列のみ。前置き・コードフェンス禁止）
+[{"t":"表層形","r":"読み","kind":"w","pos":"動詞","stem":"camkävoop","nsuf":"","it":"camminare","fi":"kävellä","af":"loop","code":""}]
+kind が w 以外のとき stem/it/fi/af/nsuf は空文字。code は kind="f" のときのみ。
+t を順に繋ぐと入力文に戻ること。
+
+## 入力文
+`;
+
+/* ---------- 実行 ---------- */
+async function run(){
+  const text = src.value.trim();
+  if(!text || text.length > LIMIT) return;
+  go.disabled = true;
+  out.innerHTML = '<div class="load"><span class="dot"></span><span class="dot"></span><span class="dot"></span> 造語しています…</div>';
+  try{
+    const key = keyIn.value.trim();
+    const h = {"Content-Type":"application/json"};
+    if(key){ h["x-api-key"]=key; h["anthropic-version"]="2023-06-01";
+             h["anthropic-dangerous-direct-browser-access"]="true"; }
+    const res = await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST", headers:h,
+      body: JSON.stringify({ model: key ? "claude-sonnet-4-5" : "claude-sonnet-4-6",
+        max_tokens:4000, messages:[{role:"user", content: PROMPT + text}] })
+    });
+    if(!res.ok){
+      if(res.status===401||res.status===403) throw new Error('AUTH');
+      throw new Error('HTTP '+res.status+'：'+(await res.text()).slice(0,150));
+    }
+    const data = await res.json();
+    let raw = data.content.filter(b=>b.type==='text').map(b=>b.text).join('').trim().replace(/```json|```/g,'').trim();
+    const s = raw.indexOf('['); if(s<0) throw new Error('返答に配列がありません：'+raw.slice(0,110));
+    let body = raw.slice(s), toks = null;
+    const e = body.lastIndexOf(']');
+    if(e>0){ try{ toks = JSON.parse(body.slice(0,e+1)); }catch(_){} }
+    if(!toks){ const c = body.lastIndexOf('}');
+      if(c>0){ try{ toks = JSON.parse(body.slice(0,c+1)+']'); }catch(_){} } }
+    if(!toks) throw new Error('parse');
+    render(toks, data.stop_reason==='max_tokens');
+  }catch(err){
+    console.error(err);
+    const m = err.message==='AUTH' ? 'APIキーが認証されませんでした。「APIキーの設定」を確認してください。'
+      : err.message==='parse' ? '返答を読み取れませんでした。もう一度実行してください。'
+      : '接続できませんでした。ローカルで開いている場合はAPIキーを入力してください。（'+esc(err.message)+'）';
+    out.innerHTML = '<p class="msg err">'+m+'</p>';
+  }finally{ go.disabled=false; tally(); }
+}
+go.onclick = run;
+
+/* ---------- 数詞：八進法 ---------- */
+const DIG = ['nyeel','laa','we','jo','gwa','zi','bos','gre'];
+const TEEN = {8:'res',9:'laana',10:'wena',11:'jona',12:'gwana',13:'zina',14:'bosna',15:'grena'};
+const POW = [[8,'res'],[64,'gaanes'],[512,'jiines'],[4096,'zaanes'],[32768,'doones'],
+             [262144,'meiry'],[2097152,'jeraas'],[16777216,'godderes']];
+const SYM = {'-':'letra','−':'letra','/':'muote','÷':'muote','+':'pre','√':'radutel',
+             '^':'gadore','×':'katore','*':'katore','=':'stearmalde','＝':'stearmalde'};
+
+function numWords(n){
+  const w = [];
+  if(n < 0){ w.push('letra'); n = -n; }
+  const int = Math.floor(n), frac = n - int;
+  w.push(...intWords(int));
+  if(frac > 0){
+    w.push('pos');
+    let f = frac;
+    for(let i=0; i<8 && f>1e-9; i++){
+      const d = Math.floor(f*8); w.push(DIG[d]); f = f*8 - d;
+    }
+  }
+  return w;
+}
+function intWords(n){
+  if(n === 0) return ['nyeel'];
+  if(n < 8) return [DIG[n]];
+  if(n <= 15) return [TEEN[n]];
+  const w = [];
+  for(let i=POW.length-1; i>=0; i--){
+    const [v, name] = POW[i];
+    const c = Math.floor(n / v);
+    if(c < 1) continue;
+    n -= c * v;
+    if(i === 0){
+      // 8の位：係数 + nyeel（例 24 = jo nyeel）。係数1のときは res 単独
+      w.push(c === 1 ? 'res' : DIG[c] + 'nyeel');
+    }else{
+      w.push(c === 1 ? name : DIG[c] + name);
+    }
+  }
+  if(n > 0) w.push(DIG[n]);
+  return w;
+}
+function convertNumber(s){
+  const t = String(s).replace(/[，,]/g,'').trim();
+  if(SYM[t]) return SYM[t];
+  const m = t.match(/^[-−]?\d+(\.\d+)?$/);
+  if(!m) return null;
+  return numWords(parseFloat(t.replace('−','-'))).join(' ');
+}
+
+/* ---------- 語幹の検証：元の3語から切り出した連続部分の連結か ---------- */
+const norm = s => String(s||'').toLowerCase().replace(/[\s'’\-]/g,'');
+function isValidStem(stem, it, fi, af){
+  const S = norm(stem), A = norm(it), B = norm(fi), C = norm(af);
+  if(!S || !A || !B || !C) return false;
+  for(let i=1; i<S.length-1; i++){
+    if(!A.includes(S.slice(0,i))) continue;
+    for(let j=i+1; j<S.length; j++){
+      if(B.includes(S.slice(i,j)) && C.includes(S.slice(j))) return true;
+    }
+  }
+  return false;
+}
+// 規則違反のときは、3語から連続部分だけを切り出して作り直す
+function buildStem(it, fi, af){
+  const A = norm(it), B = norm(fi), C = norm(af);
+  const p1 = A.slice(0, Math.min(3, Math.max(2, Math.ceil(A.length/2))));
+  const p2 = B.length>4 ? B.slice(1,4) : B.slice(0, Math.max(2, B.length-1));
+  const p3 = C.slice(Math.max(0, C.length-3));
+  return p1 + p2 + p3;
+}
+
+/* ---------- 語彙帳を参照して語幹を確定 ---------- */
+function resolveStem(t){
+  const head = (t.t||'').trim();
+  const pos = t.pos || '名詞';
+  const k = head + '|' + pos;
+  if(dict[k] && dict[k].stem) return {stem:dict[k].stem, fixed:false, whole:!!dict[k].fixed};
+  let stem = (t.stem||'').trim(), fixed = false;
+  if(stem && !isValidStem(stem, t.it, t.fi, t.af)){
+    const alt = buildStem(t.it, t.fi, t.af);
+    if(alt){ stem = alt; fixed = true; }
+  }
+  if(stem) dict[k] = {ja:head, pos, stem, it:t.it||'', fi:t.fi||'', af:t.af||''};
+  return {stem, fixed};
+}
+const posSuffix = t => t.pos==='名詞'||t.pos==='代名詞'
+  ? (NSUF[t.nsuf] || 'git') : (SUF[t.pos] || 'git');
+
+/* ---------- 描画 ---------- */
+function render(toks, truncated){
+  if(!Array.isArray(toks)||!toks.length){ out.innerHTML='<p class="msg">語を取り出せませんでした。</p>'; return; }
+  let cards = '', line = [];
+
+  toks.forEach((t,i)=>{
+    const d = 'style="animation-delay:'+Math.min(i*30,540)+'ms"';
+    if(t.kind==='x') return;
+
+    if(t.kind==='p'){
+      const c = PUNCT[t.t] || t.t;
+      if(c.trim()) line.push({k:'punct', v:c.trim()});
+      return;
+    }
+    if(t.kind==='n'){
+      const conv = convertNumber(t.t);
+      const v = conv || t.t;
+      conv ? conv.split(' ').forEach(x=>line.push({k:'w', v:x})) : line.push({k:'w', v:t.t});
+      cards += '<div class="fn" '+d+'><span class="wd">'+esc(t.t)+'</span>'+
+               '<span class="pos">数詞</span><span class="code">'+esc(v)+'</span></div>';
+      return;
+    }
+    if(t.kind==='f'){
+      const code = (t.code||'').trim();
+      if(code==='NEG'){
+        // 否定は直前の自立語の前に unt を置く
+        let at = -1;
+        for(let j=line.length-1;j>=0;j--){ if(line[j].k==='w'){ at=j; break; } }
+        if(at>=0) line.splice(at,0,{k:'neg',v:'unt'}); else line.push({k:'neg',v:'unt'});
+      }else if(code){
+        code.split(/\s+/).forEach(c=>line.push({k:'f', v:c}));
+      }
+      cards += '<div class="fn" '+d+'><span class="wd">'+esc(t.t)+'</span>'+
+               '<span class="pos">'+esc(t.pos||'機能語')+'</span>'+
+               '<span class="code">'+esc(code==='NEG'?'unt':(code||'—'))+'</span></div>';
+      return;
+    }
+
+    // 自立語
+    const r = resolveStem(t), stem = r.stem, sfx = r.whole ? '' : posSuffix(t), word = stem + sfx;
+    line.push({k:'w', v:word});
+    const nl = (t.pos==='名詞'||t.pos==='代名詞') ? ' <span class="pos">'+esc(NSUF_LABEL[t.nsuf]||'形のあるもの')+'</span>' : '';
+    const fx = r.fixed ? ' <span class="pos" style="color:var(--af);border-color:var(--af)">綴りを再構成</span>' : '';
+    cards += '<div class="tok" '+d+'>'+
+      (t.r?'<div class="rd">'+esc(t.r)+'</div>':'')+
+      '<div class="head"><span class="wd">'+esc(t.t)+'</span><span class="pos">'+esc(t.pos)+'</span>'+nl+fx+'</div>'+
+      '<div class="lngw">'+esc(stem)+'<span class="sfx">'+esc(sfx)+'</span></div>'+
+      '<div class="gloss">'+
+        '<span class="lg it">IT</span><span class="gv">'+esc(t.it||'—')+'</span>'+
+        '<span class="lg fi">FI</span><span class="gv">'+esc(t.fi||'—')+'</span>'+
+        '<span class="lg af">AF</span><span class="gv">'+esc(t.af||'—')+'</span>'+
+      '</div></div>';
+  });
+
+  saveDict();
+
+  let sent = '';
+  line.forEach(x=>{ sent += (x.k==='punct' ? x.v : (sent?' ':'') + x.v); });
+  sent = sent.replace(/\s+([,.!?])/g,'$1').trim();
+  // 文頭を大文字にする
+  sent = sent.replace(/(^|[.!?]\s+)([a-zà-ÿ])/g, (m,a,b)=> a + b.toUpperCase());
+
+  const n = toks.filter(t=>t.kind==='w').length;
+  out.innerHTML =
+    '<div class="note">'+toks.length+' 語 ／ 造語 '+n+' 語</div>'+
+    (truncated?'<p class="msg err">文が長く、途中までの解析です。短く区切ってください。</p>':'')+
+    '<div class="cards">'+cards+'</div>'+
+    '<div class="note">Lngelial 文</div>'+
+    '<div class="sentence"><span class="l">Translation</span><p>'+esc(sent)+'</p></div>';
+}
+
+/* ---------- 数詞の試し変換 ---------- */
+const nq = document.getElementById('nq'), nout = document.getElementById('nout');
+nq.oninput = ()=>{
+  const v = nq.value.trim();
+  nout.textContent = v ? (convertNumber(v) || '—') : '—';
+};
+
+/* ---------- 語彙帳 ---------- */
+const dq=document.getElementById('dq'), dlist=document.getElementById('dlist'),
+      dcount=document.getElementById('dcount');
+function drawDict(){
+  const q = dq.value.trim().toLowerCase();
+  const rows = Object.values(dict)
+    .filter(v=>!q || (v.ja+v.pos+v.stem+(v.it||'')+(v.fi||'')+(v.af||'')).toLowerCase().includes(q))
+    .sort((a,b)=>a.pos.localeCompare(b.pos,'ja') || a.ja.localeCompare(b.ja,'ja'));
+  dcount.textContent = Object.keys(dict).length + ' 語';
+  dlist.innerHTML = rows.length
+    ? '<table><tr><th>日本語</th><th>品詞</th><th>Lngelial 語幹</th></tr>'+
+      rows.map(v=>'<tr><td class="j">'+esc(v.ja)+'</td><td class="p">'+esc(v.pos)+
+        '</td><td class="l">'+esc(v.stem)+'</td></tr>').join('')+'</table>'
+    : '<p class="msg">'+(q?'一致する語がありません。':'まだ語がありません。文を訳すと貯まります。')+'</p>';
+}
+dq.oninput = drawDict;
+document.getElementById('dexp').onclick = ()=>{
+  const b = new Blob([JSON.stringify(dict,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = 'lngelial-dict-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click(); URL.revokeObjectURL(a.href);
+};
+const dfile = document.getElementById('dfile');
+document.getElementById('dimp').onclick = ()=> dfile.click();
+dfile.onchange = async ()=>{
+  const f = dfile.files[0]; if(!f) return;
+  try{
+    const add = JSON.parse(await f.text());
+    let n = 0;
+    for(const [k,v] of Object.entries(add)){ if(v && v.stem && v.ja){ dict[k]=v; n++; } }
+    saveDict(); alert(n + ' 語を読み込みました。');
+  }catch(e){ alert('読み込めませんでした。書き出したJSONファイルを選んでください。'); }
+  dfile.value = '';
+};
+document.getElementById('dclr').onclick = ()=>{
+  if(confirm('語彙帳をすべて消します。よろしいですか。')){ dict={}; saveDict(); }
+};
+drawDict();
+</script>
