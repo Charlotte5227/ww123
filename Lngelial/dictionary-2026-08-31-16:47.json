@@ -1,0 +1,2629 @@
+{
+  "私|代名詞": {
+    "ja": "私",
+    "pos": "代名詞",
+    "stem": "ink",
+    "it": "io",
+    "fi": "minä",
+    "af": "ek"
+  },
+  "あなた|代名詞": {
+    "ja": "あなた",
+    "pos": "代名詞",
+    "stem": "viny",
+    "it": "tu",
+    "fi": "sinä",
+    "af": "jy"
+  },
+  "名前|名詞": {
+    "ja": "名前",
+    "pos": "名詞",
+    "stem": "nim",
+    "it": "nome",
+    "fi": "nimi",
+    "af": "naam"
+  },
+  "今|名詞": {
+    "ja": "今",
+    "pos": "名詞",
+    "stem": "oyu",
+    "it": "ora",
+    "fi": "nyt",
+    "af": "nou"
+  },
+  "会話|名詞": {
+    "ja": "会話",
+    "pos": "名詞",
+    "stem": "convekustrek",
+    "it": "conversazione",
+    "fi": "keskustelu",
+    "af": "gesprek"
+  },
+  "食べ物|名詞": {
+    "ja": "食べ物",
+    "pos": "名詞",
+    "stem": "cirus",
+    "it": "cibo",
+    "fi": "ruoka",
+    "af": "kos"
+  },
+  "お米|名詞": {
+    "ja": "お米",
+    "pos": "名詞",
+    "stem": "risys",
+    "it": "riso",
+    "fi": "riisi",
+    "af": "rys"
+  },
+  "米|名詞": {
+    "ja": "米",
+    "pos": "名詞",
+    "stem": "risys",
+    "it": "riso",
+    "fi": "riisi",
+    "af": "rys"
+  },
+  "何|代名詞": {
+    "ja": "何",
+    "pos": "代名詞",
+    "stem": "nulitäks",
+    "it": "nulla",
+    "fi": "mitä",
+    "af": "wat"
+  },
+  "さっき|副詞": {
+    "ja": "さっき",
+    "pos": "副詞",
+    "stem": "apskelik",
+    "it": "appena",
+    "fi": "äsken",
+    "af": "netnou"
+  },
+  "すごく|副詞": {
+    "ja": "すごく",
+    "pos": "副詞",
+    "stem": "moittie",
+    "it": "molto",
+    "fi": "tosi",
+    "af": "baie"
+  },
+  "こんにちは|感動詞": {
+    "ja": "こんにちは",
+    "pos": "感動詞",
+    "stem": "cihelo",
+    "it": "ciao",
+    "fi": "hei",
+    "af": "hallo"
+  },
+  "よろしくお願いします|感動詞": {
+    "ja": "よろしくお願いします",
+    "pos": "感動詞",
+    "stem": "Gritiegendis",
+    "it": "",
+    "fi": "",
+    "af": "",
+    "fixed": true
+  },
+  "教える|動詞": {
+    "ja": "教える",
+    "pos": "動詞",
+    "stem": "inseperri",
+    "it": "insegnare",
+    "fi": "opettaa",
+    "af": "leer"
+  },
+  "くれる|動詞": {
+    "ja": "くれる",
+    "pos": "動詞",
+    "stem": "dante",
+    "it": "dare",
+    "fi": "antaa",
+    "af": "gee"
+  },
+  "覚える|動詞": {
+    "ja": "覚える",
+    "pos": "動詞",
+    "stem": "ricuistou",
+    "it": "ricordare",
+    "fi": "muistaa",
+    "af": "onthou"
+  },
+  "いる|動詞": {
+    "ja": "いる",
+    "pos": "動詞",
+    "stem": "èonis",
+    "it": "essere",
+    "fi": "olla",
+    "af": "is"
+  },
+  "する|動詞": {
+    "ja": "する",
+    "pos": "動詞",
+    "stem": "feheng",
+    "it": "fare",
+    "fi": "tehdä",
+    "af": "doen"
+  },
+  "楽しい|形容詞": {
+    "ja": "楽しい",
+    "pos": "形容詞",
+    "stem": "divesket",
+    "it": "divertente",
+    "fi": "hauska",
+    "af": "lekker"
+  },
+  "美味しい|形容詞": {
+    "ja": "美味しい",
+    "pos": "形容詞",
+    "stem": "delikulik",
+    "it": "delizioso",
+    "fi": "herkullinen",
+    "af": "lekker"
+  },
+  "おいしい|形容詞": {
+    "ja": "おいしい",
+    "pos": "形容詞",
+    "stem": "delikulik",
+    "it": "delizioso",
+    "fi": "herkullinen",
+    "af": "lekker"
+  },
+  "好き|形容動詞": {
+    "ja": "好き",
+    "pos": "形容動詞",
+    "stem": "pitos",
+    "it": "piacere",
+    "fi": "pitää",
+    "af": "hou van"
+  },
+  "彼|代名詞": {
+    "ja": "彼",
+    "pos": "代名詞",
+    "stem": "luhähy",
+    "it": "lui",
+    "fi": "hän",
+    "af": "hy"
+  },
+  "言わ|動詞": {
+    "ja": "言わ",
+    "pos": "動詞",
+    "stem": "dianosê",
+    "it": "dire",
+    "fi": "sanoa",
+    "af": "sê"
+  },
+  "目|名詞": {
+    "ja": "目",
+    "pos": "名詞",
+    "stem": "occhilmäog",
+    "it": "occhio",
+    "fi": "silmä",
+    "af": "oog"
+  },
+  "覚め|動詞": {
+    "ja": "覚め",
+    "pos": "動詞",
+    "stem": "sveeräker",
+    "it": "svegliarsi",
+    "fi": "herätä",
+    "af": "wakker"
+  },
+  "ここ|代名詞": {
+    "ja": "ここ",
+    "pos": "代名詞",
+    "stem": "quässier",
+    "it": "qui",
+    "fi": "tässä",
+    "af": "hier"
+  },
+  "何処|名詞": {
+    "ja": "何処",
+    "pos": "名詞",
+    "stem": "dovissaar",
+    "it": "dove",
+    "fi": "missä",
+    "af": "waar"
+  },
+  "わから|動詞": {
+    "ja": "わから",
+    "pos": "動詞",
+    "stem": "capmmweet",
+    "it": "capire",
+    "fi": "ymmärtää",
+    "af": "weet"
+  },
+  "思う|動詞": {
+    "ja": "思う",
+    "pos": "動詞",
+    "stem": "penajdink",
+    "it": "pensare",
+    "fi": "ajatella",
+    "af": "dink"
+  },
+  "落ち着い|動詞": {
+    "ja": "落ち着い",
+    "pos": "動詞",
+    "stem": "calmaukalm",
+    "it": "calmarsi",
+    "fi": "rauhoittua",
+    "af": "kalmeer"
+  },
+  "まず|副詞": {
+    "ja": "まず",
+    "pos": "副詞",
+    "stem": "primnsieers",
+    "it": "prima",
+    "fi": "ensin",
+    "af": "eers"
+  },
+  "自己紹介|名詞": {
+    "ja": "自己紹介",
+    "pos": "名詞",
+    "stem": "autsitting",
+    "it": "autopresentazione",
+    "fi": "esittely",
+    "af": "voorstelling"
+  },
+  "エリス|名詞": {
+    "ja": "エリス",
+    "pos": "名詞",
+    "stem": "eris",
+    "it": "eris",
+    "fi": "eris",
+    "af": "eris"
+  },
+  "この|連体詞": {
+    "ja": "この",
+    "pos": "連体詞",
+    "stem": "quesämärdie",
+    "it": "questo",
+    "fi": "tämä",
+    "af": "hierdie"
+  },
+  "家|名詞": {
+    "ja": "家",
+    "pos": "名詞",
+    "stem": "castalohuis",
+    "it": "casa",
+    "fi": "talo",
+    "af": "huis"
+  },
+  "主|名詞": {
+    "ja": "主",
+    "pos": "名詞",
+    "stem": "padmister",
+    "it": "padrone",
+    "fi": "omistaja",
+    "af": "meester"
+  },
+  "顔|名詞": {
+    "ja": "顔",
+    "pos": "名詞",
+    "stem": "viasvsig",
+    "it": "viso",
+    "fi": "kasvot",
+    "af": "gesig"
+  },
+  "付い|動詞": {
+    "ja": "付い",
+    "pos": "動詞",
+    "stem": "attiinsit",
+    "it": "attaccare",
+    "fi": "kiinnittyä",
+    "af": "vassit"
+  },
+  "もの|名詞": {
+    "ja": "もの",
+    "pos": "名詞",
+    "stem": "coasiing",
+    "it": "cosa",
+    "fi": "asia",
+    "af": "ding"
+  },
+  "見る|動詞": {
+    "ja": "見る",
+    "pos": "動詞",
+    "stem": "vedähdien",
+    "it": "vedere",
+    "fi": "nähdä",
+    "af": "sien"
+  },
+  "部位|名詞": {
+    "ja": "部位",
+    "pos": "名詞",
+    "stem": "partosadeel",
+    "it": "parte",
+    "fi": "osa",
+    "af": "deel"
+  },
+  "ついて|動詞": {
+    "ja": "ついて",
+    "pos": "動詞",
+    "stem": "attiinsit",
+    "it": "attaccare",
+    "fi": "kiinnittyä",
+    "af": "vassit"
+  },
+  "余談|名詞": {
+    "ja": "余談",
+    "pos": "名詞",
+    "stem": "digivusel",
+    "it": "digressione",
+    "fi": "sivujuonne",
+    "af": "uitweiding"
+  },
+  "お願い|名詞": {
+    "ja": "お願い",
+    "pos": "名詞",
+    "stem": "ricyynoek",
+    "it": "richiesta",
+    "fi": "pyyntö",
+    "af": "versoek"
+  },
+  "ある|動詞": {
+    "ja": "ある",
+    "pos": "動詞",
+    "stem": "essollis",
+    "it": "esistere",
+    "fi": "olla",
+    "af": "is"
+  },
+  "祈り|名詞": {
+    "ja": "祈り",
+    "pos": "名詞",
+    "stem": "preukobed",
+    "it": "preghiera",
+    "fi": "rukous",
+    "af": "gebed"
+  },
+  "泉|名詞": {
+    "ja": "泉",
+    "pos": "名詞",
+    "stem": "fontläfon",
+    "it": "fontana",
+    "fi": "lähde",
+    "af": "fontein"
+  },
+  "それ|代名詞": {
+    "ja": "それ",
+    "pos": "代名詞",
+    "stem": "quelsedi",
+    "it": "quello",
+    "fi": "se",
+    "af": "daardie"
+  },
+  "見つけて|動詞": {
+    "ja": "見つけて",
+    "pos": "動詞",
+    "stem": "trovalöykry",
+    "it": "trovare",
+    "fi": "löytää",
+    "af": "kry"
+  },
+  "ほしい|形容詞": {
+    "ja": "ほしい",
+    "pos": "形容詞",
+    "stem": "desoivaag",
+    "it": "desiderare",
+    "fi": "toivoa",
+    "af": "vra"
+  },
+  "確か|形容動詞": {
+    "ja": "確か",
+    "pos": "形容動詞",
+    "stem": "cevarmsek",
+    "it": "certo",
+    "fi": "varma",
+    "af": "seker"
+  },
+  "そこ|代名詞": {
+    "ja": "そこ",
+    "pos": "代名詞",
+    "stem": "lìielaar",
+    "it": "lì",
+    "fi": "siellä",
+    "af": "daar"
+  },
+  "指し|動詞": {
+    "ja": "指し",
+    "pos": "動詞",
+    "stem": "punsoiwys",
+    "it": "puntare",
+    "fi": "osoittaa",
+    "af": "wys"
+  },
+  "場所|名詞": {
+    "ja": "場所",
+    "pos": "名詞",
+    "stem": "luogikkaplek",
+    "it": "luogo",
+    "fi": "paikka",
+    "af": "plek"
+  },
+  "言っ|動詞": {
+    "ja": "言っ",
+    "pos": "動詞",
+    "stem": "dirsanê",
+    "it": "dire",
+    "fi": "sanoa",
+    "af": "sê"
+  },
+  "よく|副詞": {
+    "ja": "よく",
+    "pos": "副詞",
+    "stem": "beyvioed",
+    "it": "bene",
+    "fi": "hyvin",
+    "af": "goed"
+  },
+  "やつ|名詞": {
+    "ja": "やつ",
+    "pos": "名詞",
+    "stem": "cosjuding",
+    "it": "coso",
+    "fi": "juttu",
+    "af": "ding"
+  },
+  "いう|動詞": {
+    "ja": "いう",
+    "pos": "動詞",
+    "stem": "dianosê",
+    "it": "dire",
+    "fi": "sanoa",
+    "af": "sê"
+  },
+  "そんな|連体詞": {
+    "ja": "そんな",
+    "pos": "連体詞",
+    "stem": "taellson",
+    "it": "tale",
+    "fi": "sellainen",
+    "af": "sulke"
+  },
+  "関係|名詞": {
+    "ja": "関係",
+    "pos": "名詞",
+    "stem": "relhteand",
+    "it": "relazione",
+    "fi": "suhde",
+    "af": "verband"
+  },
+  "探し|動詞": {
+    "ja": "探し",
+    "pos": "動詞",
+    "stem": "certsioek",
+    "it": "cercare",
+    "fi": "etsiä",
+    "af": "soek"
+  },
+  "話|名詞": {
+    "ja": "話",
+    "pos": "名詞",
+    "stem": "parpuhespraak",
+    "it": "parlata",
+    "fi": "puhe",
+    "af": "gesprek"
+  },
+  "話し|動詞": {
+    "ja": "話し",
+    "pos": "動詞",
+    "stem": "paruhuaat",
+    "it": "parlare",
+    "fi": "puhua",
+    "af": "praat"
+  },
+  "いい|形容詞": {
+    "ja": "いい",
+    "pos": "形容詞",
+    "stem": "buohyvoed",
+    "it": "buono",
+    "fi": "hyvä",
+    "af": "goed"
+  },
+  "たく|助動詞": {
+    "ja": "たく",
+    "pos": "助動詞",
+    "stem": "volaluwil",
+    "it": "volere",
+    "fi": "haluta",
+    "af": "wil"
+  },
+  "わかっ|動詞": {
+    "ja": "わかっ",
+    "pos": "動詞",
+    "stem": "capmmversta",
+    "it": "capire",
+    "fi": "ymmärtää",
+    "af": "verstaan"
+  },
+  "無理|名詞": {
+    "ja": "無理",
+    "pos": "名詞",
+    "stem": "impakking",
+    "it": "impossibile",
+    "fi": "pakko",
+    "af": "dwing"
+  },
+  "さようなら|感動詞": {
+    "ja": "さようなら",
+    "pos": "感動詞",
+    "stem": "addnäkemtotsiens",
+    "it": "addio",
+    "fi": "näkemiin",
+    "af": "totsiens"
+  },
+  "よろしく|形容詞": {
+    "ja": "よろしく",
+    "pos": "形容詞",
+    "stem": "behyvoed",
+    "it": "bene",
+    "fi": "hyvä",
+    "af": "goed"
+  },
+  "傷|名詞": {
+    "ja": "傷",
+    "pos": "名詞",
+    "stem": "feraavond",
+    "it": "ferita",
+    "fi": "haava",
+    "af": "wond"
+  },
+  "大丈夫|形容動詞": {
+    "ja": "大丈夫",
+    "pos": "形容動詞",
+    "stem": "bekunreg",
+    "it": "bene",
+    "fi": "kunnossa",
+    "af": "reg"
+  },
+  "よろしく|副詞": {
+    "ja": "よろしく",
+    "pos": "副詞",
+    "stem": "beyvioed",
+    "it": "bene",
+    "fi": "hyvin",
+    "af": "goed"
+  },
+  "ここ|名詞": {
+    "ja": "ここ",
+    "pos": "名詞",
+    "stem": "quässier",
+    "it": "qui",
+    "fi": "tässä",
+    "af": "hier"
+  },
+  "そこ|名詞": {
+    "ja": "そこ",
+    "pos": "名詞",
+    "stem": "lìielaar",
+    "it": "lì",
+    "fi": "siellä",
+    "af": "daar"
+  },
+  "どこ|名詞": {
+    "ja": "どこ",
+    "pos": "名詞",
+    "stem": "dovissaar",
+    "it": "dove",
+    "fi": "missä",
+    "af": "waar"
+  },
+  "覚める|動詞": {
+    "ja": "覚める",
+    "pos": "動詞",
+    "stem": "sveeräker",
+    "it": "svegliarsi",
+    "fi": "herätä",
+    "af": "wakker"
+  },
+  "わかる|動詞": {
+    "ja": "わかる",
+    "pos": "動詞",
+    "stem": "capmmweet",
+    "it": "capire",
+    "fi": "ymmärtää",
+    "af": "weet"
+  },
+  "分かる|動詞": {
+    "ja": "分かる",
+    "pos": "動詞",
+    "stem": "capmmweet",
+    "it": "capire",
+    "fi": "ymmärtää",
+    "af": "weet"
+  },
+  "落ち着く|動詞": {
+    "ja": "落ち着く",
+    "pos": "動詞",
+    "stem": "calmaukalm",
+    "it": "calmarsi",
+    "fi": "rauhoittua",
+    "af": "kalmeer"
+  },
+  "付く|動詞": {
+    "ja": "付く",
+    "pos": "動詞",
+    "stem": "attiinsit",
+    "it": "attaccare",
+    "fi": "kiinnittyä",
+    "af": "sit"
+  },
+  "見つける|動詞": {
+    "ja": "見つける",
+    "pos": "動詞",
+    "stem": "trovalöykry",
+    "it": "trovare",
+    "fi": "löytää",
+    "af": "kry"
+  },
+  "探す|動詞": {
+    "ja": "探す",
+    "pos": "動詞",
+    "stem": "certsioek",
+    "it": "cercare",
+    "fi": "etsiä",
+    "af": "soek"
+  },
+  "指す|動詞": {
+    "ja": "指す",
+    "pos": "動詞",
+    "stem": "punsoiwys",
+    "it": "puntare",
+    "fi": "osoittaa",
+    "af": "wys"
+  },
+  "言う|動詞": {
+    "ja": "言う",
+    "pos": "動詞",
+    "stem": "dianoê",
+    "it": "dire",
+    "fi": "sanoa",
+    "af": "sê"
+  },
+  "話す|動詞": {
+    "ja": "話す",
+    "pos": "動詞",
+    "stem": "paruhuaat",
+    "it": "parlare",
+    "fi": "puhua",
+    "af": "praat"
+  },
+  "良い|形容詞": {
+    "ja": "良い",
+    "pos": "形容詞",
+    "stem": "buohyvoed",
+    "it": "buono",
+    "fi": "hyvä",
+    "af": "goed"
+  },
+  "二つ|数詞": {
+    "ja": "二つ",
+    "pos": "数詞",
+    "stem": "We",
+    "it": "due",
+    "fi": "kaksi",
+    "af": "twee",
+    "fixed": true
+  },
+  "エリシアフェリィジュロゴルドヒューラス|名詞": {
+    "ja": "エリシアフェリィ ジュロゴルド ヒューラス",
+    "pos": "名詞",
+    "stem": "Elishfili Jurrogold Huras",
+    "it": "",
+    "fi": "",
+    "af": "",
+    "fixed": true
+  },
+  "お願いします|動詞": {
+    "ja": "お願いします",
+    "pos": "動詞",
+    "stem": "preyytvra",
+    "it": "pregare",
+    "fi": "pyytää",
+    "af": "vra"
+  },
+  "そっか|感動詞": {
+    "ja": "そっか",
+    "pos": "感動詞",
+    "stem": "capmmäaan",
+    "it": "capito",
+    "fi": "ymmärretään",
+    "af": "verstaan"
+  },
+  "よかっ|形容詞": {
+    "ja": "よかっ",
+    "pos": "形容詞",
+    "stem": "buohyvoed",
+    "it": "buono",
+    "fi": "hyvä",
+    "af": "goed"
+  },
+  "これ|代名詞": {
+    "ja": "これ",
+    "pos": "代名詞",
+    "stem": "questämähie",
+    "it": "questo",
+    "fi": "tämä",
+    "af": "hierdie"
+  },
+  "し|動詞": {
+    "ja": "し",
+    "pos": "動詞",
+    "stem": "faehdoen",
+    "it": "fare",
+    "fi": "tehdä",
+    "af": "doen"
+  },
+  "ありがとう|感動詞": {
+    "ja": "ありがとう",
+    "pos": "感動詞",
+    "stem": "graiitkie",
+    "it": "grazie",
+    "fi": "kiitos",
+    "af": "dankie"
+  },
+  "〇〇|名詞": {
+    "ja": "〇〇",
+    "pos": "名詞",
+    "stem": "cerik",
+    "it": "cerchio",
+    "fi": "rik",
+    "af": "sirkel"
+  },
+  "記憶|名詞": {
+    "ja": "記憶",
+    "pos": "名詞",
+    "stem": "ricormuiheri",
+    "it": "ricordo",
+    "fi": "muisti",
+    "af": "herinnering"
+  },
+  "彼女|代名詞": {
+    "ja": "彼女",
+    "pos": "代名詞",
+    "stem": "leihänsy",
+    "it": "lei",
+    "fi": "hän",
+    "af": "sy"
+  },
+  "静か|形容動詞": {
+    "ja": "静か",
+    "pos": "形容動詞",
+    "stem": "tranquihiljstil",
+    "it": "tranquillo",
+    "fi": "hiljainen",
+    "af": "stil"
+  },
+  "部屋|名詞": {
+    "ja": "部屋",
+    "pos": "名詞",
+    "stem": "camhuonkam",
+    "it": "camera",
+    "fi": "huone",
+    "af": "kamer"
+  },
+  "古い|形容詞": {
+    "ja": "古い",
+    "pos": "形容詞",
+    "stem": "vecvanou",
+    "it": "vecchio",
+    "fi": "vanha",
+    "af": "ou"
+  },
+  "手紙|名詞": {
+    "ja": "手紙",
+    "pos": "名詞",
+    "stem": "letkirbrief",
+    "it": "lettera",
+    "fi": "kirje",
+    "af": "brief"
+  },
+  "読み返し|動詞": {
+    "ja": "読み返し",
+    "pos": "動詞",
+    "stem": "rilegluklees",
+    "it": "rileggere",
+    "fi": "lukea",
+    "af": "lees"
+  },
+  "もしかして|副詞": {
+    "ja": "もしかして",
+    "pos": "副詞",
+    "stem": "forehkalk",
+    "it": "forse",
+    "fi": "ehkä",
+    "af": "dalk"
+  },
+  "自分|代名詞": {
+    "ja": "自分",
+    "pos": "代名詞",
+    "stem": "steitseself",
+    "it": "stesso",
+    "fi": "itse",
+    "af": "self"
+  },
+  "聞き取れ|動詞": {
+    "ja": "聞き取れ",
+    "pos": "動詞",
+    "stem": "senuuloor",
+    "it": "sentire",
+    "fi": "kuulla",
+    "af": "hoor"
+  },
+  "困っ|動詞": {
+    "ja": "困っ",
+    "pos": "動詞",
+    "stem": "imbaoleval",
+    "it": "imbarazzo",
+    "fi": "olla",
+    "af": "eval"
+  },
+  "どう|副詞": {
+    "ja": "どう",
+    "pos": "副詞",
+    "stem": "comekuihoe",
+    "it": "come",
+    "fi": "kuinka",
+    "af": "hoe"
+  },
+  "とりあえず|副詞": {
+    "ja": "とりあえず",
+    "pos": "副詞",
+    "stem": "intlukpig",
+    "it": "intanto",
+    "fi": "aluksi",
+    "af": "voorlopig"
+  },
+  "あと|名詞": {
+    "ja": "あと",
+    "pos": "名詞",
+    "stem": "doponader",
+    "it": "dopo",
+    "fi": "myöhemmin",
+    "af": "naderhand"
+  },
+  "取り返そ|動詞": {
+    "ja": "取り返そ",
+    "pos": "動詞",
+    "stem": "recalakry",
+    "it": "recuperare",
+    "fi": "palauttaa",
+    "af": "terugkry"
+  },
+  "困った|動詞": {
+    "ja": "困った",
+    "pos": "動詞",
+    "stem": "difaiklik",
+    "it": "difficile",
+    "fi": "vaikea",
+    "af": "moeilik"
+  },
+  "どうしよう|動詞": {
+    "ja": "どうしよう",
+    "pos": "動詞",
+    "stem": "coitehoe",
+    "it": "come",
+    "fi": "miten",
+    "af": "hoe"
+  },
+  "知り|動詞": {
+    "ja": "知り",
+    "pos": "動詞",
+    "stem": "sapieteet",
+    "it": "sapere",
+    "fi": "tietää",
+    "af": "weet"
+  },
+  "分から|動詞": {
+    "ja": "分から",
+    "pos": "動詞",
+    "stem": "capmmäaan",
+    "it": "capire",
+    "fi": "ymmärtää",
+    "af": "verstaan"
+  },
+  "行っ|動詞": {
+    "ja": "行っ",
+    "pos": "動詞",
+    "stem": "andennaan",
+    "it": "andare",
+    "fi": "mennä",
+    "af": "gaan"
+  },
+  "ほう|名詞": {
+    "ja": "ほう",
+    "pos": "名詞",
+    "stem": "diruuning",
+    "it": "direzione",
+    "fi": "suunta",
+    "af": "rigting"
+  },
+  "大切|形容動詞": {
+    "ja": "大切",
+    "pos": "形容動詞",
+    "stem": "impärkrik",
+    "it": "importante",
+    "fi": "tärkeä",
+    "af": "belangrik"
+  },
+  "うん|感動詞": {
+    "ja": "うん",
+    "pos": "感動詞",
+    "stem": "sìjallaj",
+    "it": "sì",
+    "fi": "jalla",
+    "af": "ja"
+  },
+  "嬉しい|形容詞": {
+    "ja": "嬉しい",
+    "pos": "形容詞",
+    "stem": "felnnebly",
+    "it": "felice",
+    "fi": "onnellinen",
+    "af": "bly"
+  },
+  "一緒に|副詞": {
+    "ja": "一緒に",
+    "pos": "副詞",
+    "stem": "inshdeaam",
+    "it": "insieme",
+    "fi": "yhdessä",
+    "af": "saam"
+  },
+  "取り戻そ|動詞": {
+    "ja": "取り戻そ",
+    "pos": "動詞",
+    "stem": "recuperug",
+    "it": "recuperare",
+    "fi": "palauttaa",
+    "af": "terugkry"
+  },
+  "早速|副詞": {
+    "ja": "早速",
+    "pos": "副詞",
+    "stem": "subhetlik",
+    "it": "subito",
+    "fi": "heti",
+    "af": "dadelik"
+  },
+  "準備|名詞": {
+    "ja": "準備",
+    "pos": "名詞",
+    "stem": "prealming",
+    "it": "preparazione",
+    "fi": "valmistelu",
+    "af": "voorbereiding"
+  },
+  "痛く|形容詞": {
+    "ja": "痛く",
+    "pos": "形容詞",
+    "stem": "doldoertig",
+    "it": "dolore",
+    "fi": "doloroso",
+    "af": "seertig"
+  },
+  "痛い|形容詞": {
+    "ja": "痛い",
+    "pos": "形容詞",
+    "stem": "doldoertig",
+    "it": "dolore",
+    "fi": "doloroso",
+    "af": "seertig"
+  },
+  "もう|副詞": {
+    "ja": "もう",
+    "pos": "副詞",
+    "stem": "gijoeds",
+    "it": "già",
+    "fi": "jo",
+    "af": "reeds"
+  },
+  "少し|副詞": {
+    "ja": "少し",
+    "pos": "副詞",
+    "stem": "povätin",
+    "it": "poco",
+    "fi": "vähän",
+    "af": "bietin"
+  },
+  "休憩|名詞": {
+    "ja": "休憩",
+    "pos": "名詞",
+    "stem": "ripaukrek",
+    "it": "riposo",
+    "fi": "tauko",
+    "af": "brek"
+  },
+  "歩く|動詞": {
+    "ja": "歩く",
+    "pos": "動詞",
+    "stem": "camävelop",
+    "it": "camminare",
+    "fi": "kävellä",
+    "af": "loop"
+  },
+  "とき|名詞": {
+    "ja": "とき",
+    "pos": "名詞",
+    "stem": "temaikstyd",
+    "it": "tempo",
+    "fi": "aika",
+    "af": "styd"
+  },
+  "あっ|動詞": {
+    "ja": "あっ",
+    "pos": "動詞",
+    "stem": "essollwees",
+    "it": "essere",
+    "fi": "olla",
+    "af": "wees"
+  },
+  "始め|動詞": {
+    "ja": "始め",
+    "pos": "動詞",
+    "stem": "inilkagin",
+    "it": "iniziare",
+    "fi": "alkaa",
+    "af": "begin"
+  },
+  "鍵|名詞": {
+    "ja": "鍵",
+    "pos": "名詞",
+    "stem": "chivaitel",
+    "it": "chiave",
+    "fi": "avain",
+    "af": "sleutel"
+  },
+  "封鎖|名詞": {
+    "ja": "封鎖",
+    "pos": "名詞",
+    "stem": "blocokkad",
+    "it": "blocco",
+    "fi": "esto",
+    "af": "blokkade"
+  },
+  "術者|名詞": {
+    "ja": "術者",
+    "pos": "名詞",
+    "stem": "maaikaar",
+    "it": "mago",
+    "fi": "taikuri",
+    "af": "towenaar"
+  },
+  "誰|代名詞": {
+    "ja": "誰",
+    "pos": "代名詞",
+    "stem": "chikukwie",
+    "it": "chi",
+    "fi": "kuka",
+    "af": "wie"
+  },
+  "助ける|動詞": {
+    "ja": "助ける",
+    "pos": "動詞",
+    "stem": "aiuuttelp",
+    "it": "aiutare",
+    "fi": "auttaa",
+    "af": "help"
+  },
+  "為|名詞": {
+    "ja": "為",
+    "pos": "名詞",
+    "stem": "scopokoel",
+    "it": "scopo",
+    "fi": "tarkoitus",
+    "af": "doel"
+  },
+  "すれ|動詞": {
+    "ja": "すれ",
+    "pos": "動詞",
+    "stem": "faehdoen",
+    "it": "fare",
+    "fi": "tehdä",
+    "af": "doen"
+  },
+  "えーと|感動詞": {
+    "ja": "えーと",
+    "pos": "感動詞",
+    "stem": "ehöhmm",
+    "it": "ehm",
+    "fi": "öh",
+    "af": "hmm"
+  },
+  "まぁ|感動詞": {
+    "ja": "まぁ",
+    "pos": "感動詞",
+    "stem": "behnonou",
+    "it": "beh",
+    "fi": "no",
+    "af": "nou"
+  },
+  "その|連体詞": {
+    "ja": "その",
+    "pos": "連体詞",
+    "stem": "quelsedi",
+    "it": "quello",
+    "fi": "se",
+    "af": "di"
+  },
+  "認識|名詞": {
+    "ja": "認識",
+    "pos": "名詞",
+    "stem": "ricotukeu",
+    "it": "riconoscimento",
+    "fi": "tunto",
+    "af": "keur"
+  },
+  "合っ|動詞": {
+    "ja": "合っ",
+    "pos": "動詞",
+    "stem": "corrsovtem",
+    "it": "corrispondere",
+    "fi": "sovi",
+    "af": "stem"
+  },
+  "んー|感動詞": {
+    "ja": "んー",
+    "pos": "感動詞",
+    "stem": "mhmhm",
+    "it": "mhm",
+    "fi": "hmm",
+    "af": "hm"
+  },
+  "そう|副詞": {
+    "ja": "そう",
+    "pos": "副詞",
+    "stem": "coniiso",
+    "it": "così",
+    "fi": "niin",
+    "af": "so"
+  },
+  "伝える|動詞": {
+    "ja": "伝える",
+    "pos": "動詞",
+    "stem": "comilmeld",
+    "it": "comunicare",
+    "fi": "ilmoittaa",
+    "af": "meld"
+  },
+  "正解|名詞": {
+    "ja": "正解",
+    "pos": "名詞",
+    "stem": "giuikerek",
+    "it": "giusto",
+    "fi": "oikea",
+    "af": "korrek"
+  },
+  "間違い|名詞": {
+    "ja": "間違い",
+    "pos": "名詞",
+    "stem": "errirhout",
+    "it": "errore",
+    "fi": "virhe",
+    "af": "fout"
+  },
+  "分かっ|動詞": {
+    "ja": "分かっ",
+    "pos": "動詞",
+    "stem": "capmmäaan",
+    "it": "capire",
+    "fi": "ymmärtää",
+    "af": "verstaan"
+  },
+  "取り戻す|動詞": {
+    "ja": "取り戻す",
+    "pos": "動詞",
+    "stem": "recalanou",
+    "it": "recuperare",
+    "fi": "palauttaa",
+    "af": "hernou"
+  },
+  "思い出せ|動詞": {
+    "ja": "思い出せ",
+    "pos": "動詞",
+    "stem": "ricuistou",
+    "it": "ricordare",
+    "fi": "muistaa",
+    "af": "onthou"
+  },
+  "取り戻せる|動詞": {
+    "ja": "取り戻せる",
+    "pos": "動詞",
+    "stem": "recalanou",
+    "it": "recuperare",
+    "fi": "palauttaa",
+    "af": "hernou"
+  },
+  "倒し|動詞": {
+    "ja": "倒し",
+    "pos": "動詞",
+    "stem": "scoaataan",
+    "it": "sconfiggere",
+    "fi": "kaataa",
+    "af": "verslaan"
+  },
+  "行く|動詞": {
+    "ja": "行く",
+    "pos": "動詞",
+    "stem": "andennaan",
+    "it": "andare",
+    "fi": "mennä",
+    "af": "gaan"
+  },
+  "よし|感動詞": {
+    "ja": "よし",
+    "pos": "感動詞",
+    "stem": "bejeja",
+    "it": "bene",
+    "fi": "jee",
+    "af": "ja"
+  },
+  "まずは|副詞": {
+    "ja": "まずは",
+    "pos": "副詞",
+    "stem": "prieerers",
+    "it": "prima",
+    "fi": "eers",
+    "af": "eers"
+  },
+  "街|名詞": {
+    "ja": "街",
+    "pos": "名詞",
+    "stem": "citaupstad",
+    "it": "città",
+    "fi": "kaupunki",
+    "af": "stad"
+  },
+  "み|動詞": {
+    "ja": "み",
+    "pos": "動詞",
+    "stem": "provyrob",
+    "it": "provare",
+    "fi": "yrittää",
+    "af": "probeer"
+  },
+  "図書館|名詞": {
+    "ja": "図書館",
+    "pos": "名詞",
+    "stem": "biblkirjek",
+    "it": "biblioteca",
+    "fi": "kirjasto",
+    "af": "biblioteek"
+  },
+  "調べ|動詞": {
+    "ja": "調べ",
+    "pos": "動詞",
+    "stem": "cerutkoek",
+    "it": "cercare",
+    "fi": "tutkia",
+    "af": "ondersoek"
+  },
+  "ほら|感動詞": {
+    "ja": "ほら",
+    "pos": "感動詞",
+    "stem": "eccokatsehier",
+    "it": "ecco",
+    "fi": "katse",
+    "af": "hier"
+  },
+  "カバン|名詞": {
+    "ja": "カバン",
+    "pos": "名詞",
+    "stem": "borauksak",
+    "it": "borsa",
+    "fi": "laukku",
+    "af": "sak"
+  },
+  "持っ|動詞": {
+    "ja": "持っ",
+    "pos": "動詞",
+    "stem": "tenpitähou",
+    "it": "tenere",
+    "fi": "pitää",
+    "af": "hou"
+  },
+  "じゃあ|接続詞": {
+    "ja": "じゃあ",
+    "pos": "接続詞",
+    "stem": "allosiisdan",
+    "it": "allora",
+    "fi": "siis",
+    "af": "dan"
+  },
+  "行こ|動詞": {
+    "ja": "行こ",
+    "pos": "動詞",
+    "stem": "andennägaan",
+    "it": "andare",
+    "fi": "mennä",
+    "af": "gaan"
+  },
+  "わからない|動詞": {
+    "ja": "わからない",
+    "pos": "動詞",
+    "stem": "capmmäaan",
+    "it": "capire",
+    "fi": "ymmärtää",
+    "af": "verstaan"
+  },
+  "絶対|副詞": {
+    "ja": "絶対",
+    "pos": "副詞",
+    "stem": "asshdouut",
+    "it": "assolutamente",
+    "fi": "ehdottomasti",
+    "af": "absoluut"
+  },
+  "離れ|動詞": {
+    "ja": "離れ",
+    "pos": "動詞",
+    "stem": "allrkaaan",
+    "it": "allontanare",
+    "fi": "erkaantua",
+    "af": "weggaan"
+  },
+  "いろんな|連体詞": {
+    "ja": "いろんな",
+    "pos": "連体詞",
+    "stem": "varrileie",
+    "it": "vario",
+    "fi": "erilainen",
+    "af": "verskeie"
+  },
+  "単語|名詞": {
+    "ja": "単語",
+    "pos": "名詞",
+    "stem": "parosand",
+    "it": "parola",
+    "fi": "sana",
+    "af": "woord"
+  },
+  "絵本|名詞": {
+    "ja": "絵本",
+    "pos": "名詞",
+    "stem": "libkuvaboek",
+    "it": "libro",
+    "fi": "kuvakirja",
+    "af": "prenteboek"
+  },
+  "持って|動詞": {
+    "ja": "持って",
+    "pos": "動詞",
+    "stem": "poritähou",
+    "it": "portare",
+    "fi": "pitää",
+    "af": "hou"
+  },
+  "くる|動詞": {
+    "ja": "くる",
+    "pos": "動詞",
+    "stem": "venullkom",
+    "it": "venire",
+    "fi": "tulla",
+    "af": "kom"
+  },
+  "間|名詞": {
+    "ja": "間",
+    "pos": "名詞",
+    "stem": "intvälyd",
+    "it": "intervallo",
+    "fi": "väli",
+    "af": "tyd"
+  },
+  "じっと|副詞": {
+    "ja": "じっと",
+    "pos": "副詞",
+    "stem": "fermpaikstil",
+    "it": "fermo",
+    "fi": "paikallaan",
+    "af": "stil"
+  },
+  "歩か|動詞": {
+    "ja": "歩か",
+    "pos": "動詞",
+    "stem": "camävelop",
+    "it": "camminare",
+    "fi": "kävellä",
+    "af": "loop"
+  },
+  "分かった|動詞": {
+    "ja": "分かった",
+    "pos": "動詞",
+    "stem": "capmmäaan",
+    "it": "capire",
+    "fi": "ymmärtää",
+    "af": "verstaan"
+  },
+  "本|名詞": {
+    "ja": "本",
+    "pos": "名詞",
+    "stem": "libkirjaek",
+    "it": "libro",
+    "fi": "kirja",
+    "af": "boek"
+  },
+  "読め|動詞": {
+    "ja": "読め",
+    "pos": "動詞",
+    "stem": "leggukees",
+    "it": "leggere",
+    "fi": "lukea",
+    "af": "lees"
+  },
+  "絵|名詞": {
+    "ja": "絵",
+    "pos": "名詞",
+    "stem": "immkuvabeeld",
+    "it": "immagine",
+    "fi": "kuva",
+    "af": "beeld"
+  },
+  "付いて|動詞": {
+    "ja": "付いて",
+    "pos": "動詞",
+    "stem": "attliitheg",
+    "it": "attaccare",
+    "fi": "liittyä",
+    "af": "heg"
+  },
+  "はず|名詞": {
+    "ja": "はず",
+    "pos": "名詞",
+    "stem": "dovymmärbehoort",
+    "it": "dovere",
+    "fi": "ymmärrys",
+    "af": "behoort"
+  },
+  "はい|感動詞": {
+    "ja": "はい",
+    "pos": "感動詞",
+    "stem": "sìyllja",
+    "it": "sì",
+    "fi": "kyllä",
+    "af": "ja"
+  },
+  "簡単|形容動詞": {
+    "ja": "簡単",
+    "pos": "形容動詞",
+    "stem": "facelplik",
+    "it": "facile",
+    "fi": "helppo",
+    "af": "maklik"
+  },
+  "童話|名詞": {
+    "ja": "童話",
+    "pos": "名詞",
+    "stem": "fiasatkie",
+    "it": "fiaba",
+    "fi": "satu",
+    "af": "sprokie"
+  },
+  "選ん|動詞": {
+    "ja": "選ん",
+    "pos": "動詞",
+    "stem": "scealiies",
+    "it": "scegliere",
+    "fi": "valita",
+    "af": "kies"
+  },
+  "き|動詞": {
+    "ja": "き",
+    "pos": "動詞",
+    "stem": "venullkom",
+    "it": "venire",
+    "fi": "tulla",
+    "af": "kom"
+  },
+  "勉強|名詞": {
+    "ja": "勉強",
+    "pos": "名詞",
+    "stem": "stupisdie",
+    "it": "studio",
+    "fi": "opiskelu",
+    "af": "studie"
+  },
+  "消し|動詞": {
+    "ja": "消し",
+    "pos": "動詞",
+    "stem": "cancpyyvee",
+    "it": "cancellare",
+    "fi": "pyyhkiä",
+    "af": "uitvee"
+  },
+  "術|名詞": {
+    "ja": "術",
+    "pos": "名詞",
+    "stem": "arttaitokuns",
+    "it": "arte",
+    "fi": "taito",
+    "af": "kuns"
+  },
+  "人|名詞": {
+    "ja": "人",
+    "pos": "名詞",
+    "stem": "perhmiens",
+    "it": "persona",
+    "fi": "ihminen",
+    "af": "mens"
+  },
+  "男|名詞": {
+    "ja": "男",
+    "pos": "名詞",
+    "stem": "uomiesman",
+    "it": "uomo",
+    "fi": "mies",
+    "af": "man"
+  },
+  "女|名詞": {
+    "ja": "女",
+    "pos": "名詞",
+    "stem": "donnainvrou",
+    "it": "donna",
+    "fi": "nainen",
+    "af": "vrou"
+  },
+  "子供|名詞": {
+    "ja": "子供",
+    "pos": "名詞",
+    "stem": "bamblapkind",
+    "it": "bambino",
+    "fi": "lapsi",
+    "af": "kind"
+  },
+  "男の子|名詞": {
+    "ja": "男の子",
+    "pos": "名詞",
+    "stem": "ragazpoiseun",
+    "it": "ragazzo",
+    "fi": "poika",
+    "af": "seun"
+  },
+  "女の子|名詞": {
+    "ja": "女の子",
+    "pos": "名詞",
+    "stem": "ragaztyttoggie",
+    "it": "ragazza",
+    "fi": "tyttö",
+    "af": "doggie"
+  },
+  "友達|名詞": {
+    "ja": "友達",
+    "pos": "名詞",
+    "stem": "amikavriend",
+    "it": "amico",
+    "fi": "kaveri",
+    "af": "vriend"
+  },
+  "家族|名詞": {
+    "ja": "家族",
+    "pos": "名詞",
+    "stem": "famerhsin",
+    "it": "famiglia",
+    "fi": "perhe",
+    "af": "gesin"
+  },
+  "母|名詞": {
+    "ja": "母",
+    "pos": "名詞",
+    "stem": "madräitima",
+    "it": "madre",
+    "fi": "äiti",
+    "af": "ma"
+  },
+  "父|名詞": {
+    "ja": "父",
+    "pos": "名詞",
+    "stem": "padrisäpa",
+    "it": "padre",
+    "fi": "isä",
+    "af": "pa"
+  },
+  "王|名詞": {
+    "ja": "王",
+    "pos": "名詞",
+    "stem": "rekuninkoning",
+    "it": "re",
+    "fi": "kuningas",
+    "af": "koning"
+  },
+  "女王|名詞": {
+    "ja": "女王",
+    "pos": "名詞",
+    "stem": "regikuninkoningin",
+    "it": "regina",
+    "fi": "kuningatar",
+    "af": "koningin"
+  },
+  "王子|名詞": {
+    "ja": "王子",
+    "pos": "名詞",
+    "stem": "prinprinsprins",
+    "it": "principe",
+    "fi": "prinssi",
+    "af": "prins"
+  },
+  "王女|名詞": {
+    "ja": "王女",
+    "pos": "名詞",
+    "stem": "prinprinsprinses",
+    "it": "principessa",
+    "fi": "prinsessa",
+    "af": "prinses"
+  },
+  "神|名詞": {
+    "ja": "神",
+    "pos": "名詞",
+    "stem": "diojumalgod",
+    "it": "dio",
+    "fi": "jumala",
+    "af": "god"
+  },
+  "動物|名詞": {
+    "ja": "動物",
+    "pos": "名詞",
+    "stem": "animäindier",
+    "it": "animale",
+    "fi": "eläin",
+    "af": "dier"
+  },
+  "鳥|名詞": {
+    "ja": "鳥",
+    "pos": "名詞",
+    "stem": "uccelintvoël",
+    "it": "uccello",
+    "fi": "lintu",
+    "af": "voël"
+  },
+  "猫|名詞": {
+    "ja": "猫",
+    "pos": "名詞",
+    "stem": "gatkiskat",
+    "it": "gatto",
+    "fi": "kissa",
+    "af": "kat"
+  },
+  "犬|名詞": {
+    "ja": "犬",
+    "pos": "名詞",
+    "stem": "cankoirhond",
+    "it": "cane",
+    "fi": "koira",
+    "af": "hond"
+  },
+  "魚|名詞": {
+    "ja": "魚",
+    "pos": "名詞",
+    "stem": "pesckavis",
+    "it": "pesce",
+    "fi": "kala",
+    "af": "vis"
+  },
+  "馬|名詞": {
+    "ja": "馬",
+    "pos": "名詞",
+    "stem": "cavevoerd",
+    "it": "cavallo",
+    "fi": "hevonen",
+    "af": "perd"
+  },
+  "手|名詞": {
+    "ja": "手",
+    "pos": "名詞",
+    "stem": "manokähand",
+    "it": "mano",
+    "fi": "käsi",
+    "af": "hand"
+  },
+  "足|名詞": {
+    "ja": "足",
+    "pos": "名詞",
+    "stem": "piealkoet",
+    "it": "piede",
+    "fi": "jalka",
+    "af": "voet"
+  },
+  "耳|名詞": {
+    "ja": "耳",
+    "pos": "名詞",
+    "stem": "orekoor",
+    "it": "orecchio",
+    "fi": "korva",
+    "af": "oor"
+  },
+  "口|名詞": {
+    "ja": "口",
+    "pos": "名詞",
+    "stem": "bocsumond",
+    "it": "bocca",
+    "fi": "suu",
+    "af": "mond"
+  },
+  "頭|名詞": {
+    "ja": "頭",
+    "pos": "名詞",
+    "stem": "tespääkop",
+    "it": "testa",
+    "fi": "pää",
+    "af": "kop"
+  },
+  "心|名詞": {
+    "ja": "心",
+    "pos": "名詞",
+    "stem": "cuosydhart",
+    "it": "cuore",
+    "fi": "sydän",
+    "af": "hart"
+  },
+  "村|名詞": {
+    "ja": "村",
+    "pos": "名詞",
+    "stem": "vilkylorp",
+    "it": "villaggio",
+    "fi": "kylä",
+    "af": "dorp"
+  },
+  "国|名詞": {
+    "ja": "国",
+    "pos": "名詞",
+    "stem": "paemaand",
+    "it": "paese",
+    "fi": "maa",
+    "af": "land"
+  },
+  "森|名詞": {
+    "ja": "森",
+    "pos": "名詞",
+    "stem": "foretsbos",
+    "it": "foresta",
+    "fi": "metsä",
+    "af": "bos"
+  },
+  "山|名詞": {
+    "ja": "山",
+    "pos": "名詞",
+    "stem": "monvuoerg",
+    "it": "montagna",
+    "fi": "vuori",
+    "af": "berg"
+  },
+  "川|名詞": {
+    "ja": "川",
+    "pos": "名詞",
+    "stem": "fiumjokvier",
+    "it": "fiume",
+    "fi": "joki",
+    "af": "rivier"
+  },
+  "海|名詞": {
+    "ja": "海",
+    "pos": "名詞",
+    "stem": "maremee",
+    "it": "mare",
+    "fi": "meri",
+    "af": "see"
+  },
+  "空|名詞": {
+    "ja": "空",
+    "pos": "名詞",
+    "stem": "cieaivlug",
+    "it": "cielo",
+    "fi": "taivas",
+    "af": "lug"
+  },
+  "道|名詞": {
+    "ja": "道",
+    "pos": "名詞",
+    "stem": "strtiead",
+    "it": "strada",
+    "fi": "tie",
+    "af": "pad"
+  },
+  "城|名詞": {
+    "ja": "城",
+    "pos": "名詞",
+    "stem": "castlineel",
+    "it": "castello",
+    "fi": "linna",
+    "af": "kasteel"
+  },
+  "庭|名詞": {
+    "ja": "庭",
+    "pos": "名詞",
+    "stem": "giarpuutuin",
+    "it": "giardino",
+    "fi": "puutarha",
+    "af": "tuin"
+  },
+  "朝|名詞": {
+    "ja": "朝",
+    "pos": "名詞",
+    "stem": "mataamend",
+    "it": "mattina",
+    "fi": "aamu",
+    "af": "oggend"
+  },
+  "昼|名詞": {
+    "ja": "昼",
+    "pos": "名詞",
+    "stem": "mezzpäiväag",
+    "it": "mezzogiorno",
+    "fi": "päivä",
+    "af": "middag"
+  },
+  "夜|名詞": {
+    "ja": "夜",
+    "pos": "名詞",
+    "stem": "notyöag",
+    "it": "notte",
+    "fi": "yö",
+    "af": "nag"
+  },
+  "太陽|名詞": {
+    "ja": "太陽",
+    "pos": "名詞",
+    "stem": "solaurinon",
+    "it": "sole",
+    "fi": "aurinko",
+    "af": "son"
+  },
+  "月|名詞": {
+    "ja": "月",
+    "pos": "名詞",
+    "stem": "lunkuumaan",
+    "it": "luna",
+    "fi": "kuu",
+    "af": "maan"
+  },
+  "星|名詞": {
+    "ja": "星",
+    "pos": "名詞",
+    "stem": "steähtter",
+    "it": "stella",
+    "fi": "tähti",
+    "af": "ster"
+  },
+  "雨|名詞": {
+    "ja": "雨",
+    "pos": "名詞",
+    "stem": "piosadeën",
+    "it": "pioggia",
+    "fi": "sade",
+    "af": "reën"
+  },
+  "雪|名詞": {
+    "ja": "雪",
+    "pos": "名詞",
+    "stem": "nelumeeu",
+    "it": "neve",
+    "fi": "lumi",
+    "af": "sneeu"
+  },
+  "火|名詞": {
+    "ja": "火",
+    "pos": "名詞",
+    "stem": "fuotulvuur",
+    "it": "fuoco",
+    "fi": "tuli",
+    "af": "vuur"
+  },
+  "水|名詞": {
+    "ja": "水",
+    "pos": "名詞",
+    "stem": "acqvesiwater",
+    "it": "acqua",
+    "fi": "vesi",
+    "af": "water"
+  },
+  "服|名詞": {
+    "ja": "服",
+    "pos": "名詞",
+    "stem": "vesaateed",
+    "it": "vestito",
+    "fi": "vaate",
+    "af": "kleed"
+  },
+  "靴|名詞": {
+    "ja": "靴",
+    "pos": "名詞",
+    "stem": "scaenkoen",
+    "it": "scarpa",
+    "fi": "kenkä",
+    "af": "skoen"
+  },
+  "扉|名詞": {
+    "ja": "扉",
+    "pos": "名詞",
+    "stem": "poroveur",
+    "it": "porta",
+    "fi": "ovi",
+    "af": "deur"
+  },
+  "窓|名詞": {
+    "ja": "窓",
+    "pos": "名詞",
+    "stem": "finkkuter",
+    "it": "finestra",
+    "fi": "ikkuna",
+    "af": "venster"
+  },
+  "椅子|名詞": {
+    "ja": "椅子",
+    "pos": "名詞",
+    "stem": "sedtuoel",
+    "it": "sedia",
+    "fi": "tuoli",
+    "af": "stoel"
+  },
+  "ベッド|名詞": {
+    "ja": "ベッド",
+    "pos": "名詞",
+    "stem": "letvuoed",
+    "it": "letto",
+    "fi": "vuode",
+    "af": "bed"
+  },
+  "箱|名詞": {
+    "ja": "箱",
+    "pos": "名詞",
+    "stem": "scaaatoos",
+    "it": "scatola",
+    "fi": "laatikko",
+    "af": "doos"
+  },
+  "船|名詞": {
+    "ja": "船",
+    "pos": "名詞",
+    "stem": "nalaivaskip",
+    "it": "nave",
+    "fi": "laiva",
+    "af": "skip"
+  },
+  "剣|名詞": {
+    "ja": "剣",
+    "pos": "名詞",
+    "stem": "spamiekswaard",
+    "it": "spada",
+    "fi": "miekka",
+    "af": "swaard"
+  },
+  "花|名詞": {
+    "ja": "花",
+    "pos": "名詞",
+    "stem": "fiorukkablom",
+    "it": "fiore",
+    "fi": "kukka",
+    "af": "blom"
+  },
+  "木|名詞": {
+    "ja": "木",
+    "pos": "名詞",
+    "stem": "albpuuboom",
+    "it": "albero",
+    "fi": "puu",
+    "af": "boom"
+  },
+  "リンゴ|名詞": {
+    "ja": "リンゴ",
+    "pos": "名詞",
+    "stem": "meomena",
+    "it": "mela",
+    "fi": "omena",
+    "af": "appel"
+  },
+  "来る|動詞": {
+    "ja": "来る",
+    "pos": "動詞",
+    "stem": "ventulkom",
+    "it": "venire",
+    "fi": "tulla",
+    "af": "kom"
+  },
+  "帰る|動詞": {
+    "ja": "帰る",
+    "pos": "動詞",
+    "stem": "tornaatrugkeer",
+    "it": "tornare",
+    "fi": "palata",
+    "af": "terugkeer"
+  },
+  "走る|動詞": {
+    "ja": "走る",
+    "pos": "動詞",
+    "stem": "coruosoop",
+    "it": "correre",
+    "fi": "juosta",
+    "af": "hardloop"
+  },
+  "止まる|動詞": {
+    "ja": "止まる",
+    "pos": "動詞",
+    "stem": "ferysätop",
+    "it": "fermare",
+    "fi": "pysähtyä",
+    "af": "stop"
+  },
+  "座る|動詞": {
+    "ja": "座る",
+    "pos": "動詞",
+    "stem": "sedtuasit",
+    "it": "sedere",
+    "fi": "istua",
+    "af": "sit"
+  },
+  "立つ|動詞": {
+    "ja": "立つ",
+    "pos": "動詞",
+    "stem": "staseisstaan",
+    "it": "stare",
+    "fi": "seisoa",
+    "af": "staan"
+  },
+  "寝る|動詞": {
+    "ja": "寝る",
+    "pos": "動詞",
+    "stem": "dormnukslaap",
+    "it": "dormire",
+    "fi": "nukkua",
+    "af": "slaap"
+  },
+  "起きる|動詞": {
+    "ja": "起きる",
+    "pos": "動詞",
+    "stem": "svegheräwakker",
+    "it": "svegliarsi",
+    "fi": "herätä",
+    "af": "wakker"
+  },
+  "聞く|動詞": {
+    "ja": "聞く",
+    "pos": "動詞",
+    "stem": "senuuloor",
+    "it": "sentire",
+    "fi": "kuulla",
+    "af": "hoor"
+  },
+  "読む|動詞": {
+    "ja": "読む",
+    "pos": "動詞",
+    "stem": "legukeees",
+    "it": "leggere",
+    "fi": "lukea",
+    "af": "lees"
+  },
+  "書く|動詞": {
+    "ja": "書く",
+    "pos": "動詞",
+    "stem": "scrivkirskryf",
+    "it": "scrivere",
+    "fi": "kirjoittaa",
+    "af": "skryf"
+  },
+  "食べる|動詞": {
+    "ja": "食べる",
+    "pos": "動詞",
+    "stem": "mangsyöeet",
+    "it": "mangiare",
+    "fi": "syödä",
+    "af": "eet"
+  },
+  "飲む|動詞": {
+    "ja": "飲む",
+    "pos": "動詞",
+    "stem": "beuodink",
+    "it": "bere",
+    "fi": "juoda",
+    "af": "drink"
+  },
+  "持つ|動詞": {
+    "ja": "持つ",
+    "pos": "動詞",
+    "stem": "tenpihou",
+    "it": "tenere",
+    "fi": "pitää",
+    "af": "hou"
+  },
+  "取る|動詞": {
+    "ja": "取る",
+    "pos": "動詞",
+    "stem": "prettaeem",
+    "it": "prendere",
+    "fi": "ottaa",
+    "af": "neem"
+  },
+  "渡す|動詞": {
+    "ja": "渡す",
+    "pos": "動詞",
+    "stem": "dantagee",
+    "it": "dare",
+    "fi": "antaa",
+    "af": "gee"
+  },
+  "開ける|動詞": {
+    "ja": "開ける",
+    "pos": "動詞",
+    "stem": "aprvataak",
+    "it": "aprire",
+    "fi": "avata",
+    "af": "oopmaak"
+  },
+  "閉める|動詞": {
+    "ja": "閉める",
+    "pos": "動詞",
+    "stem": "chiusuluit",
+    "it": "chiudere",
+    "fi": "sulkea",
+    "af": "sluit"
+  },
+  "入る|動詞": {
+    "ja": "入る",
+    "pos": "動詞",
+    "stem": "entulla",
+    "it": "entrare",
+    "fi": "tulla",
+    "af": "ingaan"
+  },
+  "出る|動詞": {
+    "ja": "出る",
+    "pos": "動詞",
+    "stem": "usclähtuit",
+    "it": "uscire",
+    "fi": "lähteä",
+    "af": "uitgaan"
+  },
+  "会う|動詞": {
+    "ja": "会う",
+    "pos": "動詞",
+    "stem": "incavaoet",
+    "it": "incontrare",
+    "fi": "tavata",
+    "af": "ontmoet"
+  },
+  "待つ|動詞": {
+    "ja": "待つ",
+    "pos": "動詞",
+    "stem": "aspettaag",
+    "it": "aspettare",
+    "fi": "odottaa",
+    "af": "wag"
+  },
+  "守る|動詞": {
+    "ja": "守る",
+    "pos": "動詞",
+    "stem": "prouojerm",
+    "it": "proteggere",
+    "fi": "suojella",
+    "af": "beskerm"
+  },
+  "逃げる|動詞": {
+    "ja": "逃げる",
+    "pos": "動詞",
+    "stem": "fugaetlug",
+    "it": "fuggire",
+    "fi": "paeta",
+    "af": "vlug"
+  },
+  "戦う|動詞": {
+    "ja": "戦う",
+    "pos": "動詞",
+    "stem": "comaisveg",
+    "it": "combattere",
+    "fi": "taistella",
+    "af": "veg"
+  },
+  "泣く|動詞": {
+    "ja": "泣く",
+    "pos": "動詞",
+    "stem": "piatkeuil",
+    "it": "piangere",
+    "fi": "itkeä",
+    "af": "huil"
+  },
+  "笑う|動詞": {
+    "ja": "笑う",
+    "pos": "動詞",
+    "stem": "ridauraa",
+    "it": "ridere",
+    "fi": "nauraa",
+    "af": "lag"
+  },
+  "忘れる|動詞": {
+    "ja": "忘れる",
+    "pos": "動詞",
+    "stem": "dimnoheet",
+    "it": "dimenticare",
+    "fi": "unohtaa",
+    "af": "vergeet"
+  },
+  "思い出す|動詞": {
+    "ja": "思い出す",
+    "pos": "動詞",
+    "stem": "ricuistou",
+    "it": "ricordare",
+    "fi": "muistaa",
+    "af": "onthou"
+  },
+  "知る|動詞": {
+    "ja": "知る",
+    "pos": "動詞",
+    "stem": "sapieteet",
+    "it": "sapere",
+    "fi": "tietää",
+    "af": "weet"
+  },
+  "大きい|形容詞": {
+    "ja": "大きい",
+    "pos": "形容詞",
+    "stem": "grauuroot",
+    "it": "grande",
+    "fi": "suuri",
+    "af": "groot"
+  },
+  "小さい|形容詞": {
+    "ja": "小さい",
+    "pos": "形容詞",
+    "stem": "picienein",
+    "it": "piccolo",
+    "fi": "pieni",
+    "af": "klein"
+  },
+  "長い|形容詞": {
+    "ja": "長い",
+    "pos": "形容詞",
+    "stem": "lunitkank",
+    "it": "lungo",
+    "fi": "pitkä",
+    "af": "lank"
+  },
+  "短い|形容詞": {
+    "ja": "短い",
+    "pos": "形容詞",
+    "stem": "corlyhort",
+    "it": "corto",
+    "fi": "lyhyt",
+    "af": "kort"
+  },
+  "新しい|形容詞": {
+    "ja": "新しい",
+    "pos": "形容詞",
+    "stem": "nuouusuut",
+    "it": "nuovo",
+    "fi": "uusi",
+    "af": "nuut"
+  },
+  "悪い|形容詞": {
+    "ja": "悪い",
+    "pos": "形容詞",
+    "stem": "cathuosleg",
+    "it": "cattivo",
+    "fi": "huono",
+    "af": "sleg"
+  },
+  "強い|形容詞": {
+    "ja": "強い",
+    "pos": "形容詞",
+    "stem": "forahverk",
+    "it": "forte",
+    "fi": "vahva",
+    "af": "sterk"
+  },
+  "弱い|形容詞": {
+    "ja": "弱い",
+    "pos": "形容詞",
+    "stem": "debheiwak",
+    "it": "debole",
+    "fi": "heikko",
+    "af": "swak"
+  },
+  "明るい|形容詞": {
+    "ja": "明るい",
+    "pos": "形容詞",
+    "stem": "lumirkder",
+    "it": "luminoso",
+    "fi": "kirkas",
+    "af": "helder"
+  },
+  "暗い|形容詞": {
+    "ja": "暗い",
+    "pos": "形容詞",
+    "stem": "scupimdon",
+    "it": "scuro",
+    "fi": "pimeä",
+    "af": "donker"
+  },
+  "寒い|形容詞": {
+    "ja": "寒い",
+    "pos": "形容詞",
+    "stem": "fredkylkoud",
+    "it": "freddo",
+    "fi": "kylmä",
+    "af": "koud"
+  },
+  "怖い|形容詞": {
+    "ja": "怖い",
+    "pos": "形容詞",
+    "stem": "paurosavreelik",
+    "it": "pauroso",
+    "fi": "pelottava",
+    "af": "vreelik"
+  },
+  "悲しい|形容詞": {
+    "ja": "悲しい",
+    "pos": "形容詞",
+    "stem": "triurueer",
+    "it": "triste",
+    "fi": "surullinen",
+    "af": "hartseer"
+  },
+  "疲れ|動詞": {
+    "ja": "疲れ",
+    "pos": "動詞",
+    "stem": "staäsyoeg",
+    "it": "stanco",
+    "fi": "väsynyt",
+    "af": "moeg"
+  },
+  "元気|形容動詞": {
+    "ja": "元気",
+    "pos": "形容動詞",
+    "stem": "eneoimtig",
+    "it": "energico",
+    "fi": "voimakas",
+    "af": "lewenslustig"
+  },
+  "生きて|動詞": {
+    "ja": "生きて",
+    "pos": "動詞",
+    "stem": "viveläewe",
+    "it": "vivere",
+    "fi": "elää",
+    "af": "lewe"
+  },
+  "死んで|動詞": {
+    "ja": "死んで",
+    "pos": "動詞",
+    "stem": "moruolrwe",
+    "it": "morire",
+    "fi": "kuolla",
+    "af": "sterwe"
+  },
+  "趣味|名詞": {
+    "ja": "趣味",
+    "pos": "名詞",
+    "stem": "hobharr",
+    "it": "hobby",
+    "fi": "harrastus",
+    "af": "stokperdjie"
+  },
+  "創作|名詞": {
+    "ja": "創作",
+    "pos": "名詞",
+    "stem": "creuoming",
+    "it": "creazione",
+    "fi": "luominen",
+    "af": "skepping"
+  },
+  "活動|名詞": {
+    "ja": "活動",
+    "pos": "名詞",
+    "stem": "attoimeit",
+    "it": "attività",
+    "fi": "toiminta",
+    "af": "aktiwiteit"
+  },
+  "言語|名詞": {
+    "ja": "言語",
+    "pos": "名詞",
+    "stem": "linkielaal",
+    "it": "lingua",
+    "fi": "kieli",
+    "af": "taal"
+  },
+  "暗号|名詞": {
+    "ja": "暗号",
+    "pos": "名詞",
+    "stem": "codalaode",
+    "it": "codice",
+    "fi": "salakirjoitus",
+    "af": "kode"
+  },
+  "作る|動詞": {
+    "ja": "作る",
+    "pos": "動詞",
+    "stem": "creluoaak",
+    "it": "creare",
+    "fi": "luoda",
+    "af": "maak"
+  },
+  "不思議|形容動詞": {
+    "ja": "不思議",
+    "pos": "形容動詞",
+    "stem": "miserkaks",
+    "it": "misterioso",
+    "fi": "merkillinen",
+    "af": "snaaks"
+  },
+  "動き|名詞": {
+    "ja": "動き",
+    "pos": "名詞",
+    "stem": "movikbeweg",
+    "it": "movimento",
+    "fi": "liike",
+    "af": "beweging"
+  },
+  "まだ|副詞": {
+    "ja": "まだ",
+    "pos": "副詞",
+    "stem": "ancielnog",
+    "it": "ancora",
+    "fi": "vielä",
+    "af": "nog"
+  },
+  "ところ|名詞": {
+    "ja": "ところ",
+    "pos": "名詞",
+    "stem": "postoaikplek",
+    "it": "posto",
+    "fi": "paikka",
+    "af": "plek"
+  },
+  "もし|副詞": {
+    "ja": "もし",
+    "pos": "副詞",
+    "stem": "sejosen",
+    "it": "se",
+    "fi": "jos",
+    "af": "indien"
+  },
+  "教え|動詞": {
+    "ja": "教え",
+    "pos": "動詞",
+    "stem": "insegnopetteer",
+    "it": "insegnare",
+    "fi": "opettaa",
+    "af": "leer"
+  },
+  "あははっ|感動詞": {
+    "ja": "あははっ",
+    "pos": "感動詞",
+    "stem": "ahahhaha",
+    "it": "ahah",
+    "fi": "haha",
+    "af": "haha"
+  },
+  "とっても|副詞": {
+    "ja": "とっても",
+    "pos": "副詞",
+    "stem": "motosaie",
+    "it": "molt",
+    "fi": "tosi",
+    "af": "baie"
+  },
+  "面白い|形容詞": {
+    "ja": "面白い",
+    "pos": "形容詞",
+    "stem": "divausaks",
+    "it": "divert",
+    "fi": "hauska",
+    "af": "snaaks"
+  },
+  "ダンス|名詞": {
+    "ja": "ダンス",
+    "pos": "名詞",
+    "stem": "baltanans",
+    "it": "ball",
+    "fi": "tanssi",
+    "af": "dans"
+  },
+  "それとも|接続詞": {
+    "ja": "それとも",
+    "pos": "接続詞",
+    "stem": "oppvaof",
+    "it": "oppur",
+    "fi": "vai",
+    "af": "of"
+  },
+  "魔法|名詞": {
+    "ja": "魔法",
+    "pos": "名詞",
+    "stem": "magikoor",
+    "it": "magi",
+    "fi": "taika",
+    "af": "toorkuns"
+  },
+  "やって|動詞": {
+    "ja": "やって",
+    "pos": "動詞",
+    "stem": "faehdoen",
+    "it": "fare",
+    "fi": "tehdä",
+    "af": "doen"
+  },
+  "喪失|名詞": {
+    "ja": "喪失",
+    "pos": "名詞",
+    "stem": "pereneies",
+    "it": "perdita",
+    "fi": "menetys",
+    "af": "verlies"
+  },
+  "そっかー|感動詞": {
+    "ja": "そっかー",
+    "pos": "感動詞",
+    "stem": "capmmäaan",
+    "it": "capisco",
+    "fi": "ymmärrän",
+    "af": "verstaan"
+  },
+  "エンデバーン|名詞": {
+    "ja": "エンデバーン",
+    "pos": "名詞",
+    "stem": "Endevaan",
+    "it": "Endevaan",
+    "fi": "Endevaan",
+    "af": "Endevaan"
+  },
+  "ガザン|名詞": {
+    "ja": "ガザン",
+    "pos": "名詞",
+    "stem": "Gazan",
+    "it": "Gazan",
+    "fi": "Gazan",
+    "af": "Gazan"
+  },
+  "中腹|名詞": {
+    "ja": "中腹",
+    "pos": "名詞",
+    "stem": "mezuolang",
+    "it": "mezza",
+    "fi": "puoliväli",
+    "af": "hang"
+  },
+  "お気に入り|名詞": {
+    "ja": "お気に入り",
+    "pos": "名詞",
+    "stem": "preuosing",
+    "it": "preferito",
+    "fi": "suosikki",
+    "af": "gunsteling"
+  },
+  "星藍|名詞": {
+    "ja": "星藍",
+    "pos": "名詞",
+    "stem": "Seiran",
+    "it": "Seiran",
+    "fi": "Seiran",
+    "af": "Seiran"
+  },
+  "丘|名詞": {
+    "ja": "丘",
+    "pos": "名詞",
+    "stem": "colmäkheuvel",
+    "it": "collina",
+    "fi": "mäki",
+    "af": "heuvel"
+  },
+  "綺麗|形容動詞": {
+    "ja": "綺麗",
+    "pos": "形容動詞",
+    "stem": "belaunooi",
+    "it": "bello",
+    "fi": "kaunis",
+    "af": "mooi"
+  },
+  "見える|動詞": {
+    "ja": "見える",
+    "pos": "動詞",
+    "stem": "vedäkybaar",
+    "it": "vedere",
+    "fi": "näkyä",
+    "af": "sigbaar"
+  },
+  "碧い|形容詞": {
+    "ja": "碧い",
+    "pos": "形容詞",
+    "stem": "azzsinblou",
+    "it": "azzurro",
+    "fi": "sininen",
+    "af": "blou"
+  }
+}
