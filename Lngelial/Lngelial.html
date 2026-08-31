@@ -241,14 +241,31 @@ kind="f", code="NEG" の1トークンにする（ors や abs を足さない）�
 文末の「の」は fer。「と（共格）」は jug。単独動詞の「する」は fehengly、接尾の「〜する」のみ zas。
 
 ## 出力形式（JSON配列のみ。前置き・コードフェンス禁止）
-[{"t":"表層形","r":"読み","kind":"w","pos":"動詞","stem":"camkävoop","nsuf":"","it":"camminare","fi":"kävellä","af":"loop","code":""}]
-kind が w 以外のとき stem/it/fi/af/nsuf は空文字。code は kind="f" のときのみ。
-t を順に繋ぐと入力文に戻ること。
-
-## 入力文
+[{"t":"表層形","b":"基本形","r":"読み","kind":"w","pos":"動詞","stem":"camävelop","nsuf":"","it":"camminare","fi":"kävellä","af":"loop","code":""}]
+b は活用語なら終止形、それ以外は t と同じ。kind が w 以外のとき stem/it/fi/af/nsuf は空文字。
+code は kind="f" のときのみ。t を順に繋ぐと入力文に戻ること。
 `;
 
 /* ---------- 実行 ---------- */
+/* ---------- 既知語の先引き ---------- */
+// 入力文に現れる辞書見出しを長い順に集め、モデルに「これは分割せず既知語として扱え」と伝える
+function knownBlock(text){
+  const hits = Object.values(dict)
+    .filter(v => v.ja && v.ja.length >= 2 && text.includes(v.ja))
+    .sort((a,b) => b.ja.length - a.ja.length);
+  const fixed = Object.values(dict).filter(v => v.fixed && v.ja && text.includes(v.ja));
+  if(!hits.length) return '';
+  const seen = new Set(), lines = [];
+  hits.forEach(v=>{
+    if(seen.has(v.ja)) return; seen.add(v.ja);
+    lines.push(' ' + v.ja + '（' + v.pos + '）→ ' + v.stem + (v.fixed ? '　※固定表現。絶対に分割しない' : ''));
+  });
+  return '\n## 既知語（辞書に登録済み。造語し直さず、この語幹をそのまま使う）\n' +
+    lines.join('\n') +
+    '\n上の見出しは、長いものを優先して1つの語としてまとめる。とくに固定表現は途中で切らない。\n' +
+    (fixed.length ? '固定表現：' + fixed.map(v=>v.ja).join('、') + ' はそれぞれ1トークンにする。\n' : '');
+}
+
 async function run(){
   const text = src.value.trim();
   if(!text || text.length > LIMIT) return;
@@ -262,7 +279,7 @@ async function run(){
     const res = await fetch("https://api.anthropic.com/v1/messages",{
       method:"POST", headers:h,
       body: JSON.stringify({ model: key ? "claude-sonnet-4-5" : "claude-sonnet-4-6",
-        max_tokens:4000, messages:[{role:"user", content: PROMPT + text}] })
+        max_tokens:4000, messages:[{role:"user", content: PROMPT + knownBlock(text) + '\n## 入力文\n' + text}] })
     });
     if(!res.ok){
       if(res.status===401||res.status===403) throw new Error('AUTH');
@@ -362,17 +379,21 @@ function buildStem(it, fi, af){
 
 /* ---------- 語彙帳を参照して語幹を確定 ---------- */
 function resolveStem(t){
-  const head = (t.t||'').trim();
+  const surf = (t.t||'').trim();
+  const base = (t.b||'').trim() || surf;
   const pos = t.pos || '名詞';
-  const k = head + '|' + pos;
-  if(dict[k] && dict[k].stem) return {stem:dict[k].stem, fixed:false, whole:!!dict[k].fixed};
+  // 基本形 → 表層形 → 品詞を問わず、の順に辞書を引く
+  const hit = dict[base+'|'+pos] || dict[surf+'|'+pos]
+    || Object.values(dict).find(v => v.ja === base || v.ja === surf);
+  if(hit && hit.stem) return {stem:hit.stem, fixed:false, whole:!!hit.fixed, known:true};
+
   let stem = (t.stem||'').trim(), fixed = false;
   if(stem && !isValidStem(stem, t.it, t.fi, t.af)){
     const alt = buildStem(t.it, t.fi, t.af);
     if(alt){ stem = alt; fixed = true; }
   }
-  if(stem) dict[k] = {ja:head, pos, stem, it:t.it||'', fi:t.fi||'', af:t.af||''};
-  return {stem, fixed};
+  if(stem) dict[base+'|'+pos] = {ja:base, pos, stem, it:t.it||'', fi:t.fi||'', af:t.af||''};
+  return {stem, fixed, whole:false, known:false};
 }
 const posSuffix = t => t.pos==='名詞'||t.pos==='代名詞'
   ? (NSUF[t.nsuf] || 'git') : (SUF[t.pos] || 'git');
@@ -419,7 +440,8 @@ function render(toks, truncated){
     const r = resolveStem(t), stem = r.stem, sfx = r.whole ? '' : posSuffix(t), word = stem + sfx;
     line.push({k:'w', v:word});
     const nl = (t.pos==='名詞'||t.pos==='代名詞') ? ' <span class="pos">'+esc(NSUF_LABEL[t.nsuf]||'形のあるもの')+'</span>' : '';
-    const fx = r.fixed ? ' <span class="pos" style="color:var(--af);border-color:var(--af)">綴りを再構成</span>' : '';
+    const fx = r.fixed ? ' <span class="pos" style="color:var(--af);border-color:var(--af)">綴りを再構成</span>'
+             : r.known ? ' <span class="pos" style="color:var(--lng);border-color:var(--lng)">辞書</span>' : '';
     cards += '<div class="tok" '+d+'>'+
       (t.r?'<div class="rd">'+esc(t.r)+'</div>':'')+
       '<div class="head"><span class="wd">'+esc(t.t)+'</span><span class="pos">'+esc(t.pos)+'</span>'+nl+fx+'</div>'+
