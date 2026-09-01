@@ -573,9 +573,15 @@ async function callAPI(sys, user){
     opt = {method:"POST", headers:{"content-type":"application/json",
       "x-api-key":key, "anthropic-version":"2023-06-01",
       "anthropic-dangerous-direct-browser-access":"true"},
-      body: JSON.stringify({model, max_tokens:1500, system:sys,
-        messages:[{role:"user", content:user},
-                  {role:"assistant", content:"{"}]})};
+      body: JSON.stringify({model, max_tokens:2000, system:sys,
+        messages:[{role:"user", content:user}],
+        tools:[{name:"deliver", description:"訳を返す",
+          input_schema:{type:"object", properties:{
+            gloss:{type:"string", description:"説明用表記。接辞境界を _ で示す"},
+            text:{type:"string", description:"実文。_ を除いた正書法"},
+            note:{type:"string", description:"訳の判断を日本語で3行以内"}},
+            required:["gloss","text","note"]}}],
+        tool_choice:{type:"tool", name:"deliver"}})};
   } else if(prov === "openai"){
     url = "https://api.openai.com/v1/chat/completions";
     opt = {method:"POST", headers:{"content-type":"application/json",
@@ -596,7 +602,11 @@ async function callAPI(sys, user){
     const m = j && (j.error?.message || j.message || JSON.stringify(j).slice(0,200));
     throw new Error("API が返した内容: " + (m || r.status));
   }
-  if(prov === "anthropic") return "{" + (j.content||[]).map(x=>x.text||"").join("");
+  if(prov === "anthropic"){
+    const tu = (j.content||[]).find(x=>x.type==="tool_use");
+    if(tu && tu.input) return JSON.stringify(tu.input);
+    return (j.content||[]).map(x=>x.text||"").join("");
+  }
   if(prov === "openai")    return j.choices?.[0]?.message?.content || "";
   return (j.candidates?.[0]?.content?.parts||[]).map(x=>x.text||"").join("");
 }
