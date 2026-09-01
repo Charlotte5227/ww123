@@ -92,6 +92,8 @@ details[open] summary::before{content:"− "}
     <div class="v" id="text"></div></div>
   <div class="out"><div class="h"><b>注</b></div>
     <div class="v jp" id="note"></div></div>
+  <div class="out" id="rawbox" hidden><div class="h"><b>生の応答</b><button data-c="raw">コピー</button></div>
+    <div class="v jp" id="raw"></div></div>
 </div>
 
 <details><summary>うまく動かないとき</summary>
@@ -524,11 +526,16 @@ A shan B [状態動詞] = AよりBが〜 / tsemf shan B [状態動詞] = Bが最
 `;
 const OUTFMT = `
 # 出力形式
-必ず次の JSON だけを返す。前後に説明やコードフェンスを付けない。
+JSON オブジェクトだけを返す。前後に説明・見出し・コードフェンスを一切付けない。
 
-{"gloss":"説明用表記（接辞境界を _ で示す）",
- "text":"実文（_ を除いた正書法）",
- "note":"訳の判断を日本語で簡潔に。名詞クラスをなぜそう選んだか、何を省いたか、辞書にない語をどう作ったか。3行以内。"}
+{"gloss":"...","text":"...","note":"..."}
+
+- gloss: 説明用表記。接辞境界を _ で示す
+- text: 実文。gloss から _ を取り除いた正書法
+- note: 訳の判断を日本語で簡潔に。名詞クラスの選択、省いた要素、辞書にない語の作り方。3行以内
+
+**文字列の中で改行してはいけない。** 文が複数あるときは | で区切って1行に収める。
+引用符やバックスラッシュを値に含めない。
 `;
 const DEF = {anthropic:"claude-sonnet-5", openai:"gpt-4o", google:"gemini-2.0-flash"};
 
@@ -567,18 +574,20 @@ async function callAPI(sys, user){
       "x-api-key":key, "anthropic-version":"2023-06-01",
       "anthropic-dangerous-direct-browser-access":"true"},
       body: JSON.stringify({model, max_tokens:1500, system:sys,
-        messages:[{role:"user", content:user}]})};
+        messages:[{role:"user", content:user},
+                  {role:"assistant", content:"{"}]})};
   } else if(prov === "openai"){
     url = "https://api.openai.com/v1/chat/completions";
     opt = {method:"POST", headers:{"content-type":"application/json",
       "authorization":"Bearer "+key},
-      body: JSON.stringify({model, messages:[
-        {role:"system", content:sys},{role:"user", content:user}]})};
+      body: JSON.stringify({model, response_format:{type:"json_object"},
+        messages:[{role:"system", content:sys},{role:"user", content:user}]})};
   } else {
     url = "https://generativelanguage.googleapis.com/v1beta/models/"
         + encodeURIComponent(model) + ":generateContent?key=" + encodeURIComponent(key);
     opt = {method:"POST", headers:{"content-type":"application/json"},
       body: JSON.stringify({systemInstruction:{parts:[{text:sys}]},
+        generationConfig:{responseMimeType:"application/json"},
         contents:[{role:"user", parts:[{text:user}]}]})};
   }
   const r = await fetch(url, opt);
@@ -587,7 +596,7 @@ async function callAPI(sys, user){
     const m = j && (j.error?.message || j.message || JSON.stringify(j).slice(0,200));
     throw new Error("API が返した内容: " + (m || r.status));
   }
-  if(prov === "anthropic") return (j.content||[]).map(x=>x.text||"").join("");
+  if(prov === "anthropic") return "{" + (j.content||[]).map(x=>x.text||"").join("");
   if(prov === "openai")    return j.choices?.[0]?.message?.content || "";
   return (j.candidates?.[0]?.content?.parts||[]).map(x=>x.text||"").join("");
 }
@@ -596,8 +605,27 @@ function parse(raw){
   let t = raw.trim().replace(/^```(json)?/i,"").replace(/```$/,"").trim();
   const a = t.indexOf("{"), b = t.lastIndexOf("}");
   if(a >= 0 && b > a) t = t.slice(a, b+1);
-  try{ return JSON.parse(t); }
-  catch(e){ return {gloss:raw.trim(), text:raw.trim().replace(/_/g,""), note:"JSON として読めませんでした。そのまま表示しています。"}; }
+  try{ return JSON.parse(t); }catch(e){}
+  // 文字列の中の生の改行を直して再挑戦
+  try{
+    let q = false, esc = false, o = "";
+    for(const ch of t){
+      if(esc){ o += ch; esc = false; continue; }
+      if(ch === "\\"){ o += ch; esc = true; continue; }
+      if(ch === '"'){ q = !q; o += ch; continue; }
+      if(q && (ch === "\n" || ch === "\r")){ o += " "; continue; }
+      o += ch;
+    }
+    return JSON.parse(o);
+  }catch(e){}
+  // 鍵ごとに拾い出す
+  const pick = k => {
+    const m = t.match(new RegExp('"'+k+'"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"'));
+    return m ? m[1].replace(/\\n/g," ").replace(/\\"/g,'"') : "";
+  };
+  const g = pick("gloss"), x = pick("text"), n = pick("note");
+  if(g || x) return {gloss:g, text:x || g.replace(/_/g,""), note:n, raw:""};
+  return {gloss:"", text:"", note:"", raw:raw.trim()};
 }
 
 $("go").onclick = async ()=>{
@@ -609,7 +637,10 @@ $("go").onclick = async ()=>{
     $("gloss").textContent = out.gloss || "";
     $("text").textContent  = out.text  || (out.gloss||"").replace(/_/g,"");
     $("note").textContent  = out.note  || "";
-    $("res").hidden = false; msg("");
+    $("rawbox").hidden = !out.raw;
+    $("raw").textContent = out.raw || "";
+    $("res").hidden = false;
+    msg(out.raw ? "整った形で返りませんでした。下に生の応答を出しています" : "");
   }catch(e){ msg(e.message); }
   $("go").disabled = false;
 };
