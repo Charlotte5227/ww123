@@ -174,6 +174,8 @@ phelt|馬|_alng
 nguls|蛇|_ish
 folm|花|_ish
 sioth|実・果実|_ish
+hwolk|豚|_ish
+khwarn|狼|_ish
 thel|θ(重さの単位)
 sem|∑(通貨)
 ngwam|大きい
@@ -255,6 +257,7 @@ ngiuq|神|_ngeol
 hwiol|夢|_eq
 mern|真実|_eq
 chiuf|感謝|_urf
+nyeq_eq|予想
 ther|旅|_eq
 tsuk|力|_eq
 ser|値段|_eq
@@ -275,6 +278,12 @@ ngwelk|隠す
 salt|選ぶ
 melp|集める
 pheln|分ける
+khangar|何を・どうして
+ngarf|〜したい
+hosh|〜だから
+hothu|〜するために
+ngangl_urf|したくない（日常形）
+ngangeq|意外にも
 nom|食べる
 khil|飲む
 phal|焼く
@@ -340,6 +349,7 @@ tsef|満ちる
 niuq|空(から)
 wern|遠い
 chik|近い
+khar|乾いた
 tsalng|生きる
 tsong|生まれる
 chiuq|死ぬ
@@ -423,6 +433,11 @@ kaq|口|_ish
 phin|歯|_ish
 luq|舌|_ish
 sior|髪|_alng
+-am|人（類別辞）
+-iung|動物（類別辞）
+-ik|植物（類別辞）
+-olm|天体（類別辞）
+-iuq|抽象（類別辞）
 noms|食べ物
 khils|飲み物
 phaqorn|炉・かまど
@@ -432,7 +447,12 @@ nal|肉`;
 const GRAMMAR = `あなたは Champel（チャンペル語）の翻訳者です。以下の文法と語彙だけを使って訳します。
 
 # 語順
-- 基本は OSV（目的語 主語 動詞）。目的語が文頭。
+- 基本は OSV（目的語 主語 動詞）。目的語が文頭。祖語 SOV からの変化。
+- 斜格句（thur / war 句）は文頭に立つ: [斜格句] O S V
+- **省略が既定なので、O と S が同時に立つことは日常会話ではほとんどない。**
+  名詞句が1つだけ残ったときは、有生名詞なら S、無生名詞なら O と読む。
+  覆すときだけ ngeq / thur を出す。
+- 神話・儀礼のレジスターでは祖語の SOV が保存されている。
 - 疑問文は VOS（動詞が文頭に飛ぶ。O と S の相対順序は変わらない）。
 - 従属節は常に OSV。動詞前置は主節だけ。
 - 関係節は標識なし。動詞を名詞の前に置くだけ（sha_hus tsolm = 買った家）。
@@ -441,8 +461,13 @@ const GRAMMAR = `あなたは Champel（チャンペル語）の翻訳者です�
 - 助詞はすべて名詞の前に置く（前置）。
 
 # 助詞（前置・任意。曖昧なときだけ出す）
-ngeq 行為者 / thur 受け手 / xiu 所有（A xiu B = AのB）/ war 場所・方向・時（時間を遮断する）
+ngeq 行為者 / thur 受け手 / shiu 所有（A shiu B = AのB）/ war 場所・方向・時（時間を遮断する）
 khaq 不明 / ngaq 否定 / wilt 〜だけ（時間を遮断する）/ niq 並列・連結（**中置**。A niq B）
+
+# 数詞類別辞（数詞の後ろ。何を数えているかを示す）
+無標=物 / _am 人 / _iung 動物 / _ik 植物 / _olm 天体 / _iuq 抽象
+例: pheol tsolm（3つの家）/ pheolam chalm（3人）/ pheoliung hwolk（3匹の豚）
+食い違うと有標。pheolam hwolk（3人の豚）は擬人化。
 
 # 名詞クラス（名詞の後ろ。任意。無標が既定）
 _ish 形あり持てる / _alng 形あり持てない / _eq 形なし / _urf 感情
@@ -456,6 +481,7 @@ _shash 過去 / _nos 現在 / _thiuk 未来 / _ar 場所 / _ngeol 神
 - 最外層は khaq_（疑問）/ ngaq_（否定）/ khang_（否定疑問）の**いずれか1つだけ**。共存不可。
 - 時間: sha_ 過去 / no_ 現在 / thu_ 未来。複数: chur_
 - 相: _tsiq 完了 / _wel 継続 / _nyar 習慣。**相は1つだけ**。
+- **儀礼・神話は相 _tsiq で書き、世俗の物語は時間 sha_ で書く**（レジスター差）。
 - 副詞化: _hwa（hwem_hwa khel = 暖かく照らす）
 - **動詞に時制はない。** 時間は名詞クラスから流れてくるか、接頭辞で示す。
 
@@ -481,14 +507,20 @@ sheq_ish 依頼・申し出・懇願 / sheq_eq 卑屈な嘆願
 # 使役・受動・願望・可能
 - 使役は2種類。A_alng B_alng [V] は言語的（指示による）、V_hwa ngar は非言語的（仕向ける）。
 - **受動はない。主語を言わないだけ**で受動的に読める。
-- 願望は ngar_urf（するの感情形）。nyeq（思う）の補文に置く。
+- 願望は ngar_urf（摩耗形 ngarf）。nyeq（思う）の補文に置く。
+- 「したくない」は正式には ngaq_ngar_urf だが、日常では ngangl_urf（感情クラスを付けて婉曲にする形）。
+  ngal_urf（したい・感情）は存在しない。承諾を感情の範疇に置くと約束が消えるため。
+- 「何を・どうして」は khaq_ngar（摩耗形 khangar）。
+- **日常では摩耗形、改まった場では完全形を使う。**
+- ただし sheq_alng / sheq_ish など上下クラスの付いた形は摩耗しない。
+  値が毎回変わり、削ると情報が失われるため。
 - **可能はない。** 「できない」も「しない」も ngaq。上下クラスで調整する。
 
 # 複文（節の連結）
 接続専用の助詞はない。薄い名詞＋クラスで繋ぐ。
 (無標) 継起 / phiuq_shash 〜してから / phiuq_nos 〜しながら
-hoq_shash 〜だから / hoq_thiuk 〜するために / shal 〜することで
-nguer_eq 〜だが / ngar_nos 〜するほど
+hoq_shash（摩耗形 hosh）〜だから / hoq_thiuk（摩耗形 hothu）〜するために・**〜しようとして** / shal 〜することで
+nguer_eq 〜だが / ngangeq 意外にも（ngaq nyeq_eq の融合。日常の語彙で儀礼には出ない） / ngar_nos 〜するほど
 二重引用はない。文を分けて naq（それ）で受け直す。
 **補文も入れ子にしない。** 節を目的語に埋め込まず、文を分けて naq_eq などで受ける。
 名詞述語文は述語が先、主語が後（Folmna sheq）。副詞は必ず _hwa を付ける（ngwim_hwa）。
@@ -520,7 +552,8 @@ A shan B [状態動詞] = AよりBが〜 / tsemf shan B [状態動詞] = Bが最
 母音: a i u e o iu eo ar er ir ur or iur aq iq uq eq oq iuq
 介音は w と i（=j）の2つ。母音の直前の i は介音（mial=mjal, sioq=sjoʔ）。
 語末は 流音 → 鼻音 → 阻害音 の順（ソノリティ階層）。逆行できない。
-規則から外れる語が約15語ある（高頻度語・融合形・借用語）。無理に規則化しないこと。
+規則から外れる語が26語ある（高頻度語の摩耗・融合形・借用語など）。無理に規則化しないこと。
+新語を作るときは規則に従うこと。例外は「作る」ものではなく、使われるうちに生じるもの。
 （x は ɕ の暫定表記で sh と同音。sha_ や _shash に現れる）
 説明用表記では接辞境界を _ で示すが、**実際の正書法では _ を書かない**。
 
