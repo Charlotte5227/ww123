@@ -112,7 +112,7 @@ khel|照らす
 tsoq|勝つ
 nyul|決める
 shan|比べる
-pheus|あきらめる
+phius|あきらめる
 theuq|変わる
 wolm|待つ
 thiam|探す
@@ -162,7 +162,7 @@ tsuthorn|工房
 phelnorn|畑
 mokar|市場
 phul|屋台
-pheulng|動物
+phiulng|動物
 swik|植物
 weng|牛|_ish
 chulm|鳥|_ish
@@ -176,7 +176,7 @@ folm|花|_ish
 sioth|実・果実|_ish
 thel|θ(重さの単位)
 sem|∑(通貨)
-nguam|大きい
+ngwam|大きい
 pit|小さい
 melf|多い
 wiq|少ない
@@ -230,7 +230,7 @@ nolt|床
 chwelf|喜ぶ
 chorq|怒る
 chiols|悲しむ
-nguart|恐れる
+ngwart|恐れる
 ngal|はい
 ngangl|いいえ
 khang|否定疑問(〜ないのか)
@@ -271,7 +271,7 @@ pol|持つ
 hus|買う
 hoth|売る
 sen|支払う
-nguelk|隠す
+ngwelk|隠す
 salt|選ぶ
 melp|集める
 pheln|分ける
@@ -322,7 +322,7 @@ wol|西|_ar
 kiur|速い
 thol|遅い
 phen|新しい
-theuls|古い
+theols|古い
 -tem|道具(〜するもの)
 -orn|場所(〜する所)
 -ier|季節
@@ -398,7 +398,7 @@ chern|兄弟姉妹
 nyaum|夫・妻
 khaln|友
 wioth|敵
-ngoem|王・長
+ngeom|王・長
 sielt|客
 hean|良い
 phulk|悪い
@@ -412,7 +412,7 @@ shwel|道
 hiunorn|橋
 muntem|舟
 tsemf|全部・すべて
-nguim|とても・非常に
+ngwim|とても・非常に
 shalm|同じ
 chom|頭|_alng
 sam|顔|_alng
@@ -435,18 +435,18 @@ const GRAMMAR = `あなたは Champel（チャンペル語）の翻訳者です�
 - 基本は OSV（目的語 主語 動詞）。目的語が文頭。
 - 疑問文は VOS（動詞が文頭に飛ぶ。O と S の相対順序は変わらない）。
 - 従属節は常に OSV。動詞前置は主節だけ。
-- 関係節は標識なし。動詞を名詞の前に置くだけ（xa_hus tsolm = 買った家）。
+- 関係節は標識なし。動詞を名詞の前に置くだけ（sha_hus tsolm = 買った家）。
 - 名詞述語文はコピュラなし。述語が先、主語が後（Folmna sheq = 私はFolmna）。
   厳密に述べるときだけ文末に ngar を置く。
 - 助詞はすべて名詞の前に置く（前置）。
 
 # 助詞（前置・任意。曖昧なときだけ出す）
 ngeq 行為者 / thur 受け手 / xiu 所有（A xiu B = AのB）/ war 場所・方向・時（時間を遮断する）
-khaq 不明 / ngaq 否定 / wilt 〜だけ（時間を遮断する）/ niq 並列・連結
+khaq 不明 / ngaq 否定 / wilt 〜だけ（時間を遮断する）/ niq 並列・連結（**中置**。A niq B）
 
 # 名詞クラス（名詞の後ろ。任意。無標が既定）
 _ish 形あり持てる / _alng 形あり持てない / _eq 形なし / _urf 感情
-_xash 過去 / _nos 現在 / _thiuk 未来 / _ar 場所 / _ngeol 神
+_shash 過去 / _nos 現在 / _thiuk 未来 / _ar 場所 / _ngeol 神
 - 付けないのが普通。付けると「話し手が何を問題にしているか」が出る。
 - 人間名詞に _ish は侮辱、_ngeol は過剰な敬語。
 - 状態動詞や節にも付けられ、名詞化する（soth_eq = 明るさ）。
@@ -454,7 +454,7 @@ _xash 過去 / _nos 現在 / _thiuk 未来 / _ar 場所 / _ngeol 神
 # 動詞
 構造: [疑問/否定]-[時間]-[複数]-語根-[相]
 - 最外層は khaq_（疑問）/ ngaq_（否定）/ khang_（否定疑問）の**いずれか1つだけ**。共存不可。
-- 時間: xa_ 過去 / no_ 現在 / thu_ 未来。複数: chur_
+- 時間: sha_ 過去 / no_ 現在 / thu_ 未来。複数: chur_
 - 相: _tsiq 完了 / _wel 継続 / _nyar 習慣。**相は1つだけ**。
 - 副詞化: _hwa（hwem_hwa khel = 暖かく照らす）
 - **動詞に時制はない。** 時間は名詞クラスから流れてくるか、接頭辞で示す。
@@ -486,10 +486,13 @@ sheq_ish 依頼・申し出・懇願 / sheq_eq 卑屈な嘆願
 
 # 複文（節の連結）
 接続専用の助詞はない。薄い名詞＋クラスで繋ぐ。
-(無標) 継起 / phiuq_xash 〜してから / phiuq_nos 〜しながら
-hoq_xash 〜だから / hoq_thiuk 〜するために / shal 〜することで
+(無標) 継起 / phiuq_shash 〜してから / phiuq_nos 〜しながら
+hoq_shash 〜だから / hoq_thiuk 〜するために / shal 〜することで
 nguer_eq 〜だが / ngar_nos 〜するほど
 二重引用はない。文を分けて naq（それ）で受け直す。
+**補文も入れ子にしない。** 節を目的語に埋め込まず、文を分けて naq_eq などで受ける。
+名詞述語文は述語が先、主語が後（Folmna sheq）。副詞は必ず _hwa を付ける（ngwim_hwa）。
+複合語は空白で区切る（nyol khiul）。
 
 # 省略（最重要）
 **削るのが既定。残したものが焦点になる。**
@@ -514,8 +517,11 @@ A shan B [状態動詞] = AよりBが〜 / tsemf shan B [状態動詞] = Bが最
 
 # 正書法
 子音: p t k ph th kh ts ch f s sh h m n ny ng w l y
-母音: a i u e o iu eo ar er ir ur or aq iq uq eq
-（x は ɕ の暫定表記で sh と同音。xa_ や _xash に現れる）
+母音: a i u e o iu eo ar er ir ur or iur aq iq uq eq oq iuq
+介音は w と i（=j）の2つ。母音の直前の i は介音（mial=mjal, sioq=sjoʔ）。
+語末は 流音 → 鼻音 → 阻害音 の順（ソノリティ階層）。逆行できない。
+規則から外れる語が約15語ある（高頻度語・融合形・借用語）。無理に規則化しないこと。
+（x は ɕ の暫定表記で sh と同音。sha_ や _shash に現れる）
 説明用表記では接辞境界を _ で示すが、**実際の正書法では _ を書かない**。
 
 # 語彙
