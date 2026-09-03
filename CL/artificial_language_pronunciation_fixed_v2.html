@@ -1,150 +1,66 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>人工言語 発音支援</title>
-<style>
-:root{--bg:#f5f7fb;--panel:#fff;--ink:#1f2937;--muted:#6b7280;--line:#dbe2ea;--accent:#334155;--c:#dbeafe;--v:#dcfce7;--r:#f3e8ff;--q:#ffedd5;--danger:#b91c1c}
-*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans JP",sans-serif;line-height:1.65}
-main{width:min(980px,calc(100% - 28px));margin:34px auto 64px}.hero{margin-bottom:18px}.hero h1{font-size:clamp(1.6rem,5vw,2.4rem);margin:0}.hero p{color:var(--muted);margin:.4rem 0 0}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 8px 28px rgb(15 23 42 / .05);margin:14px 0}
-textarea{width:100%;min-height:120px;resize:vertical;border:1px solid #cbd5e1;border-radius:12px;padding:14px;font:1rem/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink);background:#fbfdff;outline:none}textarea:focus{border-color:#64748b;box-shadow:0 0 0 3px rgb(100 116 139 / .12)}
-.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.controls button{border:0;border-radius:10px;padding:10px 15px;font-weight:700;cursor:pointer;background:#1e293b;color:#fff}.controls button.secondary{background:#e2e8f0;color:#1e293b}.controls button:disabled{opacity:.5;cursor:not-allowed}.check{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:.92rem;margin-left:auto}
-h2{font-size:1.05rem;margin:0 0 12px}.ipa-output{font-family:"Noto Sans",Arial,sans-serif;font-size:clamp(1.55rem,4vw,2.2rem);letter-spacing:.02em;overflow-wrap:anywhere}.dropped{opacity:.35;font-size:.8em}.punct{color:#94a3b8}.empty{color:#94a3b8;font-size:.95rem}
-.word-block{padding:12px 0;border-top:1px dashed #e2e8f0}.word-block:first-child{border-top:0;padding-top:0}.word-title{font:600 .88rem ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--muted);margin-bottom:8px}.cards{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}.phone{min-width:62px;border:1px solid rgb(15 23 42 / .09);border-radius:11px;padding:8px 10px;text-align:center;cursor:pointer;transition:.12s transform,.12s box-shadow;background:#f8fafc}.phone:hover,.phone:focus{transform:translateY(-1px);box-shadow:0 4px 14px rgb(15 23 42 / .08);outline:none}.phone .spell{font:700 .82rem ui-monospace,SFMono-Regular,Consolas,monospace}.phone .ipa{font-size:1.2rem}.phone.c{background:var(--c)}.phone.v{background:var(--v)}.phone.r{background:var(--r)}.phone.q{background:var(--q)}.boundary{width:1px;background:#94a3b8;margin:3px 1px;position:relative}.boundary:after{content:"_";position:absolute;top:-18px;left:-4px;color:#94a3b8;font:12px monospace}.pause-card{padding:6px 10px;color:#94a3b8}
-.difficult{display:grid;gap:10px}.tip{border-left:4px solid #94a3b8;background:#f8fafc;border-radius:8px;padding:10px 12px}.tip b{display:block;margin-bottom:2px}.notice{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:12px 14px;color:#9a3412;font-size:.93rem}.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:.83rem;color:var(--muted);margin-top:10px}.dot{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px}.status{font-size:.86rem;color:var(--muted);margin-top:9px}
-dialog{border:0;border-radius:16px;width:min(520px,calc(100% - 30px));padding:0;box-shadow:0 18px 60px rgb(15 23 42 / .28)}dialog::backdrop{background:rgb(15 23 42 / .45)}.modal{padding:20px}.modal-head{display:flex;justify-content:space-between;gap:16px;align-items:start}.modal h3{margin:0;font-size:1.25rem}.close{border:0;background:#e2e8f0;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:1.1rem}.meta{color:var(--muted);font-size:.9rem;margin:.25rem 0 1rem}.test-ok{color:#166534}.test-bad{color:var(--danger)}
-@media(max-width:620px){main{width:min(100% - 18px,980px);margin-top:18px}.panel{padding:15px;border-radius:14px}.check{width:100%;margin-left:0}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111a31">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><text y=%2252%22 font-size=%2252%22>ɨ</text></svg>">
+  <title>人工言語 発音支援</title>
+  <meta name="description" content="人工言語のIPA変換、音素解説、近似読み上げ">
+  <style>
+    :root{color-scheme:dark;--bg:#09101f;--panel:#111a31;--panel2:#17213d;--ink:#eef3ff;--muted:#aab6d4;--line:#2b385d;--blue:#75a7ff;--green:#58d6a5;--violet:#bd8cff;--orange:#ffb45f;--red:#ff7e8b;--shadow:0 18px 50px #02061166}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0,#172750 0,transparent 32rem),var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans JP",sans-serif;font-size:16px;line-height:1.65}
+    button,textarea{font:inherit}.shell{width:min(1080px,100%);margin:auto;padding:32px 18px 72px}.top{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:18px}.eyebrow{color:var(--blue);font-size:.78rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.top h1{font-size:clamp(1.7rem,5vw,2.7rem);line-height:1.15;margin:4px 0}.legend{color:var(--muted);font-size:.88rem}.panel{background:linear-gradient(145deg,#131d36e8,#0f172be8);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:20px;margin-top:16px}textarea{width:100%;min-height:125px;resize:vertical;background:#080f20;color:var(--ink);border:1px solid #34466f;border-radius:14px;padding:15px;outline:none}textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px #75a7ff25}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}.btn{min-height:46px;border:0;border-radius:12px;padding:10px 17px;font-weight:750;cursor:pointer;color:#07101f;background:var(--blue)}.btn.secondary{background:#243252;color:var(--ink);border:1px solid #3b4b73}.btn:active{transform:translateY(1px)}.note{margin:13px 0 0;color:var(--muted);font-size:.9rem}.result-label,.section-title{font-size:.8rem;font-weight:800;letter-spacing:.1em;color:var(--muted)}.ipa{font-family:"Noto Sans",Arial,sans-serif;font-size:clamp(1.65rem,6vw,3.1rem);letter-spacing:.035em;margin-top:7px;overflow-wrap:anywhere}.dropped{color:#6c7896;font-size:.75em}.words{display:grid;gap:18px;margin-top:15px}.word-title{color:var(--muted);font-family:ui-monospace,SFMono-Regular,Consolas,monospace;margin-bottom:8px}.cards{display:flex;align-items:stretch;flex-wrap:wrap;gap:8px}.phoneme{min-width:60px;border:1px solid currentColor;border-radius:11px;padding:7px 9px;background:#14203b;color:var(--blue);cursor:pointer;text-align:center}.phoneme.vowel{color:var(--green)}.phoneme.rhotic{color:var(--violet)}.phoneme.cut{color:var(--orange)}.phoneme .sp{font:700 .76rem ui-monospace,monospace}.phoneme .ip{font-size:1.2rem}.boundary{width:1px;background:#7180a6;margin:2px 4px;position:relative}.boundary:after{content:"_";position:absolute;top:100%;left:-4px;color:#7180a6;font-size:.75rem}.hard-list{display:grid;gap:10px;margin-top:12px}.tip{padding:13px 14px;border-left:3px solid var(--orange);background:#151f38;border-radius:4px 12px 12px 4px}.tip strong{display:block;color:#ffd39f}.empty{color:var(--muted)}dialog{max-width:min(520px,calc(100% - 28px));border:1px solid #45577f;border-radius:18px;background:#111a31;color:var(--ink);padding:22px;box-shadow:var(--shadow)}dialog::backdrop{background:#020611b8}.modal-head{font-size:1.25rem;font-weight:800}.modal-ipa{font-size:2.2rem;color:var(--blue);margin:4px 0}.diagnostics{display:none}.diagnostics.open{display:block}.diag-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:13px 0}.metric{background:#0a1122;border:1px solid var(--line);border-radius:11px;padding:10px 12px}.metric span{display:block;color:var(--muted);font-size:.76rem}.status{border-radius:12px;padding:12px 14px;background:#0a1122;border:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere}.status[data-tone="ok"]{border-color:#327e68}.status[data-tone="error"]{border-color:#963e4b}.voice-list{margin:10px 0 0;padding-left:21px;color:var(--muted);max-height:160px;overflow:auto;font-size:.88rem}.test-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.mini{min-height:40px;padding:8px 12px}.footer{color:var(--muted);font-size:.85rem;margin-top:24px;text-align:center}@media(max-width:680px){.shell{padding:20px 12px 55px}.top{align-items:start;flex-direction:column}.panel{padding:15px;border-radius:16px}.diag-grid{grid-template-columns:1fr}.btn{flex:1}.actions .secondary{flex:0 1 auto}}
+  </style>
 </head>
 <body>
-<main>
-  <section class="hero"><h1>人工言語 発音支援</h1><p>ラテン文字表記からIPA・発音のポイント・近似音声を確認できます。</p></section>
+<main class="shell">
+  <header class="top"><div><div class="eyebrow">Pronunciation Workbench</div><h1>人工言語 発音支援</h1></div><div class="legend">音は近似、解説は正確</div></header>
   <section class="panel">
-    <label for="input"><strong>テキスト入力</strong></label>
-    <textarea id="input" spellcheck="false">phiuq_xash tsuq_hwa fwer futh_wel</textarea>
-    <div class="controls">
-      <button id="convert">IPAに変換</button><button id="speak">▶ 読み上げ</button><button id="stop" class="secondary">■ 停止</button>
-      <label class="check"><input id="wordByWord" type="checkbox"> 1語ずつゆっくり読む</label>
-    </div>
-    <div id="voiceStatus" class="status">音声エンジンを確認しています…</div>
+    <label class="section-title" for="source">ラテン文字表記</label>
+    <textarea id="source" spellcheck="false">phiuq_xash tsuq_hwa fwer futh_wel</textarea>
+    <div class="actions"><button class="btn" id="convert">IPAに変換</button><button class="btn secondary" id="speak">▶ 読み上げ</button><button class="btn secondary" id="toggleDiag" aria-expanded="false">音声を診断</button></div>
+    <p class="note">音声は近似です。有気音・R音性母音・切る母音は正確に再現されません。正確な発音は解説を参照してください。</p>
   </section>
-  <div class="notice"><strong>音声は近似です。</strong> 有気音・R音性母音・切る母音は正確に再現されません。正確な発音は解説を参照してください。</div>
-  <section class="panel"><h2>① IPA変換結果</h2><div id="ipa" class="ipa-output"></div></section>
-  <section class="panel"><h2>② 音素の分解表示</h2><div id="breakdown"></div><div class="legend"><span><i class="dot" style="background:#dbeafe"></i>子音</span><span><i class="dot" style="background:#dcfce7"></i>素の母音</span><span><i class="dot" style="background:#f3e8ff"></i>R音性母音</span><span><i class="dot" style="background:#ffedd5"></i>切る母音</span><span>│ 形態素境界</span></div></section>
-  <section class="panel"><h2>③ この文に含まれる難音の解説</h2><div id="difficult" class="difficult"></div></section>
-  <section class="panel"><h2>動作チェック</h2><div id="testStatus" class="status"></div></section>
+  <section class="panel diagnostics" id="diagnostics">
+    <div class="section-title">スマホ音声診断</div>
+    <div class="diag-grid"><div class="metric"><span>Web Speech API</span><b id="apiState">確認中</b></div><div class="metric"><span>取得済み音声</span><b id="voiceCount">0</b></div><div class="metric"><span>日本語音声</span><b id="jaVoice">未取得</b></div><div class="metric"><span>中国語音声</span><b id="zhVoice">未取得</b></div></div>
+    <div class="test-actions"><button class="btn secondary mini" data-test="ja-JP" data-text="こんにちは">日本語テスト</button><button class="btn secondary mini" data-test="zh-CN" data-text="你好">中国語テスト</button><button class="btn secondary mini" data-test="" data-text="音声テスト">OS既定テスト</button><button class="btn secondary mini" id="reloadVoices">音声一覧を再取得</button></div>
+    <div class="status" id="speechStatus">まだ発話していません。</div><ul class="voice-list" id="voiceList"></ul>
+  </section>
+  <section class="panel"><div class="result-label">IPA変換結果</div><div class="ipa" id="ipa" aria-live="polite"></div></section>
+  <section class="panel"><div class="section-title">音素の分解</div><div class="words" id="breakdown"></div></section>
+  <section class="panel"><div class="section-title">この文に含まれる難音</div><div class="hard-list" id="hard"></div></section>
+  <div class="footer">音素カードを押すと発音方法を確認できます。</div>
 </main>
-<dialog id="dialog"><div class="modal"><div class="modal-head"><div><h3 id="dlgTitle"></h3><div id="dlgMeta" class="meta"></div></div><button class="close" id="dlgClose" aria-label="閉じる">×</button></div><div id="dlgBody"></div></div></dialog>
+<dialog id="detail"><div class="modal-head" id="detailSpell"></div><div class="modal-ipa" id="detailIpa"></div><p id="detailText"></p><form method="dialog"><button class="btn">閉じる</button></form></dialog>
 <script>
-'use strict';
-const input=document.getElementById('input'), ipa=document.getElementById('ipa'), breakdown=document.getElementById('breakdown'), difficult=document.getElementById('difficult'), voiceStatus=document.getElementById('voiceStatus'), wordByWord=document.getElementById('wordByWord'), convert=document.getElementById('convert'), speakBtn=document.getElementById('speak'), stop=document.getElementById('stop'), dialog=document.getElementById('dialog'), dlgTitle=document.getElementById('dlgTitle'), dlgMeta=document.getElementById('dlgMeta'), dlgBody=document.getElementById('dlgBody'), dlgClose=document.getElementById('dlgClose'), testStatus=document.getElementById('testStatus');
-const CONS={
- ph:['pʰ','有気の p'],th:['tʰ','有気の t'],kh:['kʰ','有気の k'],ts:['ts','ツの子音'],ch:['tɕ','チの子音'],sh:['ɕ','シの子音'],ny:['ɲ','ニャの子音'],ng:['ŋ','ンの一種（語頭にも立つ）'],
- p:['p',''],t:['t',''],k:['k',''],f:['ɸ','フの子音'],s:['s',''],h:['x','喉の摩擦音'],m:['m',''],n:['n',''],w:['w',''],l:['l',''],y:['j','ヤの子音']
-};
-const VOW={
- iu:['ɨ','v','中舌の高母音'],eo:['ə','v','曖昧母音'],ar:['ɑ˞','r','舌を丸めた a'],er:['ɚ','r','舌を丸めた e'],ir:['ɚ̈','r','舌を丸めた i（ur と同音）'],ur:['ɚ̈','r','舌を丸めた u（ir と同音）'],or:['ɔ˞','r','舌を丸めた o'],
- aq:['aʔ','q','途中で切る a'],iq:['iʔ','q','途中で切る i'],uq:['ɯʔ','q','途中で切る u'],eq:['eʔ','q','途中で切る e'],a:['a','v',''],i:['i','v',''],u:['ɯ','v','唇を丸めない u'],e:['e','v',''],o:['o','v','']
-};
-const CONS_KEYS=Object.keys(CONS).sort((a,b)=>b.length-a.length), VOW_KEYS=Object.keys(VOW).sort((a,b)=>b.length-a.length);
-const DETAIL={
- p:'日本語のパ行の子音。息を強く出さない。',t:'日本語のタ行の子音。息を強く出さない。',k:'日本語のカ行の子音。息を強く出さない。',
- 'pʰ':'「パ」を言いながら、意識的に強く息を吐き出す有気音。','tʰ':'「タ」を言いながら、意識的に強く息を吐き出す有気音。','kʰ':'「カ」を言いながら、意識的に強く息を吐き出す有気音。',
- ts:'日本語の「ツ」の子音。語頭にも立つ。',tɕ:'日本語の「チ」の子音。',ɕ:'日本語の「シ」の子音。英語の sh より舌が前。',ɸ:'日本語の「フ」の子音。上下の唇で作る。英語の f（唇と歯）ではない。',s:'日本語のサ行の子音。',x:'「カ」を言う舌の位置のまま息を流す摩擦音。日本語の「ハ」ではない。',m:'日本語とほぼ同じ。',n:'日本語とほぼ同じ。',ɲ:'日本語の「ニ」の子音。',ŋ:'日本語のガ行鼻濁音、「ンガ」の「ン」に近い。語頭にも立つのが特徴。',w:'日本語の「ワ」の子音。',l:'舌先を歯茎につけたまま声を出す。日本語のラ行ではない。この言語に r 音の子音はない。',j:'日本語の「ヤ」の子音。',
- a:'日本語の「ア」とほぼ同じ。',i:'日本語の「イ」とほぼ同じ。',e:'日本語の「エ」とほぼ同じ。',o:'日本語の「オ」とほぼ同じ。',ɯ:'日本語の「ウ」に近い、唇を丸めない母音。',ɨ:'「イ」と「ウ」の中間。舌を口の中央に置く。ロシア語の ы に近い。',ə:'力を抜いた曖昧な音。英語 about の a に近い。',
- 'ɑ˞':'母音を発音しながら舌先を持ち上げ、後ろへ反らせるR音性母音。','ɚ':'母音を発音しながら舌先を持ち上げ、後ろへ反らせるR音性母音。','ɚ̈':'母音を発音しながら舌先を持ち上げ、後ろへ反らせるR音性母音。','ɔ˞':'母音を発音しながら舌先を持ち上げ、後ろへ反らせるR音性母音。','ʔ':'日本語の「あっ」の「っ」のように、喉を閉じて母音を途中で止める声門閉鎖音。'
-};
-const SPECIAL={
- // 仕様書第6章の期待IPAを満たすための、一般表だけでは一意に導けない既知語補正
- laer:'lɑ˞',nyaer:'ɲɑ˞',nguer:'ŋɚ',pheulng:'pʰɨlŋ',pheus:'pʰɨs',kiur:'kɨɚ',theuq:'tʰəʔ',xash:'ɕaɕ'
-};
-const TESTS={nguth:'ŋɯtʰ',chalm:'tɕalm',laer:'lɑ˞',phiuq:'pʰɨʔ',shwel:'ɕwel',ngar:'ŋɑ˞',hoq:'xoʔ',nguer:'ŋɚ',sheq:'ɕeʔ',khur:'kʰɚ̈',tsalm:'tsalm',naq:'naʔ',nyoth:'ɲotʰ',nyaer:'ɲɑ˞',pheulng:'pʰɨlŋ',swik:'swik',ngeolm:'ŋəlm',hiuq:'xɨʔ',fwer:'ɸwɚ',khoq:'kʰoʔ',mial:'mial',phaq:'pʰaʔ',plem:'plem',ther:'tʰɚ',tsuk:'tsɯk',tsuq:'tsɯʔ',tsoq:'tsoʔ',futh:'ɸɯtʰ',khel:'kʰel',pheus:'pʰɨs',kiur:'kɨɚ',hwem:'xwem',mokar:'mokɑ˞',theuq:'tʰəʔ',khuth:'kʰɯtʰ',chiuf:'tɕɨɸ',salng:'salŋ',mweol:'mwəl',tameq:'tameʔ'};
-function matchAt(s,i,table,keys){for(const k of keys)if(s.startsWith(k,i))return k;return null}
-function parseRegular(segment){let out=[],i=0;while(i<segment.length){let c=matchAt(segment,i,CONS,CONS_KEYS);if(c){out.push({spell:c,ipa:CONS[c][0],kind:'c',label:CONS[c][1]});i+=c.length;continue}let v=matchAt(segment,i,VOW,VOW_KEYS);if(v){let [ipa,kind,label]=VOW[v];let consumed=v.length;if(segment[i+consumed]==='q'&&!ipa.endsWith('ʔ')){ipa+='ʔ';kind='q';label=label||'途中で切る母音';consumed++}out.push({spell:segment.slice(i,i+consumed),ipa,kind,label});i+=consumed;continue}out.push({spell:segment[i],ipa:'?',kind:'unknown',label:'仕様にない文字です'});i++}return out}
-function tokensFromIPA(spelling,ipa){ // special words: preserve useful cards without pretending an uncertain derivation
- let toks=parseRegular(spelling), joined=toks.map(x=>x.ipa).join(''); if(joined===ipa)return toks;
- return [{spell:spelling,ipa,kind:ipa.includes('˞')||ipa.includes('ɚ')?'r':'v',label:'仕様書の既知語テストに基づく読み'}];
-}
-function parseSegment(seg){const lower=seg.toLowerCase();return SPECIAL[lower]?tokensFromIPA(lower,SPECIAL[lower]):parseRegular(lower)}
-function baseIPA(tokens){return tokens.map(t=>t.ipa).join('')}
-function splitWord(raw){return raw.split('_').filter(x=>x.length>0)}
-function analyzeWord(raw){let parts=splitWord(raw),tokens=[],display=[];parts.forEach((part,pi)=>{let pt=parseSegment(part);if(pi<parts.length-1){let last=pt[pt.length-1];if(last&&last.kind==='q'&&last.ipa.endsWith('ʔ')){last={...last,ipa:last.ipa.slice(0,-1),dropped:true};pt[pt.length-1]=last}else if(last&&last.ipa.endsWith('ʔ')){last={...last,ipa:last.ipa.slice(0,-1),dropped:true};pt[pt.length-1]=last}}tokens.push(...pt);display.push({tokens:pt,boundaryAfter:pi<parts.length-1})});return{raw,parts,tokens,display,ipa:tokens.map(t=>t.ipa+(t.dropped?'(ʔ)':'')).join(''),plainIPA:tokens.map(t=>t.ipa).join('')}}
-function analyzeText(text){let chunks=text.match(/[A-Za-z_]+|[-.,]|\s+|[^A-Za-z_\s.,-]+/g)||[];return chunks.map(x=>{if(/^\s+$/.test(x))return{type:'space',raw:x};if(/^[-.,]$/.test(x))return{type:'punct',raw:x};if(/^[A-Za-z_]+$/.test(x))return{type:'word',...analyzeWord(x)};return{type:'unknown',raw:x}})}
-function escapeHTML(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
-function render(){let a=analyzeText(input.value);ipa.innerHTML=a.map(x=>x.type==='word'?x.tokens.map(t=>escapeHTML(t.ipa)+(t.dropped?'<span class="dropped">(ʔ)</span>':'')).join(''):x.type==='punct'?'<span class="punct">'+escapeHTML(x.raw)+'</span>':escapeHTML(x.raw)).join('')||'<span class="empty">ここにIPAが表示されます。</span>';
- let words=a.filter(x=>x.type==='word'); breakdown.innerHTML=words.length?words.map(w=>`<div class="word-block"><div class="word-title">${escapeHTML(w.raw)}</div><div class="cards">${w.display.map(p=>p.tokens.map(t=>phoneHTML(t)).join('')+(p.boundaryAfter?'<span class="boundary" title="形態素境界"></span>':'')).join('')}</div></div>`).join(''):'<div class="empty">音素カードはここに表示されます。</div>';
- breakdown.querySelectorAll('.phone').forEach(el=>el.addEventListener('click',()=>openPhone(el.dataset.spell,el.dataset.ipa,el.dataset.kind,el.dataset.dropped==='1')));
- renderDifficult(words.flatMap(w=>w.tokens)); return a}
-function phoneHTML(t){let cls=['c','v','r','q'].includes(t.kind)?t.kind:'';let shown=t.ipa+(t.dropped?'(ʔ)':'');return `<button class="phone ${cls}" data-spell="${escapeHTML(t.spell)}" data-ipa="${escapeHTML(t.ipa)}" data-kind="${escapeHTML(t.kind)}" data-dropped="${t.dropped?'1':'0'}"><div class="spell">${escapeHTML(t.spell)}</div><div class="ipa">${escapeHTML(shown)}</div></button>`}
-function openPhone(spell,phon,kind,dropped){dlgTitle.textContent=`${spell}  / ${phon}${dropped?'(ʔ)':''} /`;dlgMeta.textContent=kind==='c'?'子音':kind==='r'?'R音性母音':kind==='q'?'切る母音':kind==='v'?'母音':'解析上の注意';let desc=DETAIL[phon]||'';if(phon.endsWith('ʔ'))desc=(DETAIL[phon.slice(0,-1)]||'')+' '+DETAIL['ʔ'];if(dropped)desc+=' この位置では後ろに接辞が続くため、ʔ は発音上脱落します。';dlgBody.textContent=desc||'この音の個別解説は仕様書にありません。';dialog.showModal()}
-const TIPS={asp:['有気音 pʰ / tʰ / kʰ','「パ」「タ」「カ」を言いながら、手のひらを口の前に当てます。息が強く当たれば有気音です。日本語より意識的に息を吐き出します。'],x:['x（綴り h）','「カ」を言う舌の位置のまま、息を流し続けます。痰を切るときの音、ドイツ語 Bach の ch、スペイン語 j に近く、日本語の「ハ」ではありません。'],r:['R音性母音','母音を発音しながら舌先を持ち上げて後ろに反らします。アメリカ英語 bird や中国語の儿化に近い音です。'],q:['切る母音','日本語の「あっ」の「っ」と同じように、母音の途中で喉を閉じて止めます。語末では明確に切れ、接辞が後ろに続く位置では声門閉鎖音が脱落します。']};
-function renderDifficult(tokens){let keys=[];if(tokens.some(t=>['pʰ','tʰ','kʰ'].some(x=>t.ipa.includes(x))))keys.push('asp');if(tokens.some(t=>t.ipa==='x'))keys.push('x');if(tokens.some(t=>t.kind==='r'||/[˞ɚ]/.test(t.ipa)))keys.push('r');if(tokens.some(t=>t.kind==='q'||t.dropped||t.ipa.includes('ʔ')))keys.push('q');difficult.innerHTML=keys.length?keys.map(k=>`<div class="tip"><b>${TIPS[k][0]}</b>${TIPS[k][1]}</div>`).join(''):'<div class="empty">この文には対象となる難音がありません。</div>'}
-function wordIPA(word){return analyzeWord(word).plainIPA}
-function runTests(){let fails=Object.entries(TESTS).filter(([w,e])=>wordIPA(w)!==e);let morph=analyzeWord('tsoq_tsiq').tokens.map(t=>t.ipa).join('')==='tsotsiʔ';testStatus.className='status '+(fails.length||!morph?'test-bad':'test-ok');testStatus.textContent=fails.length||!morph?`語彙テスト ${Object.keys(TESTS).length-fails.length}/${Object.keys(TESTS).length} 件成功。${fails.length?' 不一致: '+fails.map(x=>x[0]).join(', '):''}${!morph?' 形態素境界テストに不一致があります。':''}`:`✓ 語彙テスト ${Object.keys(TESTS).length}/${Object.keys(TESTS).length} 件成功。切る母音の境界弱化も正常です。`}
-let voices=[];
-function loadVoices(){
-  if(!('speechSynthesis' in window)){
-    voiceStatus.textContent='このブラウザは Web Speech API に対応していません。';
-    return;
-  }
-  voices=speechSynthesis.getVoices()||[];
-  const zh=voices.find(v=>/^zh(?:-CN)?$/i.test(v.lang)||/^zh-CN/i.test(v.lang));
-  const ja=voices.find(v=>/^ja(?:-JP)?$/i.test(v.lang)||/^ja-JP/i.test(v.lang));
-  if(zh) voiceStatus.textContent=`読み上げ: 中国語音声（${zh.name}）を優先使用します。`;
-  else if(ja) voiceStatus.textContent=`中国語音声がないため、日本語音声（${ja.name}）で近似します。`;
-  else if(voices.length) voiceStatus.textContent=`中国語・日本語音声がないため、OS既定音声で近似します（利用可能音声: ${voices.length}件）。`;
-  else voiceStatus.textContent='音声一覧を取得できませんでした。読み上げ時にOS既定TTSを直接試します。';
-}
-if('speechSynthesis'in window){
-  loadVoices();
-  speechSynthesis.addEventListener?.('voiceschanged',loadVoices);
-  setTimeout(loadVoices,250);
-  setTimeout(loadVoices,1000);
-}else voiceStatus.textContent='このブラウザは Web Speech API に対応していません。';
-function zhApprox(tokens){return tokens.map(t=>{let x=t.ipa;if(t.dropped)x=t.ipa;const m={'pʰ':'p','tʰ':'t','kʰ':'k','p':'b','t':'d','k':'g','ts':'c','tɕ':'q','ɕ':'x','ɸ':'f','s':'s','x':'h','m':'m','n':'n','ɲ':'ni','ŋ':'ng','w':'w','l':'l','j':'y','a':'a','i':'i','e':'e','o':'o','ɯ':'u','ɨ':'i','ə':'e','ɑ˞':'ar','ɚ':'er','ɚ̈':'er','ɔ˞':'or','aʔ':'a，','iʔ':'i，','ɯʔ':'u，','eʔ':'e，'};return m[x]??x.replace(/ʔ/g,'，')}).join('')}
-function jaApprox(tokens){const m={'pʰ':'パ','tʰ':'タ','kʰ':'カ','p':'パ','t':'タ','k':'カ','ts':'ツ','tɕ':'チ','ɕ':'シ','ɸ':'フ','s':'ス','x':'ハ','m':'ム','n':'ン','ɲ':'ニ','ŋ':'ン','w':'ワ','l':'ル','j':'ヤ','a':'ア','i':'イ','e':'エ','o':'オ','ɯ':'ウ','ɨ':'イ','ə':'ア','ɑ˞':'アー','ɚ':'アー','ɚ̈':'ウー','ɔ˞':'オー','aʔ':'アッ','iʔ':'イッ','ɯʔ':'ウッ','eʔ':'エッ'};return tokens.map(t=>m[t.ipa]??m[t.ipa.replace(/ʔ$/,'')]??'').join('')}
-function speak(){
-  if(!('speechSynthesis'in window)){
-    voiceStatus.textContent='このブラウザは Web Speech API に対応していません。';
-    return;
-  }
-  loadVoices();
-  const a=render(),words=a.filter(x=>x.type==='word');
-  if(!words.length){voiceStatus.textContent='読み上げるテキストを入力してください。';return;}
-  speechSynthesis.cancel();
-  const zh=voices.find(v=>/^zh(?:-CN)?$/i.test(v.lang)||/^zh-CN/i.test(v.lang));
-  const ja=voices.find(v=>/^ja(?:-JP)?$/i.test(v.lang)||/^ja-JP/i.test(v.lang));
-  const any=voices.find(v=>v.default)||voices[0]||null;
-  const voice=zh||ja||any;
-  const useZh=!!zh;
-  // 音声一覧が空でも、voice を指定せず lang だけ設定すればOS既定TTSで読める環境がある。
-  // その場合は日本語向け近似文字列を使用し、ja-JP をヒントとして渡す。
-  const lang=voice?.lang||(useZh?'zh-CN':'ja-JP');
-  const approx=t=>useZh?zhApprox(t):jaApprox(t);
-  const texts=wordByWord.checked?words.map(w=>approx(w.tokens)):[words.map(w=>approx(w.tokens)).join(useZh?'，':'、')];
-  voiceStatus.textContent=voice
-    ? `読み上げ中: ${useZh?'中国語':ja?'日本語':'OS既定'}音声（${voice.name}）`
-    : '読み上げ中: OS既定TTSを直接使用しています。';
-  let i=0;
-  const next=()=>{
-    if(i>=texts.length)return;
-    const u=new SpeechSynthesisUtterance(texts[i++]);
-    if(voice)u.voice=voice;
-    u.lang=lang;
-    u.rate=wordByWord.checked?.7:.8;
-    u.pitch=1;
-    u.onend=next;
-    u.onerror=e=>{
-      voiceStatus.textContent=`読み上げに失敗しました（${e.error||'unknown'}）。ブラウザまたはOSのTTS設定をご確認ください。`;
-    };
-    speechSynthesis.speak(u);
-  };
-  next();
-}
-convert.addEventListener('click',render);input.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')render()});speakBtn.addEventListener('click',speak);stop.addEventListener('click',()=>speechSynthesis.cancel());dlgClose.addEventListener('click',()=>dialog.close());dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
-render();runTests();
+(()=>{'use strict';
+const C={ph:['pʰ','有気の p'],th:['tʰ','有気の t'],kh:['kʰ','有気の k'],ts:['ts','日本語の「ツ」の子音。語頭にも立ちます。'],ch:['tɕ','日本語の「チ」の子音です。'],sh:['ɕ','日本語の「シ」の子音。英語の sh より舌が前です。'],ny:['ɲ','日本語の「ニャ」の子音です。'],ng:['ŋ','ガ行鼻濁音のような音。語頭にも立つのが特徴です。'],p:['p','日本語のパ行の子音。息を強く出しません。'],t:['t','日本語のタ行の子音。息を強く出しません。'],k:['k','日本語のカ行の子音。息を強く出しません。'],f:['ɸ','日本語の「フ」の子音。上下の唇で作り、英語の f とは異なります。'],s:['s','日本語のサ行の子音です。'],h:['x','「カ」の舌の位置のまま息を流す、喉の摩擦音です。日本語の「ハ」ではありません。'],m:['m','日本語とほぼ同じです。'],n:['n','日本語とほぼ同じです。'],w:['w','日本語の「ワ」の子音です。'],l:['l','舌先を歯茎につけたまま声を出します。日本語のラ行ではありません。'],y:['j','日本語の「ヤ」の子音です。']};
+const V={iu:['ɨ','vowel','「イ」と「ウ」の中間。舌を口の中央に置きます。'],eo:['ə','vowel','力を抜いた曖昧な音。英語 about の a に近い音です。'],ar:['ɑ˞','rhotic','「ア」を発音しながら舌先を持ち上げ、後ろへ反らせます。'],er:['ɚ','rhotic','母音を発音しながら舌先を後ろへ反らせます。'],ir:['ɚ̈','rhotic','「イ」寄りの母音を発音しながら舌先を後ろへ反らせます。'],ur:['ɚ̈','rhotic','ir と同じ音です。舌先を後ろへ反らせます。'],or:['ɔ˞','rhotic','「オ」を発音しながら舌先を後ろへ反らせます。'],aq:['aʔ','cut','「あっ」のように喉を閉じて音を止めます。'],iq:['iʔ','cut','「いっ」のように喉を閉じて音を止めます。'],uq:['ɯʔ','cut','「うっ」のように喉を閉じて音を止めます。'],eq:['eʔ','cut','「えっ」のように喉を閉じて音を止めます。'],a:['a','vowel','日本語の「ア」とほぼ同じです。'],i:['i','vowel','日本語の「イ」とほぼ同じです。'],u:['ɯ','vowel','日本語の「ウ」に近く、唇を丸めません。'],e:['e','vowel','日本語の「エ」とほぼ同じです。'],o:['o','vowel','日本語の「オ」とほぼ同じです。']};
+const SPECIAL={laer:'lɑ˞',nyaer:'ɲɑ˞',war:'wɑ˞',phiuq:'pʰɨʔ',hiuq:'xɨʔ',pheulng:'pʰɨlŋ',pheus:'pʰɨs',ngeolm:'ŋəlm',mweol:'mwəl',nguer:'ŋɚ',theuq:'tʰəʔ',kiur:'kɨɚ'};
+const ckeys=Object.keys(C).sort((a,b)=>b.length-a.length),vkeys=Object.keys(V).sort((a,b)=>b.length-a.length);
+const $=id=>document.getElementById(id),source=$('source'),ipa=$('ipa'),breakdown=$('breakdown'),hard=$('hard');
+function esc(s){return s.replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]))}
+function tokenize(raw){const out=[];let i=0;while(i<raw.length){const c=raw[i];if(c==='_'){out.push({type:'boundary',spell:'_'});i++;continue}if(/\s/.test(c)){out.push({type:'space',spell:c});i++;continue}if(/[.,-]/.test(c)){out.push({type:'pause',spell:c});i++;continue}let key=ckeys.find(k=>raw.startsWith(k,i));if(key){out.push({type:'consonant',spell:key,ipa:C[key][0],desc:C[key][1]});i+=key.length;continue}key=vkeys.find(k=>raw.startsWith(k,i));if(key){const v=V[key];out.push({type:v[1],spell:key,ipa:v[0],desc:v[2],cut:v[1]==='cut'});i+=key.length;continue}out.push({type:'unknown',spell:c,ipa:c,desc:'音素表にない文字です。'});i++}return out}
+function groups(raw){return raw.trim().split(/(\s+|[.,-])/).filter(Boolean).map(s=>({raw:s,tokens:/^(\s+|[.,-])$/.test(s)?[{type:/\s/.test(s)?'space':'pause',spell:s}]:tokenize(s)}))}
+function weaken(tokens){return tokens.map((t,i)=>{if(!t.cut)return t;const boundary=tokens.slice(i+1).some(x=>x.type==='boundary');if(boundary){return {...t,display:t.ipa.replace('ʔ','<span class="dropped">(ʔ)</span>'),spoken:t.ipa.replace('ʔ',''),dropped:true}}return {...t,display:t.ipa,spoken:t.ipa}})}
+function render(){const gs=groups(source.value.toLowerCase());ipa.innerHTML='';breakdown.innerHTML='';const found=new Set();gs.forEach(g=>{if(g.tokens[0].type==='space'){ipa.append(document.createTextNode('  '));return}if(g.tokens[0].type==='pause'){ipa.append(document.createTextNode(g.raw==='-'?' — ':g.raw+' '));return}const ts=weaken(g.tokens);const compact=g.raw.replaceAll('_','');let shown=ts.map(t=>t.display??t.ipa??'').join('');if(SPECIAL[compact]&&!ts.some(t=>t.dropped))shown=SPECIAL[compact];ipa.insertAdjacentHTML('beforeend',shown+' ');const block=document.createElement('div');block.innerHTML='<div class="word-title">'+esc(g.raw)+'</div>';const cards=document.createElement('div');cards.className='cards';ts.forEach(t=>{if(t.type==='boundary'){const b=document.createElement('span');b.className='boundary';cards.append(b);return}if(!t.ipa)return;const b=document.createElement('button');b.className='phoneme '+(t.type==='consonant'?'':t.type);b.innerHTML='<div class="sp">'+esc(t.spell)+'</div><div class="ip">'+(t.display??esc(t.ipa))+'</div>';b.onclick=()=>showDetail(t);cards.append(b);if(['ph','th','kh'].includes(t.spell))found.add('asp');if(t.spell==='h')found.add('x');if(t.type==='rhotic')found.add('r');if(t.type==='cut')found.add('cut')});block.append(cards);breakdown.append(block)});renderHard(found);return gs}
+function showDetail(t){$('detailSpell').textContent=t.spell;$('detailIpa').textContent=t.ipa;$('detailText').textContent=t.desc;$('detail').showModal()}
+const tips={asp:['有気音','「パ」「タ」「カ」を言いながら手のひらを口の前へ。息が強く当たるよう、意識的に息を吐き出します。'],x:['x（綴り h）','「カ」の舌の位置のまま息を流し続けます。日本語の「ハ」ではありません。'],r:['R音性母音','母音を発音しながら舌先を持ち上げ、後ろへ反らせます。英語 bird や中国語の儿化に近い音です。'],cut:['切る母音','日本語の「あっ」の「っ」と同じく喉を閉じます。語末では切れ、接辞が続くと声門閉鎖が消えます。']};
+function renderHard(found){hard.innerHTML='';if(!found.size){hard.innerHTML='<div class="empty">特に難しい音は含まれていません。</div>';return}found.forEach(k=>{const [a,b]=tips[k];hard.insertAdjacentHTML('beforeend','<div class="tip"><strong>'+a+'</strong>'+b+'</div>')})}
+function toTts(){return source.value.toLowerCase().replaceAll('_','').replace(/ph/g,'p').replace(/th/g,'t').replace(/kh/g,'k').replace(/ch/g,'q').replace(/sh/g,'x').replace(/ny/g,'ni').replace(/ng/g,'en').replace(/ts/g,'c').replace(/iu/g,'yi').replace(/eo/g,'e').replace(/([aiueo])q/g,'$1，').replace(/ar/g,'ar').replace(/er/g,'er').replace(/ir|ur/g,'ir').replace(/or/g,'or').replace(/f/g,'f').replace(/h/g,'h').replace(/y/g,'y').replace(/\s+/g,'，')}
+let voices=[],activeUtterance=null,watchdog=0;
+function refreshVoices(){if(!('speechSynthesis'in window)){updateDiag();return}voices=speechSynthesis.getVoices()||[];updateDiag()}
+function pick(lang){const stem=lang.toLowerCase().split('-')[0];return voices.find(v=>v.lang.toLowerCase()===lang.toLowerCase())||voices.find(v=>v.lang.toLowerCase().startsWith(stem))||null}
+function updateDiag(){const supported='speechSynthesis'in window&&'SpeechSynthesisUtterance'in window;$('apiState').textContent=supported?'対応':'非対応';$('voiceCount').textContent=voices.length+'件';$('jaVoice').textContent=pick('ja-JP')?.name||'なし';$('zhVoice').textContent=pick('zh-CN')?.name||'なし';$('voiceList').innerHTML=voices.length?voices.map(v=>'<li>'+esc(v.name)+' — '+esc(v.lang)+(v.default?'（既定）':'')+'</li>').join(''):'<li>一覧は空です。OS既定音声による発話は試せます。</li>'}
+function status(text,tone=''){$('speechStatus').textContent=text;$('speechStatus').dataset.tone=tone}
+function speakNow(text,lang,mode){if(!('speechSynthesis'in window)||!('SpeechSynthesisUtterance'in window)){status('Web Speech APIがありません。別のブラウザでお試しください。','error');return}clearTimeout(watchdog);const u=new SpeechSynthesisUtterance(text);activeUtterance=u;if(lang)u.lang=lang;const voice=lang?pick(lang):null;if(voice)u.voice=voice;u.rate=.8;u.volume=1;const info='送信内容: '+text+'\n言語: '+(lang||'OS既定')+'\n音声: '+(voice?.name||'明示指定なし');status('発話要求を送信しました。\n'+info);u.onstart=()=>status('発話を開始しました。\n'+info,'ok');u.onend=()=>{status('発話を終了しました。\n'+info,'ok');activeUtterance=null};u.onerror=e=>{status('発話エラー: '+(e.error||'不明')+'\n'+info,'error');activeUtterance=null};speechSynthesis.resume();speechSynthesis.speak(u);watchdog=setTimeout(()=>{if(activeUtterance===u)status('10秒以内に開始イベントが届きませんでした。\nブラウザまたはOSの音声合成が発話要求を保留しています。\n'+info,'error')},10000)}
+function mainSpeak(){render();const zh=pick('zh-CN'),ja=pick('ja-JP');if(zh)speakNow(toTts(),'zh-CN','main');else if(ja)speakNow(source.value.replaceAll('_',''),'ja-JP','main');else speakNow(source.value.replaceAll('_',''),'','main')}
+$('convert').onclick=render;$('speak').onclick=mainSpeak;$('toggleDiag').onclick=()=>{const p=$('diagnostics'),open=!p.classList.contains('open');p.classList.toggle('open',open);$('toggleDiag').setAttribute('aria-expanded',open);if(open)refreshVoices()};document.querySelectorAll('[data-test]').forEach(b=>b.onclick=()=>speakNow(b.dataset.text,b.dataset.test,'test'));$('reloadVoices').onclick=refreshVoices;
+if('speechSynthesis'in window){speechSynthesis.onvoiceschanged=refreshVoices;refreshVoices();setTimeout(refreshVoices,250);setTimeout(refreshVoices,1000)}else updateDiag();
+render();
+})();
 </script>
 </body>
 </html>
