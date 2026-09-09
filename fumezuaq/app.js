@@ -82,6 +82,26 @@ function analyzeFumezuaq(input){
  return results;
 }
 
+
+let LAST_TRANSLATION=null,LAST_PROVIDER=null,LAST_MODEL=null;
+function renderExplanation(data){
+ const box=$("explanationBox"); if(!box)return;
+ if(!data){box.innerHTML='<div class="empty-explain">「翻訳の説明」を押すと、意味塊ごとの詳細説明を生成します。</div>';return;}
+ let h=data.summary?`<div class="explain-summary">${esc(data.summary)}</div>`:"";
+ h+=(data.chunks||[]).map(x=>`<article class="explain-card"><div class="explain-head"><strong>${esc(x.surface||"意味塊")}</strong><span>${esc(x.meaning||"")}</span></div>${(x.breakdown||[]).length?`<div class="breakdown">${x.breakdown.map(b=>`<code>${esc(b)}</code>`).join("")}</div>`:""}${x.reason?`<p>${esc(x.reason)}</p>`:""}${x.alternatives?`<p class="alt">他候補: ${esc(x.alternatives)}</p>`:""}</article>`).join("");
+ box.innerHTML=h||'<div class="empty-explain">説明はありません。</div>';
+}
+async function requestExplanation(){
+ if(!LAST_TRANSLATION){toast("先にAI翻訳を実行してください");return;}
+ const btn=$("explainBtn"); if(btn){btn.disabled=true;btn.textContent="説明生成中…";}
+ try{
+  const dbg=LAST_TRANSLATION._debug||{};
+  const exp=await buildExplanation(LAST_PROVIDER,LAST_MODEL,$("inputText").value.trim(),LAST_TRANSLATION,dbg.semantic,dbg.resolved);
+  renderExplanation(exp);
+ }catch(e){renderExplanation({summary:"説明生成エラー: "+e.message,chunks:[]});}
+ finally{if(btn){btn.disabled=false;btn.textContent="翻訳の説明";}}
+}
+
 function renderAnalysis(data){
  const c=(data.chunks||[]);
  $("analysisCards").innerHTML = c.map(x=>`<article class="analysis-card"><h4>${esc(x.surface||x.form||"意味塊")}</h4><p>${esc(x.meaning||"")}</p><div class="zones">${["S","R","D","ROOT","E","K","C"].map(z=>`<span class="zone ${x.zone===z?"hit":""}">${z}</span>`).join("")}</div>${x.note?`<p style="margin-top:10px">${esc(x.note)}</p>`:""}</article>`).join("") +
@@ -229,12 +249,55 @@ async function callAI(provider,model,prompt){
  }
  throw new Error("不明なAIプロバイダーです");
 }
-function semanticPrompt(input){return `あなたはfumezuaqの意味解析器です。まだ翻訳しないでください。\n${GRAMMAR}\n入力:${input}\nJSONのみ: {"chunks":[{"jp":"","center":"","concepts":[],"zones":[],"relations":[]}],"required_domains":[],"lexical_needs":[]}`;}
+function semanticPrompt(input){return `あなたは人工言語 fumezuaq の日本語意味解析器です。まだ翻訳してはいけません。
+${GRAMMAR}
+最重要規則:
+- 日本語の文節境界をそのままfumezuaqの語境界にしない。
+- 「Xが」「Xは」「Xを」だけでは原則独立意味塊にしない。
+- まず述語・中心概念を決め、参与者・対象・方向・時間・条件などを中心語根へ吸収できるか判定する。
+- 人称代名詞を humeq「人」の独立語で表さない。私・あなた・彼・彼女などは原則C1参与者情報として中心語根へ付ける。
+- 名詞語根を独立させるのは、その名詞中心の意味塊が自立するときだけ。
+- 「雨が止む」は「雨」+「止む」に分けず、tokuq「止む」を中心に雨を非意図主体として吸収する。
+- 「彼は山へ行ける」は「彼」を独立語にせず、waraq「行く」を中心に三人称単数・方向・可能を付ける。
+- 「明日の朝まで」のように時間指定そのものとして成立するものは独立意味塊にしてよい。
+- 一語が過密になる場合だけ分離し、分離後も各塊が意味的に成立すること。
+入力:${input}
+JSONのみ:
+{"chunks":[{"jp":"","center":"","center_type":"verb|noun|time|other","participants":[{"concept":"","role":"","person":"","number":"","gender":""}],"concepts":[],"zones":[],"relations":[],"absorb":[]}],"required_domains":[],"lexical_needs":[]}`;}
 function buildCandidates(input,sem){let rel=relevantEntries(input+" "+JSON.stringify(sem));for(const d of sem.required_domains||[]){const p=String(d).match(/^[SRDEKC]\d+/)?.[0];if(p)rel.push(...DICT.filter(e=>String(e.id||"").startsWith(p)));}rel.push(...DICT.filter(e=>/まで|期限|朝|条件|なら|三人称|単数|方向|可能|推量|過去|継続|引用/.test((e.meaning||"")+" "+(e.keywords||[]).join(" "))));return relevantDedup(rel).slice(0,300).map(compactEntry);}
 function resolvePrompt(input,sem,cands){return `あなたはfumezuaq辞書照合器です。最終文はまだ作らないでください。\n${GRAMMAR}\n原文:${input}\n意味解析:${JSON.stringify(sem)}\n辞書候補:${JSON.stringify(cands)}\n各概念を既存辞書へ対応付け、新造は禁止。辞書にあるものをunknownにしない。JSONのみ: {"resolved":[{"concept":"","id":"","form":"","meaning":"","zone":"","alternatives":[]}],"unresolved":[]}`;}
-function generatePrompt(input,sem,res){return `あなたはfumezuaq構文生成器です。\n${GRAMMAR}\n原文:${input}\n意味解析:${JSON.stringify(sem)}\n辞書照合:${JSON.stringify(res)}\n一語一中心語根、S-R-D-ROOT-E-K-C、同一大分類一回、辞書外新造禁止。JSONのみ: {"translation":"","chunks":[{"surface":"","meaning":"","zone":"複合","used_ids":[],"note":""}],"warnings":[]}`;}
+function generatePrompt(input,sem,res){return `あなたはfumezuaq構文生成器です。
+${GRAMMAR}
+原文:${input}
+意味解析:${JSON.stringify(sem)}
+辞書照合:${JSON.stringify(res)}
+最重要:
+- 最終JSONは短くする。詳細説明はここでは生成しない。
+- 一語一中心語根。
+- 日本語の「Xが」「Xは」を独立語へ機械的にしない。
+- 人称代名詞を humeq で独立語化しない。
+- 「雨が止む」は tokuq 中心、「彼が行く」は waraq 中心。
+- S-R-D-ROOT-E-K-C、同一大分類一回。
+- 辞書外新造禁止。
+JSONのみ:
+{"translation":"","chunks":[{"surface":"","meaning":"","used_ids":[]}],"warnings":[]}`;}
 function rescueSet(draft){const terms=[...(draft.warnings||[])];const raw=JSON.stringify(draft);for(const m of raw.matchAll(/unknown[^=:：]*[=:：]?\s*([^"\],}]+)/gi))terms.push(m[1]);let list=[];for(const t of terms){const bits=String(t).split(/[・\/／\s「」『』（）()]+/).filter(Boolean);for(const e of DICT){const hay=[e.meaning,(e.keywords||[]).join(" "),e.large,e.middle].join(" ");if(bits.some(b=>b&&hay.includes(b)))list.push(e);}}list.push(...DICT.filter(e=>/まで|期限|朝|条件|なら|三人称|単数|方向|可能|推量|過去|継続|引用/.test((e.meaning||"")+" "+(e.keywords||[]).join(" "))));return relevantDedup(list).slice(0,180).map(compactEntry);}
-function verifyPrompt(input,draft,rescue){return `あなたはfumezuaq最終検証器です。\n${GRAMMAR}\n原文:${input}\n暫定:${JSON.stringify(draft)}\n再検索候補:${JSON.stringify(rescue)}\nunknownを再検査し、既存辞書で置換できるなら必ず置換。条件をE扱いする等の領域誤りも修正。辞書外新造禁止。JSONのみ: {"translation":"","chunks":[{"surface":"","meaning":"","zone":"複合","note":""}],"warnings":[]}`;}
+function verifyPrompt(input,draft,rescue){return `あなたはfumezuaq最終検証器です。
+${GRAMMAR}
+原文:${input}
+暫定:${JSON.stringify(draft)}
+再検索候補:${JSON.stringify(rescue)}
+検証規則:
+- 出力は短いJSONだけ。
+- unknownが既存辞書で置換できるなら置換。
+- 条件はC5、時間はC3、可能はE7、推量はK系を優先。
+- 日本語文節単位を独立語にしない。
+- humeq を代名詞の台座にしない。
+- 「雨が止む」は述語中心、「彼が行く」も述語中心。
+- 詳細説明は禁止。
+- 辞書外新造禁止。
+JSONのみ:
+{"translation":"","chunks":[{"surface":"","meaning":"","used_ids":[]}],"warnings":[]}`;}
 async function runStage(provider,model,stageName,prompt,shapeHint){
  try{
    const raw=await callAI(provider,model,prompt);
@@ -250,6 +313,22 @@ async function runStage(provider,model,stageName,prompt,shapeHint){
    }
  }
 }
+
+function explanationPrompt(input,result,sem,resolved){
+ return `あなたは fumezuaq 翻訳の解説器です。翻訳自体は変更せず、確定済み翻訳の説明だけを生成してください。
+${GRAMMAR}
+原文:${input}
+確定翻訳:${JSON.stringify(result)}
+意味解析:${JSON.stringify(sem||{})}
+辞書照合:${JSON.stringify(resolved||{})}
+JSONのみ:
+{"summary":"","chunks":[{"surface":"","meaning":"","breakdown":["形態素=意味"],"reason":"","alternatives":""}]}`;
+}
+async function buildExplanation(provider,model,input,result,sem,resolved){
+ const raw=await callAI(provider,model,explanationPrompt(input,result,sem,resolved));
+ return await parseStageJson(provider,model,"説明生成",raw,'{"summary":"","chunks":[{"surface":"","meaning":"","breakdown":[],"reason":"","alternatives":""}]}');
+}
+
 async function aiTranslate(provider,model,input){
  if(direction==="fu2ja"){
    setPipelineStatus("逆翻訳解析",1,1);
@@ -315,6 +394,7 @@ $("translateBtn").onclick=async()=>{
    else{
      const model=provider==="openai"?$("openaiModel").value:provider==="anthropic"?$("anthropicModel").value:$("geminiModel").value;
      data=await aiTranslate(provider,model,input);
+     LAST_TRANSLATION=data;LAST_PROVIDER=provider;LAST_MODEL=model;renderExplanation(null);
    }
    $("outputText").textContent=data.translation||"(翻訳結果なし)";$("outputText").classList.remove("empty");renderAnalysis(data);
  }catch(e){$("outputText").textContent="エラー: "+e.message;$("outputText").classList.remove("empty");setPipelineStatus("エラー",0,1)}
@@ -332,3 +412,9 @@ function renderDict(){
  $("dictList").innerHTML=a.map(e=>`<article class="dict-item"><div class="form">${esc(e.form)}</div><div class="jp">${esc(e.meaning)}</div><div class="mini">${esc(e.id)} · ${esc(e.kind)} · ${esc(e.zone)} / ${esc(e.large||"—")} ${e.status==="候補"?'<span class="candidate">· 候補</span>':""}</div></article>`).join("");
 }
 ["dictSearch","dictZone","dictKind"].forEach(id=>$(id).addEventListener(id==="dictSearch"?"input":"change",renderDict));
+
+document.addEventListener("DOMContentLoaded",()=>{
+ const b=document.getElementById("explainBtn");
+ if(b)b.addEventListener("click",requestExplanation);
+ renderExplanation(null);
+});
