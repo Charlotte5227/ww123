@@ -54,3 +54,5 @@ textarea{width:100%;resize:vertical;border:0;outline:0;background:transparent;co
 .validation-card.pass{border-color:#315b45}.validation-card.fail{border-color:#6b3c3c}
 
 .validation-card.fail p{line-height:1.6}
+
+.analysis-card pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.78rem;line-height:1.5}.analysis-card details{margin-top:10px}

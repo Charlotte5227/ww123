@@ -271,6 +271,130 @@ async function callAI(provider,model,prompt){
  }
  throw new Error("不明なAIプロバイダーです");
 }
+
+// ===== v4: Typed IR + deterministic compiler =====
+const ZONE_ORDER={S:0,R:1,D:2,ROOT:3,E:4,K:5,C:6};
+
+function exactDictionarySearch(terms,limit=160){
+ const ts=[...new Set((terms||[]).flatMap(x=>String(x||"").split(/[、,・\/／（）()\s]+/)).filter(x=>x.length>0))];
+ let scored=[];
+ for(const e of DICT){
+   const hay=[e.id,e.form,e.meaning,e.large,e.middle,e.note,...(e.keywords||[])].join(" ");
+   let s=0;
+   for(const t of ts){
+     if(e.id===t||e.form===t)s+=100;
+     if(e.meaning===t)s+=60;
+     if(hay.includes(t))s+=10+t.length;
+   }
+   if(s)scored.push({e,s});
+ }
+ return scored.sort((a,b)=>b.s-a.s).slice(0,limit).map(x=>compactEntry(x.e));
+}
+function unresolvedTerms(res){
+ return [...new Set((res?.unresolved||[]).flatMap(x=>{
+   if(typeof x==="string")return [x];
+   return [x?.concept,x?.meaning,x?.query,...(x?.aliases||[])];
+ }).filter(Boolean))];
+}
+async function rescueUnresolved(provider,model,input,sem,resolved){
+ const terms=unresolvedTerms(resolved);
+ if(!terms.length)return resolved;
+ const candidates=exactDictionarySearch(terms.concat(["基準より後","内容","推量","可能性","朝","期限","条件","方向"]),260);
+ if(!candidates.length)return resolved;
+ const prompt=`あなたはfumezuaq辞書の再検索照合器です。
+${STRICT_CONTRACT}
+原文:${input}
+意味解析:${JSON.stringify(sem)}
+未解決:${JSON.stringify(resolved.unresolved)}
+再検索候補:${JSON.stringify(candidates)}
+候補に実在するIDだけを採用する。近似意味への置換は禁止。完全に対応しなければunresolvedのまま。
+JSONのみ:{"resolved":[{"concept":"","id":"","form":"","meaning":"","zone":""}],"unresolved":[]}`;
+ const retry=await runStage(provider,model,"unresolved再検索",prompt,'{"resolved":[],"unresolved":[]}');
+ const map=new Map((resolved.resolved||[]).map(x=>[x.concept,x]));
+ for(const x of (retry.resolved||[])) if(x?.concept&&x?.id&&dictById(x.id)) map.set(x.concept,x);
+ return {resolved:[...map.values()],unresolved:retry.unresolved||[]};
+}
+function irPrompt(input,sem,resolved){
+ return `あなたはfumezuaqのTyped IR設計器です。表面形を絶対に生成しない。
+${GRAMMAR}
+${STRICT_CONTRACT}
+原文:${input}
+意味解析:${JSON.stringify(sem)}
+辞書照合:${JSON.stringify(resolved)}
+IR規則:
+- chunkは意味塊。surface文字列は禁止。
+- lexical centerはcenter_root_idで1つだけ。時間指定等はcenter_root_id=nullを許す。
+- 同一語へ吸収した副語根はmodifier_rootsに置き、relation_idを必須にする。単に語根を並べてはいけない。
+- relation_idは「副語根と中心語根の関係」を示す実在辞書ID。例: 雨→止むなら非意図主体C1-02、山→行くなら方向C2-31。
+- 人称・数など語根を持たない情報はaffix_ids。
+- unresolved概念はunresolvedへ。表面形を推測しない。
+- 独立塊間の関係が必要なのに辞書で表現できなければunresolved_relationへ。「文脈で分かる」で済ませない。
+- 「明日の朝まで」はcenter_root_id=nullの時間塊として許可。
+- 「彼が山へ」と「行けるだろう」のように分離する場合、両塊が独立成立し、必要な対応関係が保持されること。保持できなければ吸収する。
+JSONのみ:
+{"chunks":[{"jp":"","meaning":"","center_root_id":null,"modifier_roots":[{"root_id":"","relation_id":"","meaning":""}],"affix_ids":[],"links":[],"unresolved":[],"unresolved_relation":[]}],"sentence_unresolved":[]}`;
+}
+function validateIR(ir){
+ const errors=[],warnings=[];
+ for(let i=0;i<(ir?.chunks||[]).length;i++){
+   const c=ir.chunks[i];
+   if(c.center_root_id && !dictById(c.center_root_id)) errors.push(`chunk${i+1}: center_root_id ${c.center_root_id} は辞書にありません`);
+   for(const m of (c.modifier_roots||[])){
+     const root=dictById(m.root_id), rel=dictById(m.relation_id);
+     if(!root)errors.push(`chunk${i+1}: 副語根 ${m.root_id} は辞書にありません`);
+     if(!rel)errors.push(`chunk${i+1}: 副語根関係 ${m.relation_id||"(空)"} が未解決です`);
+     if(root && root.zone!=="ROOT")errors.push(`chunk${i+1}: ${m.root_id} はROOTではありません`);
+   }
+   for(const id of (c.affix_ids||[])) if(!dictById(id))errors.push(`chunk${i+1}: 接辞ID ${id} は辞書にありません`);
+   if((c.unresolved_relation||[]).length)warnings.push(`chunk${i+1}: 未解決関係 ${c.unresolved_relation.join(" / ")}`);
+ }
+ return {ok:errors.length===0,errors,warnings};
+}
+function affixParts(entries){
+ // one large marker per large category; retain small forms thereafter
+ const out=[],seenLarge=new Set();
+ for(const e of entries){
+   if(e.zone==="ROOT"){out.push(e.form);continue}
+   const lg=e.large_form||"";
+   const sm=e.small_form||"";
+   const key=e.zone+"|"+(e.large||lg||e.id.split("-")[0]);
+   if(lg&&sm){
+     if(!seenLarge.has(key)){out.push(lg);seenLarge.add(key)}
+     out.push(sm);
+   }else if(e.form) out.push(e.form);
+ }
+ return out;
+}
+function compileIR(ir){
+ const chunks=[],warnings=[...(ir?.sentence_unresolved||[]).map(x=>"unresolved: "+(typeof x==="string"?x:JSON.stringify(x)))];
+ for(const c of (ir?.chunks||[])){
+   const center=c.center_root_id?dictById(c.center_root_id):null;
+   const mods=(c.modifier_roots||[]).map(m=>({root:dictById(m.root_id),rel:dictById(m.relation_id),raw:m})).filter(x=>x.root&&x.rel);
+   const aff=(c.affix_ids||[]).map(dictById).filter(Boolean);
+   // Deterministic ordering: modifier root + its relation stay as a typed unit before center;
+   // grammatical affixes are sorted by macro-zone after the center. Time-only chunks have no center.
+   let parts=[],used=[];
+   if(center){
+     for(const m of mods){parts.push(m.root.form); used.push(m.root.id)}
+     parts.push(center.form); used.push(center.id);
+     const post=[];
+     for(const m of mods){post.push(m.rel);used.push(m.rel.id)}
+     post.push(...aff); used.push(...aff.map(e=>e.id));
+     post.sort((a,b)=>(ZONE_ORDER[a.zone]??99)-(ZONE_ORDER[b.zone]??99));
+     parts.push(...affixParts(post));
+   }else{
+     const es=[...aff].sort((a,b)=>(ZONE_ORDER[a.zone]??99)-(ZONE_ORDER[b.zone]??99));
+     parts.push(...affixParts(es)); used.push(...es.map(e=>e.id));
+   }
+   const surface=parts.filter(Boolean).join("-");
+   if(!surface){warnings.push(`unresolved: ${c.meaning||c.jp||"空の意味塊"}`);continue}
+   for(const u of (c.unresolved||[]))warnings.push(`unresolved: ${typeof u==="string"?u:JSON.stringify(u)}`);
+   for(const u of (c.unresolved_relation||[]))warnings.push(`unresolved relation: ${typeof u==="string"?u:JSON.stringify(u)}`);
+   chunks.push({surface,meaning:c.meaning||c.jp||"",used_ids:[...new Set(used)],_ir:c});
+ }
+ return {translation:chunks.map(x=>x.surface).join(" "),chunks,warnings,_ir:ir};
+}
+
 function semanticPrompt(input){return `あなたは人工言語 fumezuaq の日本語意味解析器です。まだ翻訳してはいけません。
 ${GRAMMAR}
 ${STRICT_CONTRACT}
@@ -398,14 +522,13 @@ async function validateAndRepair(provider,model,input,result,sem,resolved){
 }
 
 function explanationPrompt(input,result,sem,resolved){
- return `あなたはfumezuaq翻訳の構造理由だけを説明します。
-${GRAMMAR}
+ return `あなたはfumezuaq Typed IRの構造理由だけを説明する。
 ${STRICT_CONTRACT}
 原文:${input}
-確定翻訳:${JSON.stringify(result)}
-意味解析:${JSON.stringify(sem||{})}
-禁止: 辞書項目のform・meaning・分類を自分で説明しない。辞書事実はプログラムが表示する。「一語一語根」や「中心語根がない意味塊は自立不能」という規則を作らない。翻訳を変更しない。validator警告を新規規則で後付け正当化しない。
-各chunkについて中心・吸収・分離を選んだ理由だけ説明。
+Typed IR:${JSON.stringify(result?._ir||{})}
+確定表面形:${JSON.stringify((result?.chunks||[]).map(x=>x.surface))}
+辞書事実はプログラム表示なので、形態素の意味を自作しない。確定表面形を変更しない。
+説明対象は「なぜこの意味塊か」「なぜこの中心語根か」「なぜ副語根をこの関係で吸収したか」「何がunresolvedか」のみ。
 JSONのみ:{"summary":"","chunks":[{"surface":"","reason":"","alternatives":""}]}`;
 }
 async function buildExplanation(provider,model,input,result,sem,resolved){
@@ -420,32 +543,43 @@ async function aiTranslate(provider,model,input){
    const prompt=`fumezuaqを日本語へ解析。${GRAMMAR}\n辞書候補:${JSON.stringify(hits)}\n入力:${input}\nJSONのみ:{"translation":"","chunks":[],"warnings":[]}`;
    return await runStage(provider,model,"逆翻訳解析",prompt,'{"translation":"","chunks":[],"warnings":[]}');
  }
- setPipelineStatus("意味解析",1,4);
- const sem=await runStage(provider,model,"意味解析",semanticPrompt(input),'{"chunks":[{"jp":"","center":"","concepts":[],"zones":[],"relations":[]}],"required_domains":[],"lexical_needs":[]}');
+ setPipelineStatus("意味解析",1,6);
+ const sem=await runStage(provider,model,"意味解析",semanticPrompt(input),'{"chunks":[],"required_domains":[],"lexical_needs":[]}');
 
  const cands=buildCandidates(input,sem);
- setPipelineStatus("辞書照合",2,4);
- const resolved=await runStage(provider,model,"辞書照合",resolvePrompt(input,sem,cands),'{"resolved":[{"concept":"","id":"","form":"","meaning":"","zone":"","alternatives":[]}],"unresolved":[]}');
+ setPipelineStatus("辞書照合",2,6);
+ let resolved=await runStage(provider,model,"辞書照合",resolvePrompt(input,sem,cands),'{"resolved":[],"unresolved":[]}');
 
- setPipelineStatus("構文生成",3,4);
- const draft=await runStage(provider,model,"構文生成",generatePrompt(input,sem,resolved),'{"translation":"","chunks":[{"surface":"","meaning":"","zone":"複合","used_ids":[],"note":""}],"warnings":[]}');
- if(!String(draft.translation||"").trim()) throw new Error("構文生成段階で翻訳本文が空でした");
-
- setPipelineStatus("最終検証",4,4);
- try{
-   const final=await runStage(provider,model,"最終検証",verifyPrompt(input,draft,rescueSet(draft)),'{"translation":"","chunks":[{"surface":"","meaning":"","zone":"複合","note":""}],"warnings":[]}');
-   if(!String(final.translation||"").trim()) throw new Error("最終検証の翻訳本文が空でした");
-   let checked=await validateAndRepair(provider,model,input,final,sem,resolved);
-   checked._debug={candidateCount:cands.length,fallback:false,semantic:sem,resolved:resolved};
-   setPipelineStatus("完了",5,5);
-   return checked;
- }catch(finalErr){
-   // The verifier is optional: never discard a valid generated translation.
-   draft.warnings=[...(draft.warnings||[]),`最終検証を完了できなかったため、構文生成段階の訳を表示しています: ${finalErr.message}`];
-   draft._debug={candidateCount:cands.length,fallback:true};
-   setPipelineStatus("完了（暫定訳）",4,4);
-   return draft;
+ if((resolved.unresolved||[]).length){
+   setPipelineStatus("unresolved再検索",3,6);
+   resolved=await rescueUnresolved(provider,model,input,sem,resolved);
  }
+
+ setPipelineStatus("Typed IR構築",4,6);
+ let ir=await runStage(provider,model,"Typed IR構築",irPrompt(input,sem,resolved),'{"chunks":[],"sentence_unresolved":[]}');
+ let iv=validateIR(ir);
+ if(!iv.ok){
+   const fix=`${irPrompt(input,sem,resolved)}
+前回IR:${JSON.stringify(ir)}
+IR検証エラー:${JSON.stringify(iv.errors)}
+エラーだけ修正。辞書にないIDを作らない。`;
+   ir=await runStage(provider,model,"IR修正",fix,'{"chunks":[],"sentence_unresolved":[]}');
+   iv=validateIR(ir);
+ }
+
+ setPipelineStatus("決定論コンパイル",5,6);
+ let result=compileIR(ir);
+ result._ir_validation=iv;
+ result._debug={candidateCount:cands.length,semantic:sem,resolved:resolved,ir:ir,compiler:"deterministic-v4"};
+
+ // Surface is never rewritten by AI. Validator may report only.
+ const sv=validateTranslation(result,sem);
+ result._validation=sv;
+ if(!iv.ok) result.warnings.push(...iv.errors.map(x=>"IR検証未解決: "+x));
+ if(!sv.ok) result.warnings.push(...sv.errors.map(x=>"表面検証: "+x.message));
+
+ setPipelineStatus("完了",6,6);
+ return result;
 }
 async function testProvider(p){
  const c=KEYCFG[p],key=$(c.input).value.trim();if(!key)throw new Error("APIキーを入力してください");
