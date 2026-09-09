@@ -20,6 +20,13 @@ $("ja2fu").onclick=()=>setDir("ja2fu");$("fu2ja").onclick=()=>setDir("fu2ja");$(
 $("inputText").oninput=()=>{$("charCount").textContent=`${$("inputText").value.length} 文字`};$("clearInput").onclick=()=>{$("inputText").value="";$("outputText").textContent="翻訳結果がここに表示されます。";$("outputText").classList.add("empty");$("analysisCards").innerHTML=""};
 $("copyBtn").onclick=()=>navigator.clipboard.writeText($("outputText").textContent).then(()=>toast("コピーしました"));
 function toast(t){$("toast").textContent=t;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),1500)}
+function setPipelineStatus(name,step,total){
+ const el=$("pipelineStatus");
+ if(!el)return;
+ el.textContent= total>1 ? `${step}/${total} ${name}` : name;
+ el.classList.add("working");
+ if(name==="完了")setTimeout(()=>el.classList.remove("working"),1200);
+}
 
 function relevantEntries(input){
  const q=norm(input);
@@ -115,7 +122,63 @@ document.querySelectorAll(".deletekey").forEach(b=>b.onclick=()=>{
 loadKeys();
 
 function compactEntry(e){return {id:e.id,zone:e.zone,kind:e.kind,large:e.large,middle:e.middle,meaning:e.meaning,form:e.form,status:e.status,keywords:e.keywords||[],note:e.note||""};}
-function parseJsonLoose(t){const s=t.indexOf("{"),e=t.lastIndexOf("}");if(s<0||e<s)throw new Error("AIのJSONを解析できませんでした");return JSON.parse(t.slice(s,e+1));}
+function extractJsonText(t){
+ let s=String(t??"").trim();
+ if(!s) throw new Error("AIから空の応答が返されました");
+ // Markdown fenced JSON
+ const fenced=s.match(/```(?:json)?\s*([\s\S]*?)```/i);
+ if(fenced) s=fenced[1].trim();
+ // Try exact JSON first
+ try{JSON.parse(s);return s}catch(_){}
+ // Extract first balanced top-level object
+ const start=s.indexOf("{");
+ if(start<0) throw new Error("JSONオブジェクトが見つかりません");
+ let depth=0,inString=false,escape=false;
+ for(let i=start;i<s.length;i++){
+   const ch=s[i];
+   if(inString){
+     if(escape){escape=false;continue}
+     if(ch==="\\"){escape=true;continue}
+     if(ch==='"')inString=false;
+     continue;
+   }
+   if(ch==='"'){inString=true;continue}
+   if(ch==="{")depth++;
+   else if(ch==="}"){
+     depth--;
+     if(depth===0)return s.slice(start,i+1);
+   }
+ }
+ throw new Error("JSONの閉じ括弧が不足しています");
+}
+function parseJsonLoose(t){
+ const raw=extractJsonText(t);
+ try{return JSON.parse(raw)}
+ catch(e){
+   // Common harmless repairs: BOM / trailing commas
+   const repaired=raw.replace(/^\uFEFF/,"").replace(/,\s*([}\]])/g,"$1");
+   try{return JSON.parse(repaired)}
+   catch(_){throw new Error("JSON構文を解析できません: "+e.message)}
+ }
+}
+async function parseStageJson(provider,model,stageName,raw,shapeHint){
+ try{return parseJsonLoose(raw)}
+ catch(firstErr){
+   const repairPrompt=`次のAI出力を、内容を変えずに有効なJSONへ修復してください。
+Markdown、説明文、コードフェンスは付けず、JSONオブジェクトだけを返してください。
+期待する形:
+${shapeHint}
+
+壊れた出力:
+${String(raw).slice(0,12000)}`;
+   try{
+     const repaired=await callAI(provider,model,repairPrompt);
+     return parseJsonLoose(repaired);
+   }catch(secondErr){
+     throw new Error(`${stageName}段階でAIのJSONを解析できませんでした。元エラー: ${firstErr.message} / 修復後: ${secondErr.message}`);
+   }
+ }
+}
 async function callAI(provider,model,prompt){
  const c=KEYCFG[provider],key=$(c.input).value.trim(); if(!key)throw new Error(`${provider} のAPIキーをAI設定で入力してください`);
  if(provider==="openai"){const r=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{"Authorization":`Bearer ${key}`,"Content-Type":"application/json"},body:JSON.stringify({model:model||"gpt-5",input:prompt})});const j=await r.json();if(!r.ok)throw new Error(j.error?.message||"OpenAI API error");return j.output?.flatMap(x=>x.content||[]).filter(x=>x.type==="output_text").map(x=>x.text).join("\n")||j.output_text||"";}
@@ -129,13 +192,31 @@ function generatePrompt(input,sem,res){return `あなたはfumezuaq構文生成�
 function rescueSet(draft){const terms=[...(draft.warnings||[])];const raw=JSON.stringify(draft);for(const m of raw.matchAll(/unknown[^=:：]*[=:：]?\s*([^"\],}]+)/gi))terms.push(m[1]);let list=[];for(const t of terms){const bits=String(t).split(/[・\/／\s「」『』（）()]+/).filter(Boolean);for(const e of DICT){const hay=[e.meaning,(e.keywords||[]).join(" "),e.large,e.middle].join(" ");if(bits.some(b=>b&&hay.includes(b)))list.push(e);}}list.push(...DICT.filter(e=>/まで|期限|朝|条件|なら|三人称|単数|方向|可能|推量|過去|継続|引用/.test((e.meaning||"")+" "+(e.keywords||[]).join(" "))));return relevantDedup(list).slice(0,180).map(compactEntry);}
 function verifyPrompt(input,draft,rescue){return `あなたはfumezuaq最終検証器です。\n${GRAMMAR}\n原文:${input}\n暫定:${JSON.stringify(draft)}\n再検索候補:${JSON.stringify(rescue)}\nunknownを再検査し、既存辞書で置換できるなら必ず置換。条件をE扱いする等の領域誤りも修正。辞書外新造禁止。JSONのみ: {"translation":"","chunks":[{"surface":"","meaning":"","zone":"複合","note":""}],"warnings":[]}`;}
 async function aiTranslate(provider,model,input){
- if(direction==="fu2ja"){const hits=relevantEntries(input).map(compactEntry);return parseJsonLoose(await callAI(provider,model,`fumezuaqを日本語へ解析。${GRAMMAR}\n辞書候補:${JSON.stringify(hits)}\n入力:${input}\nJSONのみ:{"translation":"","chunks":[],"warnings":[]}`));}
- const sem=parseJsonLoose(await callAI(provider,model,semanticPrompt(input)));
+ if(direction==="fu2ja"){
+   setPipelineStatus("逆翻訳解析",1,1);
+   const hits=relevantEntries(input).map(compactEntry);
+   const raw=await callAI(provider,model,`fumezuaqを日本語へ解析。${GRAMMAR}\n辞書候補:${JSON.stringify(hits)}\n入力:${input}\nJSONのみ:{"translation":"","chunks":[],"warnings":[]}`);
+   return await parseStageJson(provider,model,"逆翻訳解析",raw,'{"translation":"","chunks":[],"warnings":[]}');
+ }
+ setPipelineStatus("意味解析",1,4);
+ const semRaw=await callAI(provider,model,semanticPrompt(input));
+ const sem=await parseStageJson(provider,model,"意味解析",semRaw,'{"chunks":[{"jp":"","center":"","concepts":[],"zones":[],"relations":[]}],"required_domains":[],"lexical_needs":[]}');
+
  const cands=buildCandidates(input,sem);
- const resolved=parseJsonLoose(await callAI(provider,model,resolvePrompt(input,sem,cands)));
- const draft=parseJsonLoose(await callAI(provider,model,generatePrompt(input,sem,resolved)));
- const final=parseJsonLoose(await callAI(provider,model,verifyPrompt(input,draft,rescueSet(draft))));
- final._debug={candidateCount:cands.length}; return final;
+ setPipelineStatus("辞書照合",2,4);
+ const resRaw=await callAI(provider,model,resolvePrompt(input,sem,cands));
+ const resolved=await parseStageJson(provider,model,"辞書照合",resRaw,'{"resolved":[{"concept":"","id":"","form":"","meaning":"","zone":"","alternatives":[]}],"unresolved":[]}');
+
+ setPipelineStatus("構文生成",3,4);
+ const draftRaw=await callAI(provider,model,generatePrompt(input,sem,resolved));
+ const draft=await parseStageJson(provider,model,"構文生成",draftRaw,'{"translation":"","chunks":[{"surface":"","meaning":"","zone":"複合","used_ids":[],"note":""}],"warnings":[]}');
+
+ setPipelineStatus("最終検証",4,4);
+ const finalRaw=await callAI(provider,model,verifyPrompt(input,draft,rescueSet(draft)));
+ const final=await parseStageJson(provider,model,"最終検証",finalRaw,'{"translation":"","chunks":[{"surface":"","meaning":"","zone":"複合","note":""}],"warnings":[]}');
+ final._debug={candidateCount:cands.length}; 
+ setPipelineStatus("完了",4,4);
+ return final;
 }
 async function testProvider(p){
  const c=KEYCFG[p],key=$(c.input).value.trim();if(!key)throw new Error("APIキーを入力してください");
@@ -171,7 +252,7 @@ $("translateBtn").onclick=async()=>{
      data=await aiTranslate(provider,model,input);
    }
    $("outputText").textContent=data.translation||"(翻訳結果なし)";$("outputText").classList.remove("empty");renderAnalysis(data);
- }catch(e){$("outputText").textContent="エラー: "+e.message;$("outputText").classList.remove("empty")}
+ }catch(e){$("outputText").textContent="エラー: "+e.message;$("outputText").classList.remove("empty");setPipelineStatus("エラー",0,1)}
  finally{$("translateBtn").disabled=false;$("translateBtn").innerHTML='翻訳する <span>→</span>'}
 };
 
