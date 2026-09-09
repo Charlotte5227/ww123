@@ -10,6 +10,12 @@ const STRICT_CONTRACT=`
 - 辞書ID/form/meaning/zone/large/middleを推測・改変しない。不明ならunresolved。
 - 辞書外の形を正式形として生成しない。
 - AIは規則制定者ではなく候補生成器である。
+- 仕様書に明記されていない一般則を新たに導出して翻訳判断へ使用してはならない。
+- 「独立意味塊には必ず中心語根が必要」という規則は存在しない。時間・場所・条件等は十分に限定されれば語彙的中心語根なしでも独立意味塊になり得る。
+- 「明日の。」は不十分でも「明日の朝まで。」は独立した時間指定意味塊として成立可能。
+- 必要な辞書項目が見つからない場合、近い項目へ意味を勝手に統合・拡張してはならない。必ず unresolved とする。
+- 辞書項目の意味を文脈都合で増やしてはならない。例: 「朝」に「明日」の意味を含めない。
+- 不明→unresolved、不足→unresolved、仕様矛盾→validator error。推測による穴埋めは禁止。
 `;
 const $=id=>document.getElementById(id);
 const norm=s=>(s||"").normalize("NFKC").toLowerCase().replace(/[‐‑‒–—―ー_\s]/g,"");
@@ -276,7 +282,7 @@ ${STRICT_CONTRACT}
 - 名詞語根を独立させるのは、その名詞中心の意味塊が自立するときだけ。
 - 「雨が止む」は「雨」+「止む」に分けず、tokuq「止む」を中心に雨を非意図主体として吸収する。
 - 「彼は山へ行ける」は「彼」を独立語にせず、waraq「行く」を中心に三人称単数・方向・可能を付ける。
-- 「明日の朝まで」のように時間指定そのものとして成立するものは独立意味塊にしてよい。
+- 「明日の朝まで」のように時間指定そのものとして成立するものは、語彙的中心語根がなくても独立意味塊にしてよい。中心語根の有無だけで自立性を判定しない。
 - 一語が過密になる場合だけ分離し、分離後も各塊が意味的に成立すること。
 入力:${input}
 JSONのみ:
@@ -349,8 +355,18 @@ function validateTranslation(result,sem){
    if(sf==="wesamaq"&&/(雨|主体)/.test(mn))
      errors.push({code:"ORPHAN_RAIN",chunk:i,message:"雨だけが述語から孤立しています。「雨が止む」はtokuq中心への再吸収を検討してください"});
    if(/^keraq(?:-|$)/.test(sf)&&/山へ|方向/.test(mn)&&chunks.some(x=>/^waraq(?:-|$)/.test(String(x.surface||""))))
-     warnings.push({code:"ORPHAN_GOAL",chunk:i,message:"「山へ」がwaraqから分離されています。独立意味塊として成立するか再検査してください"});
+     errors.push({code:"ORPHAN_GOAL",chunk:i,message:"「山へ」だけをwaraqから分離しています。名詞「山」が存在することだけではこの文中の独立意味塊成立の根拠になりません。waraq側へ吸収するか、必要なら明示的対応関係を示してください"});
  }
+
+ const prose2=JSON.stringify(result);
+ if(/(?:時間|場所|条件|意味塊).{0,24}中心語根.{0,24}(?:必要|必須|不在で自立しない|持たず自立しない)/.test(prose2))
+   errors.push({code:"INVENTED_CENTER_REQUIREMENT",message:"「独立意味塊には中心語根が必須」という未定義規則が使用されています"});
+ for(let i=0;i<chunks.length;i++){
+   const c=chunks[i],sf=String(c.surface||""),mn=String(c.meaning||"");
+   if(/明日/.test(mn)&&/nokuq-miepuq/.test(sf)&&!/(?:^|-)wepuq(?:-|$)/.test(sf))
+     errors.push({code:"MISSING_TOMORROW_REL",chunk:i,message:"「明日」を含む意味なのにC3-REL-03 wepuqがありません。miepuq「朝」へ明日の意味を統合せず、wepuqを確認するかunresolvedにしてください"});
+ }
+
  const facts=chunks.map((c,i)=>({chunk:i,surface:c.surface,entries:(c.used_ids||[]).map(dictById).filter(Boolean).map(e=>({id:e.id,form:e.form,meaning:e.meaning,zone:e.zone,large:e.large,middle:e.middle,status:e.status}))}));
  return {ok:errors.length===0,errors,warnings,facts};
 }
@@ -364,7 +380,7 @@ ${STRICT_CONTRACT}
 辞書照合:${JSON.stringify(resolved)}
 機械検証違反:${JSON.stringify(v.errors)}
 警告:${JSON.stringify(v.warnings)}
-違反箇所だけ修正すること。新規文法規則を作らないこと。
+違反箇所だけ修正すること。新規文法規則を作らないこと。必要な辞書項目を確認できなければ近似項目へ意味を足さずwarningsに unresolved と明記すること。
 JSONのみ:{"translation":"","chunks":[{"surface":"","meaning":"","used_ids":[]}],"warnings":[]}`;
 }
 async function validateAndRepair(provider,model,input,result,sem,resolved){
@@ -388,7 +404,7 @@ ${STRICT_CONTRACT}
 原文:${input}
 確定翻訳:${JSON.stringify(result)}
 意味解析:${JSON.stringify(sem||{})}
-禁止: 辞書項目のform・meaning・分類を自分で説明しない。辞書事実はプログラムが表示する。「一語一語根」を作らない。翻訳を変更しない。
+禁止: 辞書項目のform・meaning・分類を自分で説明しない。辞書事実はプログラムが表示する。「一語一語根」や「中心語根がない意味塊は自立不能」という規則を作らない。翻訳を変更しない。validator警告を新規規則で後付け正当化しない。
 各chunkについて中心・吸収・分離を選んだ理由だけ説明。
 JSONのみ:{"summary":"","chunks":[{"surface":"","reason":"","alternatives":""}]}`;
 }
