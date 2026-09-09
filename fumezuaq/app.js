@@ -85,7 +85,7 @@ function analyzeFumezuaq(input){
 function renderAnalysis(data){
  const c=(data.chunks||[]);
  $("analysisCards").innerHTML = c.map(x=>`<article class="analysis-card"><h4>${esc(x.surface||x.form||"意味塊")}</h4><p>${esc(x.meaning||"")}</p><div class="zones">${["S","R","D","ROOT","E","K","C"].map(z=>`<span class="zone ${x.zone===z?"hit":""}">${z}</span>`).join("")}</div>${x.note?`<p style="margin-top:10px">${esc(x.note)}</p>`:""}</article>`).join("") +
- (data.warnings||[]).map(w=>`<article class="analysis-card"><h4>注意</h4><p>${esc(w)}</p></article>`).join("") + (data._debug?`<article class="analysis-card"><h4>多段階翻訳</h4><p>意味解析 → 領域判定 → 辞書照合 → 構築 → unknown再検査</p><p style="margin-top:8px">参照候補: ${esc(data._debug.candidateCount)} 項目</p></article>`:"");
+ (data.warnings||[]).map(w=>`<article class="analysis-card"><h4>注意</h4><p>${esc(w)}</p></article>`).join("") + (data._debug?`<article class="analysis-card"><h4>多段階翻訳</h4><p>意味解析 → 領域判定 → 辞書照合 → 構築 → unknown再検査</p><p style="margin-top:8px">参照候補: ${esc(data._debug.candidateCount)} 項目${data._debug.fallback?" / 最終検証はフォールバック":""}</p></article>`:"");
 }
 
 
@@ -162,7 +162,9 @@ function parseJsonLoose(t){
  }
 }
 async function parseStageJson(provider,model,stageName,raw,shapeHint){
- try{return parseJsonLoose(raw)}
+ const source=String(raw??"").trim();
+ if(!source) throw new Error(`${stageName}段階でAIから本文が返されませんでした`);
+ try{return parseJsonLoose(source)}
  catch(firstErr){
    const repairPrompt=`次のAI出力を、内容を変えずに有効なJSONへ修復してください。
 Markdown、説明文、コードフェンスは付けず、JSONオブジェクトだけを返してください。
@@ -170,9 +172,10 @@ Markdown、説明文、コードフェンスは付けず、JSONオブジェク�
 ${shapeHint}
 
 壊れた出力:
-${String(raw).slice(0,12000)}`;
+${source.slice(0,12000)}`;
    try{
      const repaired=await callAI(provider,model,repairPrompt);
+     if(!String(repaired??"").trim()) throw new Error("JSON修復でも空応答でした");
      return parseJsonLoose(repaired);
    }catch(secondErr){
      throw new Error(`${stageName}段階でAIのJSONを解析できませんでした。元エラー: ${firstErr.message} / 修復後: ${secondErr.message}`);
@@ -180,43 +183,105 @@ ${String(raw).slice(0,12000)}`;
  }
 }
 async function callAI(provider,model,prompt){
- const c=KEYCFG[provider],key=$(c.input).value.trim(); if(!key)throw new Error(`${provider} のAPIキーをAI設定で入力してください`);
- if(provider==="openai"){const r=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{"Authorization":`Bearer ${key}`,"Content-Type":"application/json"},body:JSON.stringify({model:model||"gpt-5",input:prompt})});const j=await r.json();if(!r.ok)throw new Error(j.error?.message||"OpenAI API error");return j.output?.flatMap(x=>x.content||[]).filter(x=>x.type==="output_text").map(x=>x.text).join("\n")||j.output_text||"";}
- if(provider==="anthropic"){const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true","content-type":"application/json"},body:JSON.stringify({model:model||"claude-opus-5",max_tokens:4500,messages:[{role:"user",content:prompt}]})});const j=await r.json();if(!r.ok)throw new Error(j.error?.message||"Anthropic API error");return (j.content||[]).filter(x=>x.type==="text").map(x=>x.text).join("\n");}
- if(provider==="gemini"){const mdl=encodeURIComponent(model||"gemini-3.8-flash");const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${mdl}:generateContent`,{method:"POST",headers:{"x-goog-api-key":key,"content-type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{responseMimeType:"application/json"}})});const j=await r.json();if(!r.ok)throw new Error(j.error?.message||"Gemini API error");return j.candidates?.[0]?.content?.parts?.map(x=>x.text||"").join("\n")||"";}
- throw new Error("不明なAIプロバイダーです");}
+ const c=KEYCFG[provider],key=$(c.input).value.trim();
+ if(!key)throw new Error(`${provider} のAPIキーをAI設定で入力してください`);
+
+ if(provider==="openai"){
+   const r=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{"Authorization":`Bearer ${key}`,"Content-Type":"application/json"},body:JSON.stringify({model:model||"gpt-5",input:prompt})});
+   const j=await r.json().catch(()=>({}));
+   if(!r.ok)throw new Error(j.error?.message||`OpenAI API error (${r.status})`);
+   let parts=[];
+   for(const item of (j.output||[])){
+     for(const c of (item.content||[])){
+       if(typeof c.text==="string" && (!c.type || c.type==="output_text" || c.type==="text")) parts.push(c.text);
+     }
+   }
+   const text=(parts.join("\n") || j.output_text || "").trim();
+   if(!text){
+     const types=(j.output||[]).map(x=>x.type).filter(Boolean).join(",")||"none";
+     throw new Error(`OpenAIから本文が返されませんでした (status=${j.status||"unknown"}, output types=${types})`);
+   }
+   return text;
+ }
+
+ if(provider==="anthropic"){
+   const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true","content-type":"application/json"},body:JSON.stringify({model:model||"claude-opus-5",max_tokens:4500,messages:[{role:"user",content:prompt}]})});
+   const j=await r.json().catch(()=>({}));
+   if(!r.ok)throw new Error(j.error?.message||`Anthropic API error (${r.status})`);
+   const text=(j.content||[]).filter(x=>x.type==="text"&&typeof x.text==="string").map(x=>x.text).join("\n").trim();
+   if(!text) throw new Error(`Claudeから本文が返されませんでした (stop_reason=${j.stop_reason||"unknown"})`);
+   return text;
+ }
+
+ if(provider==="gemini"){
+   const mdl=encodeURIComponent(model||"gemini-3.8-flash");
+   const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${mdl}:generateContent`,{method:"POST",headers:{"x-goog-api-key":key,"content-type":"application/json"},body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt}]}],generationConfig:{responseMimeType:"application/json"}})});
+   const j=await r.json().catch(()=>({}));
+   if(!r.ok)throw new Error(j.error?.message||`Gemini API error (${r.status})`);
+   const cand=j.candidates?.[0];
+   const text=(cand?.content?.parts||[]).filter(x=>typeof x.text==="string" && !x.thought).map(x=>x.text).join("\n").trim();
+   if(!text){
+     const blocked=j.promptFeedback?.blockReason;
+     const finish=cand?.finishReason;
+     throw new Error(`Geminiから本文が返されませんでした (finishReason=${finish||"none"}${blocked?`, blockReason=${blocked}`:""})`);
+   }
+   return text;
+ }
+ throw new Error("不明なAIプロバイダーです");
+}
 function semanticPrompt(input){return `あなたはfumezuaqの意味解析器です。まだ翻訳しないでください。\n${GRAMMAR}\n入力:${input}\nJSONのみ: {"chunks":[{"jp":"","center":"","concepts":[],"zones":[],"relations":[]}],"required_domains":[],"lexical_needs":[]}`;}
 function buildCandidates(input,sem){let rel=relevantEntries(input+" "+JSON.stringify(sem));for(const d of sem.required_domains||[]){const p=String(d).match(/^[SRDEKC]\d+/)?.[0];if(p)rel.push(...DICT.filter(e=>String(e.id||"").startsWith(p)));}rel.push(...DICT.filter(e=>/まで|期限|朝|条件|なら|三人称|単数|方向|可能|推量|過去|継続|引用/.test((e.meaning||"")+" "+(e.keywords||[]).join(" "))));return relevantDedup(rel).slice(0,300).map(compactEntry);}
 function resolvePrompt(input,sem,cands){return `あなたはfumezuaq辞書照合器です。最終文はまだ作らないでください。\n${GRAMMAR}\n原文:${input}\n意味解析:${JSON.stringify(sem)}\n辞書候補:${JSON.stringify(cands)}\n各概念を既存辞書へ対応付け、新造は禁止。辞書にあるものをunknownにしない。JSONのみ: {"resolved":[{"concept":"","id":"","form":"","meaning":"","zone":"","alternatives":[]}],"unresolved":[]}`;}
 function generatePrompt(input,sem,res){return `あなたはfumezuaq構文生成器です。\n${GRAMMAR}\n原文:${input}\n意味解析:${JSON.stringify(sem)}\n辞書照合:${JSON.stringify(res)}\n一語一中心語根、S-R-D-ROOT-E-K-C、同一大分類一回、辞書外新造禁止。JSONのみ: {"translation":"","chunks":[{"surface":"","meaning":"","zone":"複合","used_ids":[],"note":""}],"warnings":[]}`;}
 function rescueSet(draft){const terms=[...(draft.warnings||[])];const raw=JSON.stringify(draft);for(const m of raw.matchAll(/unknown[^=:：]*[=:：]?\s*([^"\],}]+)/gi))terms.push(m[1]);let list=[];for(const t of terms){const bits=String(t).split(/[・\/／\s「」『』（）()]+/).filter(Boolean);for(const e of DICT){const hay=[e.meaning,(e.keywords||[]).join(" "),e.large,e.middle].join(" ");if(bits.some(b=>b&&hay.includes(b)))list.push(e);}}list.push(...DICT.filter(e=>/まで|期限|朝|条件|なら|三人称|単数|方向|可能|推量|過去|継続|引用/.test((e.meaning||"")+" "+(e.keywords||[]).join(" "))));return relevantDedup(list).slice(0,180).map(compactEntry);}
 function verifyPrompt(input,draft,rescue){return `あなたはfumezuaq最終検証器です。\n${GRAMMAR}\n原文:${input}\n暫定:${JSON.stringify(draft)}\n再検索候補:${JSON.stringify(rescue)}\nunknownを再検査し、既存辞書で置換できるなら必ず置換。条件をE扱いする等の領域誤りも修正。辞書外新造禁止。JSONのみ: {"translation":"","chunks":[{"surface":"","meaning":"","zone":"複合","note":""}],"warnings":[]}`;}
+async function runStage(provider,model,stageName,prompt,shapeHint){
+ try{
+   const raw=await callAI(provider,model,prompt);
+   return await parseStageJson(provider,model,stageName,raw,shapeHint);
+ }catch(first){
+   // One clean retry for transient empty output / format failure.
+   const retryPrompt=prompt+`\n\n【再試行】前回の応答に問題がありました。説明を一切付けず、指定されたJSONオブジェクトだけを必ず返してください。`;
+   try{
+     const raw2=await callAI(provider,model,retryPrompt);
+     return await parseStageJson(provider,model,stageName,raw2,shapeHint);
+   }catch(second){
+     throw new Error(`${stageName}: ${second.message}`);
+   }
+ }
+}
 async function aiTranslate(provider,model,input){
  if(direction==="fu2ja"){
    setPipelineStatus("逆翻訳解析",1,1);
    const hits=relevantEntries(input).map(compactEntry);
-   const raw=await callAI(provider,model,`fumezuaqを日本語へ解析。${GRAMMAR}\n辞書候補:${JSON.stringify(hits)}\n入力:${input}\nJSONのみ:{"translation":"","chunks":[],"warnings":[]}`);
-   return await parseStageJson(provider,model,"逆翻訳解析",raw,'{"translation":"","chunks":[],"warnings":[]}');
+   const prompt=`fumezuaqを日本語へ解析。${GRAMMAR}\n辞書候補:${JSON.stringify(hits)}\n入力:${input}\nJSONのみ:{"translation":"","chunks":[],"warnings":[]}`;
+   return await runStage(provider,model,"逆翻訳解析",prompt,'{"translation":"","chunks":[],"warnings":[]}');
  }
  setPipelineStatus("意味解析",1,4);
- const semRaw=await callAI(provider,model,semanticPrompt(input));
- const sem=await parseStageJson(provider,model,"意味解析",semRaw,'{"chunks":[{"jp":"","center":"","concepts":[],"zones":[],"relations":[]}],"required_domains":[],"lexical_needs":[]}');
+ const sem=await runStage(provider,model,"意味解析",semanticPrompt(input),'{"chunks":[{"jp":"","center":"","concepts":[],"zones":[],"relations":[]}],"required_domains":[],"lexical_needs":[]}');
 
  const cands=buildCandidates(input,sem);
  setPipelineStatus("辞書照合",2,4);
- const resRaw=await callAI(provider,model,resolvePrompt(input,sem,cands));
- const resolved=await parseStageJson(provider,model,"辞書照合",resRaw,'{"resolved":[{"concept":"","id":"","form":"","meaning":"","zone":"","alternatives":[]}],"unresolved":[]}');
+ const resolved=await runStage(provider,model,"辞書照合",resolvePrompt(input,sem,cands),'{"resolved":[{"concept":"","id":"","form":"","meaning":"","zone":"","alternatives":[]}],"unresolved":[]}');
 
  setPipelineStatus("構文生成",3,4);
- const draftRaw=await callAI(provider,model,generatePrompt(input,sem,resolved));
- const draft=await parseStageJson(provider,model,"構文生成",draftRaw,'{"translation":"","chunks":[{"surface":"","meaning":"","zone":"複合","used_ids":[],"note":""}],"warnings":[]}');
+ const draft=await runStage(provider,model,"構文生成",generatePrompt(input,sem,resolved),'{"translation":"","chunks":[{"surface":"","meaning":"","zone":"複合","used_ids":[],"note":""}],"warnings":[]}');
+ if(!String(draft.translation||"").trim()) throw new Error("構文生成段階で翻訳本文が空でした");
 
  setPipelineStatus("最終検証",4,4);
- const finalRaw=await callAI(provider,model,verifyPrompt(input,draft,rescueSet(draft)));
- const final=await parseStageJson(provider,model,"最終検証",finalRaw,'{"translation":"","chunks":[{"surface":"","meaning":"","zone":"複合","note":""}],"warnings":[]}');
- final._debug={candidateCount:cands.length}; 
- setPipelineStatus("完了",4,4);
- return final;
+ try{
+   const final=await runStage(provider,model,"最終検証",verifyPrompt(input,draft,rescueSet(draft)),'{"translation":"","chunks":[{"surface":"","meaning":"","zone":"複合","note":""}],"warnings":[]}');
+   if(!String(final.translation||"").trim()) throw new Error("最終検証の翻訳本文が空でした");
+   final._debug={candidateCount:cands.length,fallback:false};
+   setPipelineStatus("完了",4,4);
+   return final;
+ }catch(finalErr){
+   // The verifier is optional: never discard a valid generated translation.
+   draft.warnings=[...(draft.warnings||[]),`最終検証を完了できなかったため、構文生成段階の訳を表示しています: ${finalErr.message}`];
+   draft._debug={candidateCount:cands.length,fallback:true};
+   setPipelineStatus("完了（暫定訳）",4,4);
+   return draft;
+ }
 }
 async function testProvider(p){
  const c=KEYCFG[p],key=$(c.input).value.trim();if(!key)throw new Error("APIキーを入力してください");
