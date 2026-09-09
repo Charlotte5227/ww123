@@ -388,8 +388,8 @@ function buildRelativeDayComposition(source){
   const p=parseJapaneseRelativeDay(source);
   if(!p)return null;
   // Use only dictionary-confirmed entries. Day root collision is deliberately not guessed.
-  const before=byId("C3-REL-01") || findEntryByMeaningAndForms(["基準より前"],["nokuq-wipuq"]);
-  const after=byId("C3-REL-03") || findEntryByMeaningAndForms(["基準より後"],["nokuq-wepuq"]);
+  const before=dictById("C3-REL-01") || findEntryByMeaningAndForms(["基準より前"],["nokuq-wipuq"]);
+  const after=dictById("C3-REL-03") || findEntryByMeaningAndForms(["基準より後"],["nokuq-wepuq"]);
   const direction=p.direction==="前"?before:after;
   const numeral=numeralForm12(p.amount);
 
@@ -433,7 +433,7 @@ function rescueCoreParticipantConcepts(resolved, sem){
   for(const c of candidates){
     if(!c.triggers.some(t=>text.includes(t))) continue;
     let entry=null;
-    for(const id of c.ids){ const e=byId(id); if(e){entry=e;break;} }
+    for(const id of c.ids){ const e=dictById(id); if(e){entry=e;break;} }
     if(!entry){
       entry=(DICT||[]).find(e=>c.forms.includes(e.form));
     }
@@ -603,18 +603,18 @@ function compileIR(ir, options={}){
     }else{
       const modifierParts=[];
       for(const mr of (c.modifier_roots||[])){
-        const r = byId(mr.root_id);
+        const r = dictById(mr.root_id);
         if(r?.form) modifierParts.push(r.form);
         else if(mr.root_id) structuralUnknowns.push(mr.meaning||mr.root_id);
       }
 
-      const center = c.center_root_id ? byId(c.center_root_id) : null;
+      const center = c.center_root_id ? dictById(c.center_root_id) : null;
       if(modifierParts.length) parts.push(...modifierParts);
       if(center?.form) parts.push(center.form);
       else if(c.center_root_id) structuralUnknowns.push(c.meaning||c.jp||c.center_root_id);
 
-      const affixEntries=(c.affix_ids||[]).map(id=>({id,e:byId(id)}));
-      const relationEntries=(c.modifier_roots||[]).map(x=>({id:x.relation_id,e:byId(x.relation_id),meaning:x.meaning}));
+      const affixEntries=(c.affix_ids||[]).map(id=>({id,e:dictById(id)}));
+      const relationEntries=(c.modifier_roots||[]).map(x=>({id:x.relation_id,e:dictById(x.relation_id),meaning:x.meaning}));
       const allAffixes=[...relationEntries,...affixEntries];
 
       const seenLarge=new Set();
