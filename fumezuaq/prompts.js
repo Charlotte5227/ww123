@@ -161,3 +161,53 @@ const PROMPT_EXPLANATION = AI_DIRECTIVE_META + `
 辞書語義を拡張しない。未解決は未解決と説明する。
 `;
 
+
+
+// ===== v5.1 additions =====
+const PROMPT_FIXED_CHUNK_OUTPUT = `
+【ユーザー固定意味塊の表面保持】
+- ユーザーが確定した各意味塊は、1つの出力スロットとして必ず保持する。
+- unresolvedであっても、その意味塊を削除・吸収・他チャンクへ統合したと説明してはならない。
+- surface_required=false は「塊を消してよい」という意味ではない。これはリンク標識の表面明示要否にのみ関係する。
+- ユーザー固定チャンクが辞書不足で表面形を作れない場合は、そのチャンク自身を unresolved として保持する。
+- 「未解決なので述語側にパッキングされた」「2語へ収束した」等の事後合理化を禁止する。
+`;
+
+const PROMPT_UNRESOLVED_NONPROPAGATION = `
+【unresolved非波及】
+- ある意味要素がunresolvedでも、その意味を別カテゴリの接辞で近似補完しない。
+- 例: 「昨日」がunresolvedでも、それを理由に時制を「近過去」へ具体化しない。
+- 原文の「行った」から通常の過去だけが確定するなら、過去を選び、昨日は独立unresolvedとして残す。
+`;
+
+
+// ===== v5.2 analytical composition =====
+const PROMPT_ANALYTICAL_COMPOSITION = `
+【分析的構成（辞書完全一致がない場合）】
+この規則はAIの検索手順であり、新しいfumezuaq文法を作る指示ではない。
+1. 日本語概念に完全一致する辞書項目がない場合、直ちにunresolvedにしない。
+2. まず、その概念を既存の語根・接辞・数詞・既存スコープ規則だけで構成できるか意味分解する。
+3. 構成に使う各要素は、必ず既存辞書または既存数詞体系に実在するものだけにする。
+4. 新しい接辞・語根・意味拡張を作って構成してはならない。
+5. 構成できた場合は analytical_composition としてIRへ保持する。
+6. 既存要素だけで構成できない場合に限り unresolved とする。
+
+【相対日付の確定例】
+「昨日」 = 日 + 前 + 1
+「明日」 = 日 + 後 + 1
+「明後日」 = 日 + 後 + 2
+「3日前」 = 日 + 前 + 3
+これは専用の「昨日」語根を要求しない。既存の時間単位・前後関係・数詞を合成する。
+
+【数詞の語内部埋め込み】
+- 単一の完成数詞形態素は直接埋め込み可能。
+- 複数の完成数詞からなる複合数を語内部へ埋め込む場合、裸で並べない。
+- 原則は数量を独立意味塊として分離する。
+- 語内部に必要な場合は既存Xスコープで複合数全体を囲む。
+- X開始: lenaq-saluq
+- X終了: lenaq-soluq
+`;
+
+// Stage-specific augmentation after all base prompt constants exist.
+const PROMPT_DICTIONARY_V52 = PROMPT_DICTIONARY + PROMPT_ANALYTICAL_COMPOSITION;
+const PROMPT_IR_V52 = PROMPT_IR + PROMPT_ANALYTICAL_COMPOSITION;
