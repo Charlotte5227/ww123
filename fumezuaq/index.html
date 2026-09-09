@@ -48,7 +48,26 @@
     </article>
   </div>
 
-  <section class="explanation-panel">
+  
+<section class="card chunking-card">
+  <h2>意味塊の指定</h2>
+  <p class="muted">fumezuaq固有の「意味塊」だけは、人間が確定できます。手動指定した場合、AIは再分割・再結合しません。</p>
+  <div class="chunk-mode-options">
+    <label><input type="radio" name="chunkMode" value="auto" checked> AI自動</label>
+    <label><input type="radio" name="chunkMode" value="assist"> AI提案 → 編集</label>
+    <label><input type="radio" name="chunkMode" value="manual"> 完全手動</label>
+  </div>
+  <div id="chunkEditorPanel" hidden>
+    <div class="chunk-toolbar">
+      <button type="button" id="proposeChunksBtn">✨ AIで意味塊を提案</button>
+      <button type="button" id="addChunkBtn">＋ 意味塊を追加</button>
+    </div>
+    <div id="chunkList"></div>
+    <p class="muted small">この欄に入力された意味塊は翻訳条件として固定されます。例: 「昨日」 / 「私は山へ」 / 「行った」</p>
+  </div>
+</section>
+
+<section class="explanation-panel">
 <div class="explanation-toolbar"><div><h3>翻訳の説明</h3><p>翻訳本体とは分離して、必要なときだけ詳細な採用理由を生成します。</p></div><button id="explainBtn" class="secondary-btn" type="button">翻訳の説明</button></div>
 <div id="explanationBox" class="explanation-box"></div></section>
 <div id="analysisCards" class="analysis-cards"></div>
@@ -111,7 +130,7 @@
 </section>
 
 <section class="card" id="promptPolicyCard">
-  <h2>AI翻訳指示 v4.1</h2>
+  <h2>AI翻訳指示 v5.0</h2>
   <p class="muted">これはfumezuaqの言語仕様ではなく、既存仕様をAIが扱うためのプロンプト指示です。</p>
   <details>
     <summary>判断階層</summary>
@@ -122,5 +141,6 @@
 </main>
 
 <div id="toast" class="toast"></div>
+<script src="prompts.js"></script>
 <script src="app.js"></script>
 </body></html>

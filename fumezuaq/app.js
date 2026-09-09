@@ -256,164 +256,94 @@ async function callAI(provider,model,prompt){
 }
 
 
-// ===== v4.1: AI Prompt Directive (NOT a language specification) =====
-// This directive tells AI how to OPERATE on the existing fumezuaq specification.
-// It MUST NOT be treated as a source that creates new fumezuaq grammar.
+// AI prompt directives are loaded from prompts.js
 
-const AI_DIRECTIVE_META = `
-【この文書の位置づけ】
-これはfumezuaqそのものの仕様書ではない。
-既存のfumezuaq仕様・辞書をAIが翻訳処理で正しく扱うための「プロンプト指示書」である。
-この指示書の判断手順・安全策・禁止事項を、fumezuaqの新しい文法規則として説明・登録・推論してはならない。
-言語仕様・辞書が一次資料であり、この指示書はAIの運用規約である。
+
+// ===== v5: Human-in-the-loop semantic chunking =====
+let chunkMode = "auto"; // auto | assist | manual
+let userChunkDrafts = [];
+
+function normalizeChunkDrafts(list){
+  return (list||[]).map(x=>String(x||"").trim()).filter(Boolean);
+}
+function getChunkInputs(){
+  return [...document.querySelectorAll(".chunk-input")].map(x=>x.value.trim()).filter(Boolean);
+}
+function renderChunkInputs(values){
+  const box=$("chunkList");
+  if(!box)return;
+  const vals=(values&&values.length?values:[""]);
+  box.innerHTML="";
+  vals.forEach((v,i)=>{
+    const row=document.createElement("div");
+    row.className="chunk-row";
+    row.innerHTML=`<span class="chunk-index">${i+1}</span>
+      <input class="chunk-input" type="text" value="${esc(v)}" placeholder="意味塊 ${i+1}">
+      <button type="button" class="ghost chunk-up" title="上へ">↑</button>
+      <button type="button" class="ghost chunk-down" title="下へ">↓</button>
+      <button type="button" class="ghost chunk-remove" title="削除">−</button>`;
+    box.appendChild(row);
+  });
+  [...box.querySelectorAll(".chunk-row")].forEach((row,i)=>{
+    row.querySelector(".chunk-remove").onclick=()=>{
+      const vals=getChunkInputs(); vals.splice(i,1); renderChunkInputs(vals.length?vals:[""]);
+    };
+    row.querySelector(".chunk-up").onclick=()=>{
+      const vals=getChunkInputs(); if(i>0){[vals[i-1],vals[i]]=[vals[i],vals[i-1]];renderChunkInputs(vals)}
+    };
+    row.querySelector(".chunk-down").onclick=()=>{
+      const vals=getChunkInputs(); if(i<vals.length-1){[vals[i+1],vals[i]]=[vals[i],vals[i+1]];renderChunkInputs(vals)}
+    };
+  });
+}
+function syncChunkModeUI(){
+  chunkMode=document.querySelector('input[name="chunkMode"]:checked')?.value||"auto";
+  const panel=$("chunkEditorPanel");
+  const assist=$("proposeChunksBtn");
+  if(panel) panel.hidden = chunkMode==="auto";
+  if(assist) assist.hidden = chunkMode==="manual";
+}
+function userChunkDirective(chunks){
+  return `
+【ユーザー確定の意味塊】
+以下の配列はユーザーが確定した意味塊である。これは翻訳AIへの入力条件であり、言語仕様ではない。
+${JSON.stringify(chunks)}
+- chunk数、順序、各chunkの原文文字列を変更しない。
+- 再分割・再結合・省略・追加を禁止する。
+- 「不自然だから」「述語数が一つだから」等を理由に変更しない。
+- AIの仕事は各確定chunk内部の意味解析、辞書照合、IR構築、およびchunk間linkの分析のみ。
 `;
-
-const AI_A = `
-【A 最上位運用原則】
-A1 原文意味保存
-- 原文にある意味を可能な限り保持する。
-- 原文にない意味を追加しない。
-- 表現できない意味を消さず unresolved として残す。
-
-A2 高情報密度
-- fumezuaqの語は高密度に情報を持てる。
-- しかし「吸収できる」ことは「吸収すべき」ことを意味しない。
-- 語数最小化を目的にしない。
-
-A3 必要十分
-- 必要な関係は明示または内部linkで保持する。
-- 一意で表面明示不要な関係は省略可能。
-- 表現可能というだけで情報を追加しない。
-
-A4 仕様優先
-- 言語仕様・辞書にない一般文法をAIが新設しない。
-- AIの自然言語的直感より一次資料を優先する。
-- 未定義は未定義として扱う。
-`;
-
-const AI_B = `
-【B 意味解析・意味塊】
-B1 まず原文の意味構造だけを解析する。fumezuaq表面形・接辞列を先に考えない。
-B2 日本語の文節・助詞・語順をfumezuaqの語境界と同一視しない。
-B3 意味塊は一つのまとまった意味的役割を担う単位。命題・述語・語彙的中心語根を必須としない。
-B4 「明日の朝まで」は十分限定された時間指定として独立意味塊になり得る。「明日の」は通常単独成立しない。
-B5 名詞・具体物・語根の存在だけで独立性を認定しない。
-B6 複数の情報群がそれぞれ自然な意味単位として成立するなら分離を第一候補とする。ただし機械的細分化は禁止。
-B7 吸収は、単独成立しない、直接限定である、分離すると必要関係を保持できない、同一概念内部として明らかに自然、のいずれかを根拠にする。
-B8 「同じ語に入れられる」「語数が減る」だけを吸収理由にしない。
-B9 分離した意味塊間の必要関係はlinkとして保持する。
-`;
-
-const AI_C = `
-【C 語内部構造の扱い】
-C1 通常の語彙的意味塊では中心語根を一つ設定できる。ただし中心語根なしの独立意味塊も許容する。
-C2 一語一中心語根は「一語一語根」ではない。複数語根を禁止しない。
-C3 中心以外の語根を同一語へ吸収する場合はmodifier_rootとして扱う。
-C4 modifier_rootは単純連結せず、中心との意味関係relation_idを既存辞書から必須指定する。
-C5 relation_idが確定しない場合は unresolved_relation。常識で穴埋めしない。
-C6 参与者は既存C1体系の役割・人称・数・必要な識別情報で扱い、人語根を代名詞台座として自動使用しない。
-C7 接辞の実現は既存S-R-D-ROOT-E-K-C規則と辞書に従う。
-C8 同一大分類の大分類形は一語内で一度だけ実現する。辞書表示形と語内実現形を区別する。
-`;
-
-const AI_D = `
-【D 意味塊間構造】
-D1 分離した意味塊間の意味関係はIR内部で保持する。
-D2 linkがあることと表面形で対応標識を発音することは別。
-D3 関係が一意なら表面対応標識を省略可能。
-D4 複数候補があり曖昧なら必要最小限の対応明示を検討する。
-D5 必要関係を表現できないとき「文脈で分かる」で成功扱いしない。unresolved_relationとする。
-`;
-
-const AI_E = `
-【E 辞書利用】
-E1 辞書に実在するID・form・meaningを使用する。
-E2 辞書語義を文脈都合で拡張しない。例: 「朝」を「明日の朝」の意味に拡張しない。
-E3 近似語で未解決意味を置換しない。
-E4 初回候補にない場合は意味語・類義語で辞書全体を再検索し、実在IDを再確認する。
-E5 再検索しても確定できなければ unresolved。
-E6 辞書外の公式形・IDを新造しない。
-`;
-
-const AI_F = `
-【F Typed IR】
-F1 AIは最終fumezuaq表面形ではなく意味構造IRを作る。
-F2 chunkには原文範囲/意味/center_root_id/modifier_roots/affix_ids/links/unresolved/unresolved_relationを保持する。
-F3 modifier_rootにはroot_idとrelation_idを必須とする。
-F4 AIは最終接辞文字列を作文・修正しない。
-`;
-
-const AI_H = `
-【H 検証・失敗時処理】
-H1 不明 -> unresolved
-H2 初回辞書不足 -> 再検索 -> それでも不足なら unresolved
-H3 関係不明 -> unresolved_relation
-H4 辞書外ID -> validator error
-H5 仕様矛盾 -> validator error
-H6 原文の意味要素がIRにもunresolvedにも存在しない -> semantic coverage error
-H7 原文にない意味をIRへ追加 -> semantic addition error/warning
-`;
-
-const AI_I = `
-【I 禁止する誤推論】
-I1 「独立意味塊には必ず中心語根が必要」禁止。
-I2 「一語には一つしか語根を入れられない」禁止。
-I3 「複数語根なら分割必須」禁止。
-I4 「吸収可能なら吸収する」禁止。
-I5 「具体名詞だから単独意味塊として成立」禁止。
-I6 「辞書にないので近い接辞で代用」禁止。
-I7 「関係未表現だが文脈で分かるので問題ない」禁止。
-I8 「日本語の文節=fumezuaqの語」禁止。
-I9 「語数が少ないほどfumezuaqらしい」禁止。
-`;
-
-const AI_J = `
-【J 標準判断順序】
-J1 原文意味抽出
-J2 原文の全意味要素を記録
-J3 自然な意味塊候補
-J4 各候補の独立性判定
-J5 分離可能なら分離を第一候補
-J6 単独成立しない要素だけ必要な塊へ吸収
-J7 各塊の中心を決定（中心語根なしも許容）
-J8 副語根には既存関係を付与
-J9 意味塊間link構築
-J10 辞書照合
-J11 不足再検索
-J12 unresolved / unresolved_relation確定
-J13 semantic coverage検証
-J14 Typed IR確定
-J15 JavaScriptコンパイラへ渡す
-`;
-
-const PROMPT_SEMANTIC = AI_DIRECTIVE_META + AI_A + AI_B + AI_I + `
-【この工程の責任】
-意味解析と意味塊候補の作成だけを行う。
-辞書ID・fumezuaq表面形を決めない。
-特に「吸収可能だからまとめる」を避け、各情報群が独立した自然な意味単位かを先に判定する。
-`;
-
-const PROMPT_DICTIONARY = AI_DIRECTIVE_META + AI_A + AI_E + AI_H + `
-【この工程の責任】
-与えられた意味概念を既存辞書へ照合するだけ。
-文法設計・意味塊再編・近似補完をしない。
-`;
-
-const PROMPT_IR = AI_DIRECTIVE_META + AI_A + AI_B + AI_C + AI_D + AI_F + AI_H + AI_I + AI_J + `
-【この工程の責任】
-確定済み意味解析と辞書照合結果からTyped IRを構築する。
-表面形を生成しない。
-意味塊をまとめる場合はB7の根拠が必要。
-分離した場合は必要な関係をlinksに保持する。
-`;
-
-const PROMPT_EXPLANATION = AI_DIRECTIVE_META + `
-【説明工程専用】
-説明は確定済みIR・validator結果・辞書事実だけを根拠にする。
-新しい文法規則を説明のために作らない。
-プロンプト指示書の運用ルールをfumezuaqの言語仕様として説明しない。
-辞書語義を拡張しない。未解決は未解決と説明する。
-`;
+}
+function semanticPromptWithChunks(input,chunks){
+  return `${PROMPT_SEMANTIC}
+${userChunkDirective(chunks)}
+原文:${input}
+各ユーザーchunkを1対1でsemantic chunkとして解析する。
+JSONのみ:
+{"chunks":[{"source":"","meaning":"","semantic_atoms":[],"independence_reason":"user_fixed"}],"required_domains":[],"lexical_needs":[]}`;
+}
+async function proposeChunks(provider,model,input){
+  const prompt=`${PROMPT_SEMANTIC}
+【工程】意味塊の提案だけを行う。
+原文:${input}
+ユーザーが後で編集するため、自然な意味塊候補を順序通りに返す。
+辞書ID、fumezuaq表面形、接辞を出さない。
+JSONのみ:{"chunks":[{"source":"","reason":""}]}`;
+  const out=await runStage(provider,model,"意味塊提案",prompt,'{"chunks":[]}');
+  return normalizeChunkDrafts((out.chunks||[]).map(x=>x.source||x.text||""));
+}
+function enforceFixedChunksIR(ir,chunks){
+  const errs=[];
+  if((ir?.chunks||[]).length!==chunks.length){
+    errs.push(`ユーザー指定 ${chunks.length}塊 に対しIRは ${(ir?.chunks||[]).length}塊`);
+    return errs;
+  }
+  (ir.chunks||[]).forEach((c,i)=>{
+    const src=String(c.jp||c.source||"").trim();
+    if(src && src!==chunks[i]) errs.push(`chunk${i+1}: source変更 "${src}" != "${chunks[i]}"`);
+  });
+  return errs;
+}
 
 // ===== v4: Typed IR + deterministic compiler =====
 const ZONE_ORDER={S:0,R:1,D:2,ROOT:3,E:4,K:5,C:6};
@@ -687,7 +617,10 @@ async function aiTranslate(provider,model,input){
    return await runStage(provider,model,"逆翻訳解析",prompt,'{"translation":"","chunks":[],"warnings":[]}');
  }
  setPipelineStatus("意味解析",1,6);
- const sem=await runStage(provider,model,"意味解析",semanticPrompt(input),'{"chunks":[],"required_domains":[],"lexical_needs":[]}');
+ const fixedChunks = chunkMode==="auto" ? [] : normalizeChunkDrafts(getChunkInputs());
+ if(chunkMode!=="auto" && !fixedChunks.length) throw new Error("意味塊指定モードでは、少なくとも1つの意味塊を入力してください。");
+ const semPrompt = fixedChunks.length ? semanticPromptWithChunks(input,fixedChunks) : semanticPrompt(input);
+ const sem=await runStage(provider,model,"意味解析",semPrompt,'{"chunks":[],"required_domains":[],"lexical_needs":[]}');
 
  const cands=buildCandidates(input,sem);
  setPipelineStatus("辞書照合",2,6);
@@ -699,10 +632,16 @@ async function aiTranslate(provider,model,input){
  }
 
  setPipelineStatus("Typed IR構築",4,6);
- let ir=await runStage(provider,model,"Typed IR構築",irPrompt(input,sem,resolved),'{"chunks":[],"sentence_unresolved":[]}');
+ const irBasePrompt = irPrompt(input,sem,resolved) + (fixedChunks.length ? "\n"+userChunkDirective(fixedChunks) : "");
+ let ir=await runStage(provider,model,"Typed IR構築",irBasePrompt,'{"chunks":[],"sentence_unresolved":[]}');
  let iv=validateIR(ir);
+ if(fixedChunks.length){
+   const fixedErrors=enforceFixedChunksIR(ir,fixedChunks);
+   if(fixedErrors.length){iv.ok=false;iv.errors.push(...fixedErrors);}
+ }
  if(!iv.ok){
    const fix=`${irPrompt(input,sem,resolved)}
+${fixedChunks.length ? userChunkDirective(fixedChunks) : ""}
 前回IR:${JSON.stringify(ir)}
 IR検証エラー:${JSON.stringify(iv.errors)}
 エラーだけ修正。辞書にないIDを作らない。`;
@@ -724,6 +663,26 @@ IR検証エラー:${JSON.stringify(iv.errors)}
  setPipelineStatus("完了",6,6);
  return result;
 }
+
+function initChunkUI(){
+  renderChunkInputs([""]);
+  document.querySelectorAll('input[name="chunkMode"]').forEach(r=>r.addEventListener("change",syncChunkModeUI));
+  $("addChunkBtn")?.addEventListener("click",()=>renderChunkInputs([...getChunkInputs(),""]));
+  $("proposeChunksBtn")?.addEventListener("click",async()=>{
+    const input=$("inputText")?.value?.trim()||"";
+    if(!input){alert("先に全文を入力してください。");return}
+    try{
+      const provider=$("provider")?.value||"openai";
+      const model=$("model")?.value||"";
+      const chunks=await proposeChunks(provider,model,input);
+      if(chunks.length)renderChunkInputs(chunks);
+    }catch(e){alert("意味塊提案に失敗しました: "+e.message)}
+  });
+  syncChunkModeUI();
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initChunkUI);
+else initChunkUI();
+
 async function testProvider(p){
  const c=KEYCFG[p],key=$(c.input).value.trim();if(!key)throw new Error("APIキーを入力してください");
  if(p==="openai"){
