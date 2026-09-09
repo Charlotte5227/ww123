@@ -50,3 +50,5 @@ textarea{width:100%;resize:vertical;border:0;outline:0;background:transparent;co
 .explain-head strong{font-family:ui-monospace,monospace}.explain-head span{color:var(--muted);font-size:12px}
 .breakdown{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.breakdown code{padding:5px 7px;border-radius:8px;background:#0b1015;border:1px solid var(--line);font-size:11px}
 .explain-card p{margin:8px 0 0;line-height:1.65;font-size:12px}.explain-card .alt{color:var(--muted)}
+
+.validation-card.pass{border-color:#315b45}.validation-card.fail{border-color:#6b3c3c}

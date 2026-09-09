@@ -1,5 +1,16 @@
 
 let DICT=[], GRAMMAR="";
+const STRICT_CONTRACT=`
+【ハルシネーション禁止契約】
+- 文法書・辞書にない規則を追加・一般化・推測しない。
+- 「一語一中心語根」は「一語一語根」ではない。中心語根は1つだが修飾語根・参与者語根は同一語内に置ける。
+- 複数語根があることだけを理由に分割しない。
+- 分割後の塊が単独で意味的に成立しないなら分割せず、可能なら中心語根へ再吸収する。
+- humeq「人」を私・あなた・彼・彼女などの代名詞の台座にしない。
+- 辞書ID/form/meaning/zone/large/middleを推測・改変しない。不明ならunresolved。
+- 辞書外の形を正式形として生成しない。
+- AIは規則制定者ではなく候補生成器である。
+`;
 const $=id=>document.getElementById(id);
 const norm=s=>(s||"").normalize("NFKC").toLowerCase().replace(/[‐‑‒–—―ー_\s]/g,"");
 const esc=s=>(s??"").toString().replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
@@ -84,11 +95,16 @@ function analyzeFumezuaq(input){
 
 
 let LAST_TRANSLATION=null,LAST_PROVIDER=null,LAST_MODEL=null;
+function factualBreakdownForSurface(surface){
+ const c=(LAST_TRANSLATION?.chunks||[]).find(x=>x.surface===surface);
+ if(!c)return [];
+ return (c.used_ids||[]).map(id=>dictById(id)).filter(Boolean).map(e=>`${e.form} = ${e.meaning} [${e.id}]`);
+}
 function renderExplanation(data){
  const box=$("explanationBox"); if(!box)return;
  if(!data){box.innerHTML='<div class="empty-explain">「翻訳の説明」を押すと、意味塊ごとの詳細説明を生成します。</div>';return;}
  let h=data.summary?`<div class="explain-summary">${esc(data.summary)}</div>`:"";
- h+=(data.chunks||[]).map(x=>`<article class="explain-card"><div class="explain-head"><strong>${esc(x.surface||"意味塊")}</strong><span>${esc(x.meaning||"")}</span></div>${(x.breakdown||[]).length?`<div class="breakdown">${x.breakdown.map(b=>`<code>${esc(b)}</code>`).join("")}</div>`:""}${x.reason?`<p>${esc(x.reason)}</p>`:""}${x.alternatives?`<p class="alt">他候補: ${esc(x.alternatives)}</p>`:""}</article>`).join("");
+ h+=(data.chunks||[]).map(x=>`<article class="explain-card"><div class="explain-head"><strong>${esc(x.surface||"意味塊")}</strong><span>${esc(x.meaning||"")}</span></div>${factualBreakdownForSurface(x.surface).length?`<div class="breakdown">${factualBreakdownForSurface(x.surface).map(b=>`<code>${esc(b)}</code>`).join("")}</div>`:""}${x.reason?`<p>${esc(x.reason)}</p>`:""}${x.alternatives?`<p class="alt">他候補: ${esc(x.alternatives)}</p>`:""}</article>`).join("");
  box.innerHTML=h||'<div class="empty-explain">説明はありません。</div>';
 }
 async function requestExplanation(){
@@ -251,6 +267,7 @@ async function callAI(provider,model,prompt){
 }
 function semanticPrompt(input){return `あなたは人工言語 fumezuaq の日本語意味解析器です。まだ翻訳してはいけません。
 ${GRAMMAR}
+${STRICT_CONTRACT}
 最重要規則:
 - 日本語の文節境界をそのままfumezuaqの語境界にしない。
 - 「Xが」「Xは」「Xを」だけでは原則独立意味塊にしない。
@@ -268,6 +285,7 @@ function buildCandidates(input,sem){let rel=relevantEntries(input+" "+JSON.strin
 function resolvePrompt(input,sem,cands){return `あなたはfumezuaq辞書照合器です。最終文はまだ作らないでください。\n${GRAMMAR}\n原文:${input}\n意味解析:${JSON.stringify(sem)}\n辞書候補:${JSON.stringify(cands)}\n各概念を既存辞書へ対応付け、新造は禁止。辞書にあるものをunknownにしない。JSONのみ: {"resolved":[{"concept":"","id":"","form":"","meaning":"","zone":"","alternatives":[]}],"unresolved":[]}`;}
 function generatePrompt(input,sem,res){return `あなたはfumezuaq構文生成器です。
 ${GRAMMAR}
+${STRICT_CONTRACT}
 原文:${input}
 意味解析:${JSON.stringify(sem)}
 辞書照合:${JSON.stringify(res)}
@@ -284,6 +302,7 @@ JSONのみ:
 function rescueSet(draft){const terms=[...(draft.warnings||[])];const raw=JSON.stringify(draft);for(const m of raw.matchAll(/unknown[^=:：]*[=:：]?\s*([^"\],}]+)/gi))terms.push(m[1]);let list=[];for(const t of terms){const bits=String(t).split(/[・\/／\s「」『』（）()]+/).filter(Boolean);for(const e of DICT){const hay=[e.meaning,(e.keywords||[]).join(" "),e.large,e.middle].join(" ");if(bits.some(b=>b&&hay.includes(b)))list.push(e);}}list.push(...DICT.filter(e=>/まで|期限|朝|条件|なら|三人称|単数|方向|可能|推量|過去|継続|引用/.test((e.meaning||"")+" "+(e.keywords||[]).join(" "))));return relevantDedup(list).slice(0,180).map(compactEntry);}
 function verifyPrompt(input,draft,rescue){return `あなたはfumezuaq最終検証器です。
 ${GRAMMAR}
+${STRICT_CONTRACT}
 原文:${input}
 暫定:${JSON.stringify(draft)}
 再検索候補:${JSON.stringify(rescue)}
@@ -314,15 +333,64 @@ async function runStage(provider,model,stageName,prompt,shapeHint){
  }
 }
 
-function explanationPrompt(input,result,sem,resolved){
- return `あなたは fumezuaq 翻訳の解説器です。翻訳自体は変更せず、確定済み翻訳の説明だけを生成してください。
+
+function dictById(id){return DICT.find(e=>e.id===id)||null}
+function validateTranslation(result,sem){
+ const errors=[],warnings=[],chunks=result?.chunks||[];
+ if(!String(result?.translation||"").trim())errors.push({code:"EMPTY",message:"翻訳結果が空です"});
+ const prose=JSON.stringify(result);
+ if(/一語一語根|一語二語根(?:違反|禁止|を解消)|二語根だから分離|複数語根.*分離/.test(prose))
+   errors.push({code:"INVENTED_RULE",message:"存在しない「一語一語根」規則が使用されています"});
+ for(let i=0;i<chunks.length;i++){
+   const c=chunks[i],sf=String(c.surface||"").trim(),mn=String(c.meaning||"");
+   for(const id of (c.used_ids||[]))if(!dictById(id))errors.push({code:"BAD_ID",chunk:i,message:`辞書にないID ${id}`});
+   if(/^humeq(?:-|$)/.test(sf)&&/(彼|彼女|私|あなた|三人称|一人称|二人称)/.test(mn))
+     errors.push({code:"PRONOUN_HUMEQ",chunk:i,message:"humeq「人」を代名詞の台座にしています"});
+   if(sf==="wesamaq"&&/(雨|主体)/.test(mn))
+     errors.push({code:"ORPHAN_RAIN",chunk:i,message:"雨だけが述語から孤立しています。「雨が止む」はtokuq中心への再吸収を検討してください"});
+   if(/^keraq(?:-|$)/.test(sf)&&/山へ|方向/.test(mn)&&chunks.some(x=>/^waraq(?:-|$)/.test(String(x.surface||""))))
+     warnings.push({code:"ORPHAN_GOAL",chunk:i,message:"「山へ」がwaraqから分離されています。独立意味塊として成立するか再検査してください"});
+ }
+ const facts=chunks.map((c,i)=>({chunk:i,surface:c.surface,entries:(c.used_ids||[]).map(dictById).filter(Boolean).map(e=>({id:e.id,form:e.form,meaning:e.meaning,zone:e.zone,large:e.large,middle:e.middle,status:e.status}))}));
+ return {ok:errors.length===0,errors,warnings,facts};
+}
+function correctionPrompt(input,result,sem,resolved,v){
+ return `あなたはfumezuaq翻訳の修正器です。
 ${GRAMMAR}
+${STRICT_CONTRACT}
+原文:${input}
+現在:${JSON.stringify(result)}
+意味解析:${JSON.stringify(sem)}
+辞書照合:${JSON.stringify(resolved)}
+機械検証違反:${JSON.stringify(v.errors)}
+警告:${JSON.stringify(v.warnings)}
+違反箇所だけ修正すること。新規文法規則を作らないこと。
+JSONのみ:{"translation":"","chunks":[{"surface":"","meaning":"","used_ids":[]}],"warnings":[]}`;
+}
+async function validateAndRepair(provider,model,input,result,sem,resolved){
+ let cur=result,v=validateTranslation(cur,sem);
+ for(let n=0;!v.ok&&n<2;n++){
+   setPipelineStatus(`文法違反修正 ${n+1}/2`,5,5);
+   const raw=await callAI(provider,model,correctionPrompt(input,cur,sem,resolved,v));
+   cur=await parseStageJson(provider,model,"文法違反修正",raw,'{"translation":"","chunks":[{"surface":"","meaning":"","used_ids":[]}],"warnings":[]}');
+   v=validateTranslation(cur,sem);
+ }
+ cur._validation=v;
+ if(!v.ok)cur.warnings=[...(cur.warnings||[]),...v.errors.map(x=>"文法検証未解決: "+x.message)];
+ if(v.warnings.length)cur.warnings=[...(cur.warnings||[]),...v.warnings.map(x=>"文法検証警告: "+x.message)];
+ return cur;
+}
+
+function explanationPrompt(input,result,sem,resolved){
+ return `あなたはfumezuaq翻訳の構造理由だけを説明します。
+${GRAMMAR}
+${STRICT_CONTRACT}
 原文:${input}
 確定翻訳:${JSON.stringify(result)}
 意味解析:${JSON.stringify(sem||{})}
-辞書照合:${JSON.stringify(resolved||{})}
-JSONのみ:
-{"summary":"","chunks":[{"surface":"","meaning":"","breakdown":["形態素=意味"],"reason":"","alternatives":""}]}`;
+禁止: 辞書項目のform・meaning・分類を自分で説明しない。辞書事実はプログラムが表示する。「一語一語根」を作らない。翻訳を変更しない。
+各chunkについて中心・吸収・分離を選んだ理由だけ説明。
+JSONのみ:{"summary":"","chunks":[{"surface":"","reason":"","alternatives":""}]}`;
 }
 async function buildExplanation(provider,model,input,result,sem,resolved){
  const raw=await callAI(provider,model,explanationPrompt(input,result,sem,resolved));
@@ -351,9 +419,10 @@ async function aiTranslate(provider,model,input){
  try{
    const final=await runStage(provider,model,"最終検証",verifyPrompt(input,draft,rescueSet(draft)),'{"translation":"","chunks":[{"surface":"","meaning":"","zone":"複合","note":""}],"warnings":[]}');
    if(!String(final.translation||"").trim()) throw new Error("最終検証の翻訳本文が空でした");
-   final._debug={candidateCount:cands.length,fallback:false};
-   setPipelineStatus("完了",4,4);
-   return final;
+   let checked=await validateAndRepair(provider,model,input,final,sem,resolved);
+   checked._debug={candidateCount:cands.length,fallback:false,semantic:sem,resolved:resolved};
+   setPipelineStatus("完了",5,5);
+   return checked;
  }catch(finalErr){
    // The verifier is optional: never discard a valid generated translation.
    draft.warnings=[...(draft.warnings||[]),`最終検証を完了できなかったため、構文生成段階の訳を表示しています: ${finalErr.message}`];
