@@ -470,7 +470,7 @@ async function rescueUnresolved(provider,model,input,sem,resolved){
  const candidates=exactDictionarySearch(terms.concat(["基準より後","内容","推量","可能性","朝","期限","条件","方向"]),260);
  if(!candidates.length)return resolved;
  const prompt=`あなたはfumezuaq辞書の再検索照合器です。
-${PROMPT_DICTIONARY_V52}
+${PROMPT_DICTIONARY_V53}
 原文:${input}
 意味解析:${JSON.stringify(sem)}
 未解決:${JSON.stringify(resolved.unresolved)}
@@ -483,9 +483,9 @@ ${PROMPT_DICTIONARY_V52}
  return {resolved:[...map.values()],unresolved:retry.unresolved||[]};
 }
 function irPrompt(input,sem,resolved){
- return `${PROMPT_IR_V52}\nあなたはfumezuaqのTyped IR設計器です。表面形を絶対に生成しない。
+ return `${PROMPT_IR_V53}\nあなたはfumezuaqのTyped IR設計器です。表面形を絶対に生成しない。
 ${GRAMMAR}
-${PROMPT_DICTIONARY_V52}
+${PROMPT_DICTIONARY_V53}
 原文:${input}
 意味解析:${JSON.stringify(sem)}
 辞書照合:${JSON.stringify(resolved)}
@@ -533,6 +533,56 @@ function affixParts(entries){
  }
  return out;
 }
+
+function cleanUnknownLabel(x, fallback="未解決"){
+  if(x==null)return fallback;
+  if(typeof x==="string"){
+    let s=x.trim();
+    s=s.replace(/^Unknown\s*:\s*/i,"").replace(/^unresolved\s*:\s*/i,"");
+    return s || fallback;
+  }
+  if(typeof x==="object"){
+    return String(x.concept||x.jp||x.source||x.meaning||x.label||x.code||fallback);
+  }
+  return String(x);
+}
+function unknownToken(label){
+  return `Unknown:${cleanUnknownLabel(label)}`;
+}
+function collectChunkUnknowns(c){
+  const raw=[...(c?.unresolved||[]),...(c?.unresolved_relation||[])];
+  const seen=new Set(),out=[];
+  for(const x of raw){
+    const label=cleanUnknownLabel(x);
+    if(!seen.has(label)){seen.add(label);out.push(label);}
+  }
+  return out;
+}
+function compileRelativeDayPartial(source){
+  const comp=buildRelativeDayComposition(source);
+  if(!comp)return null;
+  const parts=[];
+  const unknowns=[];
+  if(comp.confirmed?.day?.form) parts.push(comp.confirmed.day.form);
+  else { parts.push(unknownToken("日")); unknowns.push("日"); }
+
+  if(comp.confirmed?.direction){
+    const d=comp.confirmed.direction;
+    if(d.large_form&&d.small_form) parts.push(d.large_form,d.small_form);
+    else if(d.form) parts.push(...String(d.form).split("-").filter(Boolean));
+  }else{
+    parts.push(unknownToken(comp.decomposition?.direction||"前後関係"));
+    unknowns.push(comp.decomposition?.direction||"前後関係");
+  }
+
+  if(comp.confirmed?.numeral?.surface) parts.push(comp.confirmed.numeral.surface);
+  else{
+    const lab=`数値${comp.decomposition?.amount ?? ""}`;
+    parts.push(unknownToken(lab));
+    unknowns.push(lab);
+  }
+  return {parts,unknowns,composition:comp};
+}
 function compileIR(ir, options={}){
   const fixedChunks = Array.isArray(options.fixedChunks) ? options.fixedChunks : [];
   const preserveSlots = !!options.preserveSlots;
@@ -540,73 +590,93 @@ function compileIR(ir, options={}){
   const compiledChunks=[];
 
   (ir?.chunks||[]).forEach((c,idx)=>{
-    const parts=[];
-    const modifierParts=[];
-
-    for(const mr of (c.modifier_roots||[])){
-      const r = byId(mr.root_id);
-      if(r?.form) modifierParts.push(r.form);
-    }
-
-    const center = c.center_root_id ? byId(c.center_root_id) : null;
-    if(modifierParts.length) parts.push(...modifierParts);
-    if(center?.form) parts.push(center.form);
-
-    const affixEntries=(c.affix_ids||[]).map(byId).filter(Boolean);
-    const relationEntries=(c.modifier_roots||[]).map(x=>byId(x.relation_id)).filter(Boolean);
-    const allAffixes=[...relationEntries,...affixEntries];
-
-    const seenLarge=new Set();
-    const realized=[];
-    for(const e of allAffixes){
-      const ps=affixParts(e);
-      if(!ps)continue;
-      if(ps.large && !seenLarge.has(ps.large)){
-        realized.push(ps.large);
-        seenLarge.add(ps.large);
-      }
-      if(ps.small) realized.push(ps.small);
-    }
-    if(realized.length) parts.push(...realized);
-
-    const surface = parts.filter(Boolean).join("-");
     const fixedSource = fixedChunks[idx] || c.jp || c.source || "";
-    const hasUnresolved = (c.unresolved||[]).length>0 || (c.unresolved_relation||[]).length>0;
+    const parts=[];
+    const structuralUnknowns=[];
 
-    let displaySurface = surface;
-    let status = "resolved";
+    // Deterministic analytical composition takes priority for confirmed patterns
+    // such as 昨日 = 日 + 前 + 1. Missing subparts remain visible as Unknown:...
+    const relDay = compileRelativeDayPartial(fixedSource);
+    if(relDay){
+      parts.push(...relDay.parts);
+      structuralUnknowns.push(...relDay.unknowns);
+    }else{
+      const modifierParts=[];
+      for(const mr of (c.modifier_roots||[])){
+        const r = byId(mr.root_id);
+        if(r?.form) modifierParts.push(r.form);
+        else if(mr.root_id) structuralUnknowns.push(mr.meaning||mr.root_id);
+      }
 
-    if(!surface && preserveSlots){
-      // Never silently drop a user-fixed semantic chunk.
-      displaySurface = `〔未解決:${fixedSource || `意味塊${idx+1}`}〕`;
-      status = "unresolved";
-    }else if(!surface && hasUnresolved){
-      displaySurface = `〔未解決:${fixedSource || `意味塊${idx+1}`}〕`;
-      status = "unresolved";
+      const center = c.center_root_id ? byId(c.center_root_id) : null;
+      if(modifierParts.length) parts.push(...modifierParts);
+      if(center?.form) parts.push(center.form);
+      else if(c.center_root_id) structuralUnknowns.push(c.meaning||c.jp||c.center_root_id);
+
+      const affixEntries=(c.affix_ids||[]).map(id=>({id,e:byId(id)}));
+      const relationEntries=(c.modifier_roots||[]).map(x=>({id:x.relation_id,e:byId(x.relation_id),meaning:x.meaning}));
+      const allAffixes=[...relationEntries,...affixEntries];
+
+      const seenLarge=new Set();
+      const realized=[];
+      for(const item of allAffixes){
+        const e=item.e;
+        if(!e){
+          if(item.id) structuralUnknowns.push(item.meaning||item.id);
+          continue;
+        }
+        const lg=e.large_form||"";
+        const sm=e.small_form||"";
+        const key=e.zone+"|"+(e.large||lg||String(e.id||"").split("-")[0]);
+        if(lg&&sm){
+          if(!seenLarge.has(key)){realized.push(lg);seenLarge.add(key);}
+          realized.push(sm);
+        }else if(e.form){
+          realized.push(...String(e.form).split("-").filter(Boolean));
+        }
+      }
+      if(realized.length) parts.push(...realized);
+    }
+
+    const irUnknowns=collectChunkUnknowns(c);
+    const allUnknowns=[...new Set([...structuralUnknowns,...irUnknowns].map(x=>cleanUnknownLabel(x)).filter(Boolean))];
+
+    // Add unresolved material visibly instead of deleting or pretending it was absorbed.
+    // If part of the chunk is known, keep the known surface and append only the missing concepts.
+    if(!relDay){
+      for(const u of allUnknowns) parts.push(unknownToken(u));
+    }
+
+    let displaySurface=parts.filter(Boolean).join("-");
+    let status=allUnknowns.length ? "partial" : "resolved";
+
+    if(!displaySurface && (preserveSlots || allUnknowns.length)){
+      displaySurface=unknownToken(fixedSource || `意味塊${idx+1}`);
+      status="unresolved";
     }
 
     compiledChunks.push({
-      index: idx,
-      source: fixedSource,
-      surface,
-      display_surface: displaySurface,
+      index:idx,
+      source:fixedSource,
+      surface:displaySurface,
+      resolved_surface:parts.filter(x=>!String(x).startsWith("Unknown:")).join("-"),
+      display_surface:displaySurface,
       status,
-      unresolved: c.unresolved||[],
-      unresolved_relation: c.unresolved_relation||[]
+      unresolved:allUnknowns,
+      unresolved_relation:c.unresolved_relation||[],
+      analytical_composition:relDay?.composition||c.analytical_composition||null
     });
 
-    if(displaySurface) out.push(displaySurface);
+    // In fixed mode, one user semantic-chunk slot always yields one output slot.
+    if(displaySurface || preserveSlots) out.push(displaySurface || unknownToken(fixedSource || `意味塊${idx+1}`));
   });
 
-  return {
-    translation: out.join(" "),
-    chunks: compiledChunks
-  };
+  return {translation:out.join(" "),chunks:compiledChunks};
 }
 
 function semanticPrompt(input){return `あなたは人工言語 fumezuaq の日本語意味解析器です。まだ翻訳してはいけません。
 ${GRAMMAR}
-${PROMPT_DICTIONARY_V52}
+${PROMPT_DICTIONARY_V53}
 最重要規則:
 - 日本語の文節境界をそのままfumezuaqの語境界にしない。
 - 「Xが」「Xは」「Xを」だけでは原則独立意味塊にしない。
@@ -624,7 +694,7 @@ function buildCandidates(input,sem){let rel=relevantEntries(input+" "+JSON.strin
 function resolvePrompt(input,sem,cands){return `あなたはfumezuaq辞書照合器です。最終文はまだ作らないでください。\n${GRAMMAR}\n原文:${input}\n意味解析:${JSON.stringify(sem)}\n辞書候補:${JSON.stringify(cands)}\n各概念を既存辞書へ対応付け、新造は禁止。辞書にあるものをunknownにしない。JSONのみ: {"resolved":[{"concept":"","id":"","form":"","meaning":"","zone":"","alternatives":[]}],"unresolved":[]}`;}
 function generatePrompt(input,sem,res){return `あなたはfumezuaq構文生成器です。
 ${GRAMMAR}
-${PROMPT_DICTIONARY_V52}
+${PROMPT_DICTIONARY_V53}
 原文:${input}
 意味解析:${JSON.stringify(sem)}
 辞書照合:${JSON.stringify(res)}
@@ -641,7 +711,7 @@ JSONのみ:
 function rescueSet(draft){const terms=[...(draft.warnings||[])];const raw=JSON.stringify(draft);for(const m of raw.matchAll(/unknown[^=:：]*[=:：]?\s*([^"\],}]+)/gi))terms.push(m[1]);let list=[];for(const t of terms){const bits=String(t).split(/[・\/／\s「」『』（）()]+/).filter(Boolean);for(const e of DICT){const hay=[e.meaning,(e.keywords||[]).join(" "),e.large,e.middle].join(" ");if(bits.some(b=>b&&hay.includes(b)))list.push(e);}}list.push(...DICT.filter(e=>/まで|期限|朝|条件|なら|三人称|単数|方向|可能|推量|過去|継続|引用/.test((e.meaning||"")+" "+(e.keywords||[]).join(" "))));return relevantDedup(list).slice(0,180).map(compactEntry);}
 function verifyPrompt(input,draft,rescue){return `あなたはfumezuaq最終検証器です。
 ${GRAMMAR}
-${PROMPT_DICTIONARY_V52}
+${PROMPT_DICTIONARY_V53}
 原文:${input}
 暫定:${JSON.stringify(draft)}
 再検索候補:${JSON.stringify(rescue)}
@@ -674,7 +744,7 @@ async function runStage(provider,model,stageName,prompt,shapeHint){
 
 
 function dictById(id){return DICT.find(e=>e.id===id)||null}
-function validateTranslation(result,sem){
+function validateTranslation(result,sem,options={}){
  const errors=[],warnings=[],chunks=result?.chunks||[];
  if(!String(result?.translation||"").trim())errors.push({code:"EMPTY",message:"翻訳結果が空です"});
  const prose=JSON.stringify(result);
@@ -685,9 +755,9 @@ function validateTranslation(result,sem){
    for(const id of (c.used_ids||[]))if(!dictById(id))errors.push({code:"BAD_ID",chunk:i,message:`辞書にないID ${id}`});
    if(/^humeq(?:-|$)/.test(sf)&&/(彼|彼女|私|あなた|三人称|一人称|二人称)/.test(mn))
      errors.push({code:"PRONOUN_HUMEQ",chunk:i,message:"humeq「人」を代名詞の台座にしています"});
-   if(sf==="wesamaq"&&/(雨|主体)/.test(mn))
+   if(!options.fixedMode && sf==="wesamaq"&&/(雨|主体)/.test(mn))
      errors.push({code:"ORPHAN_RAIN",chunk:i,message:"雨だけが述語から孤立しています。「雨が止む」はtokuq中心への再吸収を検討してください"});
-   if(/^keraq(?:-|$)/.test(sf)&&/山へ|方向/.test(mn)&&chunks.some(x=>/^waraq(?:-|$)/.test(String(x.surface||""))))
+   if(!options.fixedMode && /^keraq(?:-|$)/.test(sf)&&/山へ|方向/.test(mn)&&chunks.some(x=>/^waraq(?:-|$)/.test(String(x.surface||""))))
      errors.push({code:"ORPHAN_GOAL",chunk:i,message:"「山へ」だけをwaraqから分離しています。名詞「山」が存在することだけではこの文中の独立意味塊成立の根拠になりません。waraq側へ吸収するか、必要なら明示的対応関係を示してください"});
  }
 
@@ -706,7 +776,7 @@ function validateTranslation(result,sem){
 function correctionPrompt(input,result,sem,resolved,v){
  return `あなたはfumezuaq翻訳の修正器です。
 ${GRAMMAR}
-${PROMPT_DICTIONARY_V52}
+${PROMPT_DICTIONARY_V53}
 原文:${input}
 現在:${JSON.stringify(result)}
 意味解析:${JSON.stringify(sem)}
@@ -731,13 +801,17 @@ async function validateAndRepair(provider,model,input,result,sem,resolved){
 }
 
 function explanationPrompt(input,result,sem,resolved){
- return `${PROMPT_EXPLANATION}${PROMPT_FIXED_CHUNK_OUTPUT}${PROMPT_UNRESOLVED_NONPROPAGATION}\nあなたはfumezuaq Typed IRの構造理由だけを説明する。
-${PROMPT_DICTIONARY_V52}
+ return `${PROMPT_EXPLANATION}${PROMPT_FIXED_CHUNK_OUTPUT}${PROMPT_UNRESOLVED_NONPROPAGATION}${PROMPT_UNKNOWN_VISIBLE_V53}\nあなたはfumezuaq Typed IRの構造理由だけを説明する。
+${PROMPT_DICTIONARY_V53}
 原文:${input}
-Typed IR:${JSON.stringify(result?._ir||{})}
+Typed IR:${JSON.stringify(result?._debug?.ir||{})}
 確定表面形:${JSON.stringify((result?.chunks||[]).map(x=>x.surface))}
 辞書事実はプログラム表示なので、形態素の意味を自作しない。確定表面形を変更しない。
-説明対象は「なぜこの意味塊か」「なぜこの中心語根か」「なぜ副語根をこの関係で吸収したか」「何がunresolvedか」のみ。
+ユーザー固定意味塊は絶対に再分割・再吸収・消去しない。
+Unknown:... は「未解決のため表面に残した不足部分」であり、別語へ吸収・分配実現されたと説明してはならない。
+「分配的実現」「表面化不要」「リンクがあるのでチャンクを消せる」など、仕様にない概念を作らない。
+surface_required=false はリンク標識そのものを表面に出さなくてよいという意味であり、意味塊自体を消してよいという意味ではない。
+説明対象は「なぜこの意味塊か」「なぜこの中心語根か」「なぜ副語根をこの関係で吸収したか」「何がUnknown/unresolvedか」のみ。
 JSONのみ:{"summary":"","chunks":[{"surface":"","reason":"","alternatives":""}]}`;
 }
 async function buildExplanation(provider,model,input,result,sem,resolved){
@@ -792,12 +866,12 @@ IR検証エラー:${JSON.stringify(iv.errors)}
  }
 
  setPipelineStatus("決定論コンパイル",5,6);
- let result=compileIR(ir);
+ let result=compileIR(ir,{fixedChunks,preserveSlots:fixedChunks.length>0});
  result._ir_validation=iv;
  result._debug={candidateCount:cands.length,semantic:sem,resolved:resolved,ir:ir,compiler:"deterministic-v4"};
 
  // Surface is never rewritten by AI. Validator may report only.
- const sv=validateTranslation(result,sem);
+ const sv=validateTranslation(result,sem,{fixedMode:fixedChunks.length>0});
  result._validation=sv;
  if(!iv.ok) result.warnings.push(...iv.errors.map(x=>"IR検証未解決: "+x));
  if(!sv.ok) result.warnings.push(...sv.errors.map(x=>"表面検証: "+x.message));

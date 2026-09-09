@@ -211,3 +211,24 @@ const PROMPT_ANALYTICAL_COMPOSITION = `
 // Stage-specific augmentation after all base prompt constants exist.
 const PROMPT_DICTIONARY_V52 = PROMPT_DICTIONARY + PROMPT_ANALYTICAL_COMPOSITION;
 const PROMPT_IR_V52 = PROMPT_IR + PROMPT_ANALYTICAL_COMPOSITION;
+
+
+const PROMPT_UNKNOWN_VISIBLE_V53 = `
+【Unknown可視化・部分完成】
+- 不明・未登録・確証不能な概念を、近い辞書項目で埋めてはならない。
+- 不明部分はIRの unresolved / unresolved_relation に残す。
+- 固定意味塊では、不明部分があってもその意味塊を削除・吸収しない。
+- 表面生成では Unknown:<不足概念> として可視化する。
+- 既知部分がある場合は既知部分を捨てず、Unknownと併存させる。
+- 例: 「昨日」= 日 + 前 + 1 のうち「日」だけ辞書確定できないなら、前と1は保持し、「日」だけUnknownとして残す。
+- Unknownは失敗ではなく、後から不足部分だけ設計・登録するための正式な作業用表現である。
+
+【不要な情報を足さない】
+- 原文に明示・強く含意されない情報を「通常だから」「肯定文だから」という理由で追加しない。
+- K7の肯定評価は文の肯定極性そのものではない。肯定文というだけでK7肯定を付けない。
+- 数・特定性・完了相・情報構造なども、原文から確定できなければ勝手に補わない。
+- 「行った」は少なくとも過去を表すが、完了相を必須とはみなさない。必要性が確定しない場合は付けない。
+`;
+
+const PROMPT_DICTIONARY_V53 = PROMPT_DICTIONARY_V52 + PROMPT_UNKNOWN_VISIBLE_V53;
+const PROMPT_IR_V53 = PROMPT_IR_V52 + PROMPT_UNKNOWN_VISIBLE_V53;
