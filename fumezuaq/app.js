@@ -25,8 +25,9 @@ const TIME_UNIT_PREFIXES = Object.freeze({
 // Only a single completed numeral morpheme can be used inside a time quantity.
 // Composite numeral expressions are intentionally rejected, even if an X-scope exists.
 function buildTimeQuantity(unitJa, numeralSurface) {
-  const prefix = TIME_UNIT_PREFIXES[unitJa];
-  if (!prefix) return { ok:false, reason:`Unknown time unit: ${unitJa}` };
+  const normalizedUnit = String(unitJa||"").replace(/単位$/,"");
+  const prefix = TIME_UNIT_PREFIXES[normalizedUnit];
+  if (!prefix) return { ok:false, reason:`Unknown time unit: ${normalizedUnit}` };
   const n = String(numeralSurface || "").trim();
   if (!n) return { ok:false, reason:"Missing numeral" };
   // A completed numeral morpheme is one uninterrupted form. Spaces, plus signs,
@@ -346,7 +347,7 @@ ${JSON.stringify(chunks)}
 `;
 }
 function semanticPromptWithChunks(input,chunks){
-  return `${PROMPT_SEMANTIC}${PROMPT_FIXED_CHUNK_OUTPUT}${PROMPT_UNRESOLVED_NONPROPAGATION}
+  return `${PROMPT_SEMANTIC}${PROMPT_FIXED_CHUNK_OUTPUT}${PROMPT_UNRESOLVED_NONPROPAGATION}${PROMPT_TIME_QUANTITY_V55}
 ${userChunkDirective(chunks)}
 原文:${input}
 各ユーザーchunkを1対1でsemantic chunkとして解析する。
@@ -354,7 +355,7 @@ JSONのみ:
 {"chunks":[{"source":"","meaning":"","semantic_atoms":[],"independence_reason":"user_fixed"}],"required_domains":[],"lexical_needs":[]}`;
 }
 async function proposeChunks(provider,model,input){
-  const prompt=`${PROMPT_SEMANTIC}
+  const prompt=`${PROMPT_SEMANTIC}${PROMPT_TIME_QUANTITY_V55}
 【工程】意味塊の提案だけを行う。
 原文:${input}
 ユーザーが後で編集するため、自然な意味塊候補を順序通りに返す。
@@ -404,7 +405,7 @@ function parseJapaneseRelativeDay(text){
   return null;
 }
 function numeralForm12(n){
-  // Confirmed direct basic numerals only. Complex values are left to the existing numeral/X-scope pipeline.
+  // Relative-time shortcut currently accepts only a single completed numeral form. Composite time quantities are forbidden.
   const basic=["noq","raq","teq","kiq","suq","maq","weq","poq","duq","geq","fiq","yoq"];
   if(Number.isInteger(n) && n>=0 && n<basic.length) return {surface:basic[n],direct:true};
   return {surface:null,direct:false};
@@ -425,11 +426,7 @@ function buildRelativeDayComposition(source){
   const numeral=numeralForm12(p.amount);
 
   // Find a dictionary entry explicitly meaning day/time unit; do not blindly choose a colliding form.
-  const dayCandidates=(DICT||[]).filter(e=>{
-    const m=String(e.meaning||"");
-    return m==="日" || m.includes("時間単位")&&m.includes("日") || m.includes("一日");
-  });
-  const day=dayCandidates.length===1?dayCandidates[0]:null;
+  const day = dictById("TIMEUNIT-DAY") || (DICT||[]).find(e=>e.kind==="時間単位接頭要素" && String(e.meaning||"").startsWith("日"));
 
   return {
     source,
@@ -442,9 +439,9 @@ function buildRelativeDayComposition(source){
     },
     complete:!!(day&&direction&&numeral.direct),
     unresolved_parts:[
-      ...(!day?["DAY_UNIT_DICTIONARY_COLLISION_OR_MISSING"]:[]),
+      ...(!day?["DAY_TIME_UNIT_MISSING"]:[]),
       ...(!direction?["RELATIVE_DIRECTION_MISSING"]:[]),
-      ...(!numeral.direct?["COMPOSITE_NUMERAL_REQUIRES_EXISTING_NUMERAL_X_SCOPE"]:[])
+      ...(!numeral.direct?["TIME_QUANTITY_COMPOSITE_NUMERAL_FORBIDDEN"]:[])
     ]
   };
 }
@@ -526,6 +523,8 @@ IR規則:
 - 同一語へ吸収した副語根はmodifier_rootsに置き、relation_idを必須にする。単に語根を並べてはいけない。
 - relation_idは「副語根と中心語根の関係」を示す実在辞書ID。例: 雨→止むなら非意図主体C1-02、山→行くなら方向C2-31。
 - 人称・数など語根を持たない情報はaffix_ids。
+- 時間量は affix_ids に TIMEUNIT-* と NUM-* を入れる。TIMEUNIT-* は必ずちょうど1個の「完成数詞」NUM-* と組にする。
+- 時間量のために複数のNUM-*を並べない。Xスコープ等で複合数詞を包んで時間量にすることも禁止。
 - unresolved概念はunresolvedへ。表面形を推測しない。
 - 独立塊間の関係が必要なのに辞書で表現できなければunresolved_relationへ。「文脈で分かる」で済ませない。
 - 「明日の朝まで」はcenter_root_id=nullの時間塊として許可。
@@ -545,6 +544,19 @@ function validateIR(ir){
      if(root && root.zone!=="ROOT")errors.push(`chunk${i+1}: ${m.root_id} はROOTではありません`);
    }
    for(const id of (c.affix_ids||[])) if(!dictById(id))errors.push(`chunk${i+1}: 接辞ID ${id} は辞書にありません`);
+
+   const ids=(c.affix_ids||[]);
+   const timeUnitIds=ids.filter(id=>String(id).startsWith("TIMEUNIT-"));
+   const numeralEntries=ids.map(id=>dictById(id)).filter(e=>e && e.zone==="NUM" && (e.kind==="数詞" || e.kind==="派生数詞"));
+   const numeralElementIds=ids.filter(id=>String(id).startsWith("NUM-ELEM-") || id==="NUM-POINT");
+   const scopeIds=ids.filter(id=>String(id).startsWith("X-"));
+   if(timeUnitIds.length>1) errors.push(`chunk${i+1}: 時間単位接頭要素は1時間量につき1個だけです`);
+   if(timeUnitIds.length===1){
+     if(numeralEntries.length!==1) errors.push(`chunk${i+1}: 時間量は単一の完成数詞形態素1個を必須とします`);
+     if(numeralElementIds.length) errors.push(`chunk${i+1}: 時間量内で数詞形成要素を直接組み立ててはいけません。完成済みNUM形を1個だけ使用します`);
+     if(scopeIds.length) errors.push(`chunk${i+1}: 時間量にXスコープを使用することは禁止されています`);
+   }
+
    if((c.unresolved_relation||[]).length)warnings.push(`chunk${i+1}: 未解決関係 ${c.unresolved_relation.join(" / ")}`);
  }
  return {ok:errors.length===0,errors,warnings};
@@ -594,8 +606,14 @@ function compileRelativeDayPartial(source){
   if(!comp)return null;
   const parts=[];
   const unknowns=[];
-  if(comp.confirmed?.day?.form) parts.push(comp.confirmed.day.form);
-  else { parts.push(unknownToken("日")); unknowns.push("日"); }
+  if(comp.confirmed?.day?.form && comp.confirmed?.numeral?.surface) {
+    const tq=buildTimeQuantity("日", comp.confirmed.numeral.surface);
+    if(tq.ok) parts.push(tq.surface);
+    else { parts.push(unknownToken("時間量")); unknowns.push("時間量"); }
+  } else {
+    if(!comp.confirmed?.day?.form){ parts.push(unknownToken("日")); unknowns.push("日"); }
+    if(!comp.confirmed?.numeral?.surface){ const lab=`数値${comp.decomposition?.amount ?? ""}`; parts.push(unknownToken(lab)); unknowns.push(lab); }
+  }
 
   if(comp.confirmed?.direction){
     const d=comp.confirmed.direction;
@@ -606,12 +624,6 @@ function compileRelativeDayPartial(source){
     unknowns.push(comp.decomposition?.direction||"前後関係");
   }
 
-  if(comp.confirmed?.numeral?.surface) parts.push(comp.confirmed.numeral.surface);
-  else{
-    const lab=`数値${comp.decomposition?.amount ?? ""}`;
-    parts.push(unknownToken(lab));
-    unknowns.push(lab);
-  }
   return {parts,unknowns,composition:comp};
 }
 function compileIR(ir, options={}){
@@ -644,7 +656,21 @@ function compileIR(ir, options={}){
       if(center?.form) parts.push(center.form);
       else if(c.center_root_id) structuralUnknowns.push(c.meaning||c.jp||c.center_root_id);
 
-      const affixEntries=(c.affix_ids||[]).map(id=>({id,e:dictById(id)}));
+      const rawAffixIds=(c.affix_ids||[]);
+      const timeUnitEntry=rawAffixIds.map(id=>dictById(id)).find(e=>e?.kind==="時間単位接頭要素") || null;
+      const numeralEntry=rawAffixIds.map(id=>dictById(id)).find(e=>e && e.zone==="NUM" && (e.kind==="数詞" || e.kind==="派生数詞")) || null;
+
+      if(timeUnitEntry && numeralEntry){
+        const tq=buildTimeQuantity(String(timeUnitEntry.meaning||"").replace(/単位$/,""), numeralEntry.form);
+        if(tq.ok) parts.push(tq.surface);
+        else structuralUnknowns.push(tq.reason||"時間量");
+      }
+
+      const genericAffixIds=rawAffixIds.filter(id=>{
+        const e=dictById(id);
+        return !(e && (e.kind==="時間単位接頭要素" || (e.zone==="NUM" && (e.kind==="数詞" || e.kind==="派生数詞"))));
+      });
+      const affixEntries=genericAffixIds.map(id=>({id,e:dictById(id)}));
       const relationEntries=(c.modifier_roots||[]).map(x=>({id:x.relation_id,e:dictById(x.relation_id),meaning:x.meaning}));
       const allAffixes=[...relationEntries,...affixEntries];
 
@@ -721,8 +747,30 @@ ${PROMPT_DICTIONARY_V55}
 入力:${input}
 JSONのみ:
 {"chunks":[{"jp":"","center":"","center_type":"verb|noun|time|other","participants":[{"concept":"","role":"","person":"","number":"","gender":""}],"concepts":[],"zones":[],"relations":[],"absorb":[]}],"required_domains":[],"lexical_needs":[]}`;}
-function buildCandidates(input,sem){let rel=relevantEntries(input+" "+JSON.stringify(sem));for(const d of sem.required_domains||[]){const p=String(d).match(/^[SRDEKC]\d+/)?.[0];if(p)rel.push(...DICT.filter(e=>String(e.id||"").startsWith(p)));}rel.push(...DICT.filter(e=>/まで|期限|朝|条件|なら|三人称|単数|方向|可能|推量|過去|継続|引用/.test((e.meaning||"")+" "+(e.keywords||[]).join(" "))));return relevantDedup(rel).slice(0,300).map(compactEntry);}
-function resolvePrompt(input,sem,cands){return `あなたはfumezuaq辞書照合器です。最終文はまだ作らないでください。\n${GRAMMAR}\n原文:${input}\n意味解析:${JSON.stringify(sem)}\n辞書候補:${JSON.stringify(cands)}\n各概念を既存辞書へ対応付け、新造は禁止。辞書にあるものをunknownにしない。JSONのみ: {"resolved":[{"concept":"","id":"","form":"","meaning":"","zone":"","alternatives":[]}],"unresolved":[]}`;}
+function buildCandidates(input,sem){
+  let rel=relevantEntries(input+" "+JSON.stringify(sem));
+  for(const d of sem.required_domains||[]){
+    const p=String(d).match(/^(?:[SRDEKC]\d+|NUM)/)?.[0];
+    if(p==="NUM") rel.push(...DICT.filter(e=>e.zone==="NUM"));
+    else if(p) rel.push(...DICT.filter(e=>String(e.id||"").startsWith(p)));
+  }
+  const semanticText=input+" "+JSON.stringify(sem);
+  if(/年|月|半月|日|時間|分|秒|時刻|時間量/.test(semanticText)){
+    rel.push(...DICT.filter(e=>e.zone==="NUM" && (
+      e.kind==="時間単位接頭要素" ||
+      e.kind==="数詞" ||
+      e.kind==="派生数詞" ||
+      e.kind==="数詞形成接辞"
+    )));
+  }
+  rel.push(...DICT.filter(e=>/まで|期限|朝|条件|なら|三人称|単数|方向|可能|推量|過去|継続|引用/.test((e.meaning||"")+" "+(e.keywords||[]).join(" "))));
+  return relevantDedup(rel).slice(0,360).map(compactEntry);
+}
+function resolvePrompt(input,sem,cands){return `あなたはfumezuaq辞書照合器です。最終文はまだ作らないでください。\n${GRAMMAR}\n${PROMPT_TIME_QUANTITY_V55}\n原文:${input}\n意味解析:${JSON.stringify(sem)}\n辞書候補:${JSON.stringify(cands)}\n各概念を既存辞書へ対応付け、新造は禁止。辞書にあるものをunknownにしない。
+時間量では、単位概念を TIMEUNIT-*、数値を NUM-* にそれぞれ対応付ける。
+例:「2時間」→ TIMEUNIT-HOUR + NUM-02。「1日前」→ TIMEUNIT-DAY + NUM-01 + C3-REL-01。
+時間量単位を通常語根で代用しない。
+JSONのみ: {"resolved":[{"concept":"","id":"","form":"","meaning":"","zone":"","alternatives":[]}],"unresolved":[]}`;}
 function generatePrompt(input,sem,res){return `あなたはfumezuaq構文生成器です。
 ${GRAMMAR}
 ${PROMPT_DICTIONARY_V55}
