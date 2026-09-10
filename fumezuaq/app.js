@@ -944,7 +944,7 @@ $("analyzeBtn").onclick=()=>{
 
 function renderDict(){
  const q=norm($("dictSearch").value),z=$("dictZone").value,k=$("dictKind").value;
- const a=DICT.filter(e=>(!z||e.zone===z)&&(!k||e.kind===k)&&(!q||norm([e.id,e.form,e.meaning,e.large,e.middle].join(" ")).includes(q))).slice(0,1200);
+ const a=DICT.filter(e=>(!z||e.zone===z)&&(!k||e.kind===k)&&(!q||norm([e.id,e.form,e.meaning,e.large,e.middle,e.kind,e.note,(e.keywords||[]).join(" ")].join(" ")).includes(q))).slice(0,1200);
  $("dictCount").textContent=`${a.length} / ${DICT.length} 項目`;
  $("dictList").innerHTML=a.map(e=>`<article class="dict-item"><div class="form">${esc(e.form)}</div><div class="jp">${esc(e.meaning)}</div><div class="mini">${esc(e.id)} · ${esc(e.kind)} · ${esc(e.zone)} / ${esc(e.large||"—")} ${e.status==="候補"?'<span class="candidate">· 候補</span>':""}</div></article>`).join("");
 }
