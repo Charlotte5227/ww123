@@ -232,3 +232,29 @@ const PROMPT_UNKNOWN_VISIBLE_V53 = `
 
 const PROMPT_DICTIONARY_V53 = PROMPT_DICTIONARY_V52 + PROMPT_UNKNOWN_VISIBLE_V53;
 const PROMPT_IR_V53 = PROMPT_IR_V52 + PROMPT_UNKNOWN_VISIBLE_V53;
+
+
+const PROMPT_TIME_QUANTITY_V55 = `
+【時間量接頭要素】
+- 年 = jua-
+- 月 = shae-
+- 半月 = chou-
+- 日 = yai-
+- 時間 = hie-
+- 分 = fou-
+- 秒 = jiu-
+
+【構造】
+TIME_UNIT_PREFIX + SINGLE_COMPLETED_NUMERAL_MORPHEME
+
+【絶対制約】
+- 時間量に使える数は、必ず単一の完成数詞形態素1個だけ。
+- 複数の完成数詞形態素からなる数は時間量に使用できない。
+- 例: hie-teriq = (20)₁₂時間 は可。
+- (21)₁₂ = raq + teriq のように複数完成数詞を必要とする時間量は不可。
+- Xスコープ、グルーピング、分割、無空白連結その他で回避してはならない。
+- この禁止に例外はない。
+- 上記7単位が使える場面で、未知の「時間単位語根」を捏造しない。
+`;
+const PROMPT_DICTIONARY_V55 = PROMPT_DICTIONARY_V53 + PROMPT_TIME_QUANTITY_V55;
+const PROMPT_IR_V55 = PROMPT_IR_V53 + PROMPT_TIME_QUANTITY_V55;

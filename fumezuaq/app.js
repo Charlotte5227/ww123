@@ -11,6 +11,37 @@ document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>{
  document.querySelectorAll(".nav").forEach(x=>x.classList.remove("active")); b.classList.add("active");
  document.querySelectorAll(".view").forEach(x=>x.classList.remove("active")); $(b.dataset.view).classList.add("active");
 });
+
+const TIME_UNIT_PREFIXES = Object.freeze({
+  "年": "jua-",
+  "月": "shae-",
+  "半月": "chou-",
+  "日": "yai-",
+  "時間": "hie-",
+  "分": "fou-",
+  "秒": "jiu-"
+});
+
+// Only a single completed numeral morpheme can be used inside a time quantity.
+// Composite numeral expressions are intentionally rejected, even if an X-scope exists.
+function buildTimeQuantity(unitJa, numeralSurface) {
+  const prefix = TIME_UNIT_PREFIXES[unitJa];
+  if (!prefix) return { ok:false, reason:`Unknown time unit: ${unitJa}` };
+  const n = String(numeralSurface || "").trim();
+  if (!n) return { ok:false, reason:"Missing numeral" };
+  // A completed numeral morpheme is one uninterrupted form. Spaces, plus signs,
+  // scope markers and explicit morpheme separators indicate a composite expression.
+  if (/\s|\+|lenaq-saluq|lenaq-soluq/.test(n)) {
+    return { ok:false, reason:"TIME_QUANTITY_REQUIRES_SINGLE_NUMERAL_MORPHEME" };
+  }
+  return { ok:true, surface:`${prefix}${n}` };
+}
+
+function isTimeQuantityCompositeNumeral(numeralSurface) {
+  const n = String(numeralSurface || "").trim();
+  return /\s|\+|lenaq-saluq|lenaq-soluq/.test(n);
+}
+
 function setDir(d){
  direction=d;$("ja2fu").classList.toggle("selected",d==="ja2fu");$("fu2ja").classList.toggle("selected",d==="fu2ja");
  $("modeLabel").textContent=d==="ja2fu"?"fumezuaq":"日本語";
@@ -470,7 +501,7 @@ async function rescueUnresolved(provider,model,input,sem,resolved){
  const candidates=exactDictionarySearch(terms.concat(["基準より後","内容","推量","可能性","朝","期限","条件","方向"]),260);
  if(!candidates.length)return resolved;
  const prompt=`あなたはfumezuaq辞書の再検索照合器です。
-${PROMPT_DICTIONARY_V53}
+${PROMPT_DICTIONARY_V55}
 原文:${input}
 意味解析:${JSON.stringify(sem)}
 未解決:${JSON.stringify(resolved.unresolved)}
@@ -483,9 +514,9 @@ ${PROMPT_DICTIONARY_V53}
  return {resolved:[...map.values()],unresolved:retry.unresolved||[]};
 }
 function irPrompt(input,sem,resolved){
- return `${PROMPT_IR_V53}\nあなたはfumezuaqのTyped IR設計器です。表面形を絶対に生成しない。
+ return `${PROMPT_IR_V55}\nあなたはfumezuaqのTyped IR設計器です。表面形を絶対に生成しない。
 ${GRAMMAR}
-${PROMPT_DICTIONARY_V53}
+${PROMPT_DICTIONARY_V55}
 原文:${input}
 意味解析:${JSON.stringify(sem)}
 辞書照合:${JSON.stringify(resolved)}
@@ -676,7 +707,7 @@ function compileIR(ir, options={}){
 
 function semanticPrompt(input){return `あなたは人工言語 fumezuaq の日本語意味解析器です。まだ翻訳してはいけません。
 ${GRAMMAR}
-${PROMPT_DICTIONARY_V53}
+${PROMPT_DICTIONARY_V55}
 最重要規則:
 - 日本語の文節境界をそのままfumezuaqの語境界にしない。
 - 「Xが」「Xは」「Xを」だけでは原則独立意味塊にしない。
@@ -694,7 +725,7 @@ function buildCandidates(input,sem){let rel=relevantEntries(input+" "+JSON.strin
 function resolvePrompt(input,sem,cands){return `あなたはfumezuaq辞書照合器です。最終文はまだ作らないでください。\n${GRAMMAR}\n原文:${input}\n意味解析:${JSON.stringify(sem)}\n辞書候補:${JSON.stringify(cands)}\n各概念を既存辞書へ対応付け、新造は禁止。辞書にあるものをunknownにしない。JSONのみ: {"resolved":[{"concept":"","id":"","form":"","meaning":"","zone":"","alternatives":[]}],"unresolved":[]}`;}
 function generatePrompt(input,sem,res){return `あなたはfumezuaq構文生成器です。
 ${GRAMMAR}
-${PROMPT_DICTIONARY_V53}
+${PROMPT_DICTIONARY_V55}
 原文:${input}
 意味解析:${JSON.stringify(sem)}
 辞書照合:${JSON.stringify(res)}
@@ -711,7 +742,7 @@ JSONのみ:
 function rescueSet(draft){const terms=[...(draft.warnings||[])];const raw=JSON.stringify(draft);for(const m of raw.matchAll(/unknown[^=:：]*[=:：]?\s*([^"\],}]+)/gi))terms.push(m[1]);let list=[];for(const t of terms){const bits=String(t).split(/[・\/／\s「」『』（）()]+/).filter(Boolean);for(const e of DICT){const hay=[e.meaning,(e.keywords||[]).join(" "),e.large,e.middle].join(" ");if(bits.some(b=>b&&hay.includes(b)))list.push(e);}}list.push(...DICT.filter(e=>/まで|期限|朝|条件|なら|三人称|単数|方向|可能|推量|過去|継続|引用/.test((e.meaning||"")+" "+(e.keywords||[]).join(" "))));return relevantDedup(list).slice(0,180).map(compactEntry);}
 function verifyPrompt(input,draft,rescue){return `あなたはfumezuaq最終検証器です。
 ${GRAMMAR}
-${PROMPT_DICTIONARY_V53}
+${PROMPT_DICTIONARY_V55}
 原文:${input}
 暫定:${JSON.stringify(draft)}
 再検索候補:${JSON.stringify(rescue)}
@@ -776,7 +807,7 @@ function validateTranslation(result,sem,options={}){
 function correctionPrompt(input,result,sem,resolved,v){
  return `あなたはfumezuaq翻訳の修正器です。
 ${GRAMMAR}
-${PROMPT_DICTIONARY_V53}
+${PROMPT_DICTIONARY_V55}
 原文:${input}
 現在:${JSON.stringify(result)}
 意味解析:${JSON.stringify(sem)}
@@ -802,7 +833,7 @@ async function validateAndRepair(provider,model,input,result,sem,resolved){
 
 function explanationPrompt(input,result,sem,resolved){
  return `${PROMPT_EXPLANATION}${PROMPT_FIXED_CHUNK_OUTPUT}${PROMPT_UNRESOLVED_NONPROPAGATION}${PROMPT_UNKNOWN_VISIBLE_V53}\nあなたはfumezuaq Typed IRの構造理由だけを説明する。
-${PROMPT_DICTIONARY_V53}
+${PROMPT_DICTIONARY_V55}
 原文:${input}
 Typed IR:${JSON.stringify(result?._debug?.ir||{})}
 確定表面形:${JSON.stringify((result?.chunks||[]).map(x=>x.surface))}
