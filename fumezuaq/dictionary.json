@@ -15262,5 +15262,778 @@
     "status": "正式",
     "note": "shimeq系列",
     "keywords": []
+  },
+  {
+    "id": "NUM-00",
+    "kind": "数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "基礎数詞",
+    "meaning": "0（十二進数）",
+    "large_form": "",
+    "small_form": "",
+    "form": "noq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "十二進数の完成数詞形態素。単一完成形は語内部へ直接埋め込み可能。",
+    "keywords": [
+      "0",
+      "数詞",
+      "十二進数",
+      "12進数"
+    ]
+  },
+  {
+    "id": "NUM-01",
+    "kind": "数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "基礎数詞",
+    "meaning": "1（十二進数）",
+    "large_form": "",
+    "small_form": "",
+    "form": "raq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "十二進数の完成数詞形態素。単一完成形は語内部へ直接埋め込み可能。",
+    "keywords": [
+      "1",
+      "数詞",
+      "十二進数",
+      "12進数"
+    ]
+  },
+  {
+    "id": "NUM-02",
+    "kind": "数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "基礎数詞",
+    "meaning": "2（十二進数）",
+    "large_form": "",
+    "small_form": "",
+    "form": "teq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "十二進数の完成数詞形態素。単一完成形は語内部へ直接埋め込み可能。",
+    "keywords": [
+      "2",
+      "数詞",
+      "十二進数",
+      "12進数"
+    ]
+  },
+  {
+    "id": "NUM-03",
+    "kind": "数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "基礎数詞",
+    "meaning": "3（十二進数）",
+    "large_form": "",
+    "small_form": "",
+    "form": "kiq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "十二進数の完成数詞形態素。単一完成形は語内部へ直接埋め込み可能。",
+    "keywords": [
+      "3",
+      "数詞",
+      "十二進数",
+      "12進数"
+    ]
+  },
+  {
+    "id": "NUM-04",
+    "kind": "数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "基礎数詞",
+    "meaning": "4（十二進数）",
+    "large_form": "",
+    "small_form": "",
+    "form": "suq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "十二進数の完成数詞形態素。単一完成形は語内部へ直接埋め込み可能。",
+    "keywords": [
+      "4",
+      "数詞",
+      "十二進数",
+      "12進数"
+    ]
+  },
+  {
+    "id": "NUM-05",
+    "kind": "数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "基礎数詞",
+    "meaning": "5（十二進数）",
+    "large_form": "",
+    "small_form": "",
+    "form": "maq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "十二進数の完成数詞形態素。単一完成形は語内部へ直接埋め込み可能。",
+    "keywords": [
+      "5",
+      "数詞",
+      "十二進数",
+      "12進数"
+    ]
+  },
+  {
+    "id": "NUM-06",
+    "kind": "数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "基礎数詞",
+    "meaning": "6（十二進数）",
+    "large_form": "",
+    "small_form": "",
+    "form": "weq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "十二進数の完成数詞形態素。単一完成形は語内部へ直接埋め込み可能。",
+    "keywords": [
+      "6",
+      "数詞",
+      "十二進数",
+      "12進数"
+    ]
+  },
+  {
+    "id": "NUM-07",
+    "kind": "数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "基礎数詞",
+    "meaning": "7（十二進数）",
+    "large_form": "",
+    "small_form": "",
+    "form": "poq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "十二進数の完成数詞形態素。単一完成形は語内部へ直接埋め込み可能。",
+    "keywords": [
+      "7",
+      "数詞",
+      "十二進数",
+      "12進数"
+    ]
+  },
+  {
+    "id": "NUM-08",
+    "kind": "数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "基礎数詞",
+    "meaning": "8（十二進数）",
+    "large_form": "",
+    "small_form": "",
+    "form": "duq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "十二進数の完成数詞形態素。単一完成形は語内部へ直接埋め込み可能。",
+    "keywords": [
+      "8",
+      "数詞",
+      "十二進数",
+      "12進数"
+    ]
+  },
+  {
+    "id": "NUM-09",
+    "kind": "数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "基礎数詞",
+    "meaning": "9（十二進数）",
+    "large_form": "",
+    "small_form": "",
+    "form": "geq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "十二進数の完成数詞形態素。単一完成形は語内部へ直接埋め込み可能。",
+    "keywords": [
+      "9",
+      "数詞",
+      "十二進数",
+      "12進数"
+    ]
+  },
+  {
+    "id": "NUM-0A",
+    "kind": "数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "基礎数詞",
+    "meaning": "A₁₂（十進10）",
+    "large_form": "",
+    "small_form": "",
+    "form": "fiq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "十二進数の完成数詞形態素。単一完成形は語内部へ直接埋め込み可能。",
+    "keywords": [
+      "A",
+      "数詞",
+      "十二進数",
+      "12進数"
+    ]
+  },
+  {
+    "id": "NUM-0B",
+    "kind": "数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "基礎数詞",
+    "meaning": "B₁₂（十進11）",
+    "large_form": "",
+    "small_form": "",
+    "form": "yoq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "十二進数の完成数詞形態素。単一完成形は語内部へ直接埋め込み可能。",
+    "keywords": [
+      "B",
+      "数詞",
+      "十二進数",
+      "12進数"
+    ]
+  },
+  {
+    "id": "NUM-10",
+    "kind": "数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "基礎数詞",
+    "meaning": "10₁₂（十進12）",
+    "large_form": "",
+    "small_form": "",
+    "form": "daiq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "十二進数の完成数詞形態素。単一完成形は語内部へ直接埋め込み可能。",
+    "keywords": [
+      "10",
+      "数詞",
+      "十二進数",
+      "12進数"
+    ]
+  },
+  {
+    "id": "NUM-TEEN",
+    "kind": "数詞形成接辞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "数詞形成",
+    "meaning": "1x₁₂系列を作る数詞形成接辞",
+    "large_form": "",
+    "small_form": "",
+    "form": "-ne-",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "例: raneq=11₁₂, teneq=12₁₂, ... yoneq=1B₁₂",
+    "keywords": [
+      "数詞",
+      "十二進数",
+      "12進数"
+    ]
+  },
+  {
+    "id": "NUM-TY",
+    "kind": "数詞形成接辞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "数詞形成",
+    "meaning": "x0₁₂系列を作る数詞形成接辞",
+    "large_form": "",
+    "small_form": "",
+    "form": "-ri-",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "例: teriq=20₁₂, kiriq=30₁₂",
+    "keywords": [
+      "数詞",
+      "十二進数",
+      "12進数"
+    ]
+  },
+  {
+    "id": "NUM-HUNDRED",
+    "kind": "数詞形成接辞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "数詞形成",
+    "meaning": "x00₁₂系列を作る数詞形成接辞",
+    "large_form": "",
+    "small_form": "",
+    "form": "-mura-",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "例: ramuraq=100₁₂, temuraq=200₁₂",
+    "keywords": [
+      "数詞",
+      "十二進数",
+      "12進数"
+    ]
+  },
+  {
+    "id": "NUM-POINT",
+    "kind": "数詞記号",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "数詞形成",
+    "meaning": "十二進数の小数点",
+    "large_form": "",
+    "small_form": "",
+    "form": "shaq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "小数点以降は数字を各桁ごとに読む",
+    "keywords": [
+      "数詞",
+      "十二進数",
+      "12進数"
+    ]
+  },
+  {
+    "id": "NUM-11",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "teen系列",
+    "meaning": "11₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "raneq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ne- を付け、完成形末尾だけq。",
+    "keywords": [
+      "11",
+      "数詞",
+      "十二進数"
+    ]
+  },
+  {
+    "id": "NUM-12",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "teen系列",
+    "meaning": "12₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "teneq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ne- を付け、完成形末尾だけq。",
+    "keywords": [
+      "12",
+      "数詞",
+      "十二進数"
+    ]
+  },
+  {
+    "id": "NUM-13",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "teen系列",
+    "meaning": "13₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "kineq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ne- を付け、完成形末尾だけq。",
+    "keywords": [
+      "13",
+      "数詞",
+      "十二進数"
+    ]
+  },
+  {
+    "id": "NUM-14",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "teen系列",
+    "meaning": "14₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "suneq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ne- を付け、完成形末尾だけq。",
+    "keywords": [
+      "14",
+      "数詞",
+      "十二進数"
+    ]
+  },
+  {
+    "id": "NUM-15",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "teen系列",
+    "meaning": "15₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "maneq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ne- を付け、完成形末尾だけq。",
+    "keywords": [
+      "15",
+      "数詞",
+      "十二進数"
+    ]
+  },
+  {
+    "id": "NUM-16",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "teen系列",
+    "meaning": "16₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "weneq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ne- を付け、完成形末尾だけq。",
+    "keywords": [
+      "16",
+      "数詞",
+      "十二進数"
+    ]
+  },
+  {
+    "id": "NUM-17",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "teen系列",
+    "meaning": "17₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "poneq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ne- を付け、完成形末尾だけq。",
+    "keywords": [
+      "17",
+      "数詞",
+      "十二進数"
+    ]
+  },
+  {
+    "id": "NUM-18",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "teen系列",
+    "meaning": "18₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "duneq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ne- を付け、完成形末尾だけq。",
+    "keywords": [
+      "18",
+      "数詞",
+      "十二進数"
+    ]
+  },
+  {
+    "id": "NUM-19",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "teen系列",
+    "meaning": "19₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "geneq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ne- を付け、完成形末尾だけq。",
+    "keywords": [
+      "19",
+      "数詞",
+      "十二進数"
+    ]
+  },
+  {
+    "id": "NUM-1A",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "teen系列",
+    "meaning": "1A₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "fineq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ne- を付け、完成形末尾だけq。",
+    "keywords": [
+      "1A",
+      "数詞",
+      "十二進数"
+    ]
+  },
+  {
+    "id": "NUM-1B",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "teen系列",
+    "meaning": "1B₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "yoneq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ne- を付け、完成形末尾だけq。",
+    "keywords": [
+      "1B",
+      "数詞",
+      "十二進数"
+    ]
+  },
+  {
+    "id": "NUM-20",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "ty系列",
+    "meaning": "20₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "teriq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ri- を付け、完成形末尾だけq。",
+    "keywords": [
+      "20",
+      "数詞",
+      "十二進数"
+    ]
+  },
+  {
+    "id": "NUM-30",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "ty系列",
+    "meaning": "30₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "kiriq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ri- を付け、完成形末尾だけq。",
+    "keywords": [
+      "30",
+      "数詞",
+      "十二進数"
+    ]
+  },
+  {
+    "id": "NUM-40",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "ty系列",
+    "meaning": "40₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "suriq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ri- を付け、完成形末尾だけq。",
+    "keywords": [
+      "40",
+      "数詞",
+      "十二進数"
+    ]
+  },
+  {
+    "id": "NUM-50",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "ty系列",
+    "meaning": "50₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "mariq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ri- を付け、完成形末尾だけq。",
+    "keywords": [
+      "50",
+      "数詞",
+      "十二進数"
+    ]
+  },
+  {
+    "id": "NUM-60",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "ty系列",
+    "meaning": "60₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "weriq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ri- を付け、完成形末尾だけq。",
+    "keywords": [
+      "60",
+      "数詞",
+      "十二進数"
+    ]
+  },
+  {
+    "id": "NUM-70",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "ty系列",
+    "meaning": "70₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "poriq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ri- を付け、完成形末尾だけq。",
+    "keywords": [
+      "70",
+      "数詞",
+      "十二進数"
+    ]
+  },
+  {
+    "id": "NUM-80",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "ty系列",
+    "meaning": "80₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "duriq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ri- を付け、完成形末尾だけq。",
+    "keywords": [
+      "80",
+      "数詞",
+      "十二進数"
+    ]
+  },
+  {
+    "id": "NUM-90",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "ty系列",
+    "meaning": "90₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "geriq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ri- を付け、完成形末尾だけq。",
+    "keywords": [
+      "90",
+      "数詞",
+      "十二進数"
+    ]
+  },
+  {
+    "id": "NUM-A0",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "ty系列",
+    "meaning": "A0₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "firiq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ri- を付け、完成形末尾だけq。",
+    "keywords": [
+      "A0",
+      "数詞",
+      "十二進数"
+    ]
+  },
+  {
+    "id": "NUM-B0",
+    "kind": "派生数詞",
+    "zone": "NUM",
+    "large": "数詞",
+    "middle": "ty系列",
+    "meaning": "B0₁₂",
+    "large_form": "",
+    "small_form": "",
+    "form": "yoriq",
+    "mora": "",
+    "source": "会話確定",
+    "status": "正式",
+    "note": "基礎数詞の終端qを外して -ri- を付け、完成形末尾だけq。",
+    "keywords": [
+      "B0",
+      "数詞",
+      "十二進数"
+    ]
   }
 ]
