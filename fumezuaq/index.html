@@ -107,14 +107,14 @@
     <article class="panel setting-card provider-card">
       <div class="provider-title"><h3>OpenAI</h3><span id="openaiState" class="state">未設定</span></div>
       <label>APIキー<div class="keyrow"><input id="openaiKey" type="password" autocomplete="off" placeholder="sk-..."><button class="iconbtn eye" data-target="openaiKey">表示</button></div></label>
-      <label>モデル<input id="openaiModel" value="gpt-5"></label>
+      <label>モデル<input id="openaiModel" value="gpt-5" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
       <label class="savecheck"><input id="openaiSave" type="checkbox"> このブラウザに保存</label>
       <div class="keyactions"><button class="ghost savekey" data-provider="openai">保存</button><button class="ghost testkey" data-provider="openai">接続テスト</button><button class="ghost deletekey" data-provider="openai">削除</button></div>
     </article>
     <article class="panel setting-card provider-card">
       <div class="provider-title"><h3>Claude</h3><span id="anthropicState" class="state">未設定</span></div>
       <label>APIキー<div class="keyrow"><input id="anthropicKey" type="password" autocomplete="off" placeholder="sk-ant-..."><button class="iconbtn eye" data-target="anthropicKey">表示</button></div></label>
-      <label>モデル<input id="anthropicModel" value="claude-opus-5"></label>
+      <label>モデル<input id="anthropicModel" value="claude-opus-5" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
       <label class="savecheck"><input id="anthropicSave" type="checkbox"> このブラウザに保存</label>
       <div class="keyactions"><button class="ghost savekey" data-provider="anthropic">保存</button><button class="ghost testkey" data-provider="anthropic">接続テスト</button><button class="ghost deletekey" data-provider="anthropic">削除</button></div>
       <p class="provider-note">組織設定によってはブラウザからのCORSアクセスが拒否される場合があります。</p>
@@ -122,7 +122,7 @@
     <article class="panel setting-card provider-card">
       <div class="provider-title"><h3>Gemini</h3><span id="geminiState" class="state">未設定</span></div>
       <label>APIキー<div class="keyrow"><input id="geminiKey" type="password" autocomplete="off" placeholder="AIza... / auth key"><button class="iconbtn eye" data-target="geminiKey">表示</button></div></label>
-      <label>モデル<input id="geminiModel" value="gemini-3.8-flash"></label>
+      <label>モデル<input id="geminiModel" value="gemini-3.8-flash" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
       <label class="savecheck"><input id="geminiSave" type="checkbox"> このブラウザに保存</label>
       <div class="keyactions"><button class="ghost savekey" data-provider="gemini">保存</button><button class="ghost testkey" data-provider="gemini">接続テスト</button><button class="ghost deletekey" data-provider="gemini">削除</button></div>
     </article>
@@ -130,7 +130,7 @@
 </section>
 
 <section class="card" id="promptPolicyCard">
-  <h2>AI翻訳指示 v5.5.1</h2>
+  <h2>AI翻訳指示 v5.5.2</h2>
   <p class="muted">これはfumezuaqの言語仕様ではなく、既存仕様をAIが扱うためのプロンプト指示です。</p>
   <details>
     <summary>判断階層</summary>

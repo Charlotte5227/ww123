@@ -310,7 +310,7 @@ function renderChunkInputs(values){
     const row=document.createElement("div");
     row.className="chunk-row";
     row.innerHTML=`<span class="chunk-index">${i+1}</span>
-      <input class="chunk-input" type="text" value="${esc(v)}" placeholder="意味塊 ${i+1}">
+      <input class="chunk-input" type="text" value="${esc(v)}" placeholder="意味塊 ${i+1}" autocomplete="off" autocapitalize="off" spellcheck="false">
       <button type="button" class="ghost chunk-up" title="上へ">↑</button>
       <button type="button" class="ghost chunk-down" title="下へ">↓</button>
       <button type="button" class="ghost chunk-remove" title="削除">−</button>`;
@@ -968,7 +968,7 @@ function initChunkUI(){
     if(!input){alert("先に全文を入力してください。");return}
     try{
       const provider=$("provider")?.value||"openai";
-      const model=$("model")?.value||"";
+      const model=selectedModelForProvider(provider);
       const chunks=await proposeChunks(provider,model,input);
       if(chunks.length)renderChunkInputs(chunks);
     }catch(e){alert("意味塊提案に失敗しました: "+e.message)}
@@ -1001,6 +1001,27 @@ document.querySelectorAll(".testkey").forEach(b=>b.onclick=async()=>{
  finally{b.disabled=false;b.textContent=old}
 });
 
+
+function selectedModelForProvider(provider){
+  const id = provider==="openai" ? "openaiModel" : provider==="anthropic" ? "anthropicModel" : "geminiModel";
+  const el=$(id);
+  const raw=String(el?.value||"").trim();
+  const fallback=String(el?.defaultValue||"").trim();
+  // Provider model IDs are ASCII identifiers. Japanese sentence/chunk text here means
+  // the browser has incorrectly autofilled the model field.
+  const looksLikeModel=/^[A-Za-z0-9][A-Za-z0-9._:\/-]*$/.test(raw);
+  const prefixOK = provider==="openai" ? /^(gpt|o\d|chatgpt|ft:)/i.test(raw)
+                 : provider==="anthropic" ? /^claude-/i.test(raw)
+                 : /^gemini-/i.test(raw);
+  if(looksLikeModel && prefixOK) return raw;
+  if(el && fallback){
+    el.value=fallback;
+    console.warn(`モデル欄に不正な値「${raw}」が入っていたため ${fallback} に復元しました。`);
+    return fallback;
+  }
+  throw new Error(`モデル名が不正です: ${raw||"(空)"}`);
+}
+
 $("translateBtn").onclick=async()=>{
  const input=$("inputText").value.trim();if(!input)return toast("入力してください");
  const provider=$("provider").value;$("translateBtn").disabled=true;$("translateBtn").textContent="解析中…";
@@ -1008,7 +1029,7 @@ $("translateBtn").onclick=async()=>{
    let data;
    if(provider==="rule") data=ruleTranslate(input);
    else{
-     const model=provider==="openai"?$("openaiModel").value:provider==="anthropic"?$("anthropicModel").value:$("geminiModel").value;
+     const model=selectedModelForProvider(provider);
      data=await aiTranslate(provider,model,input);
      LAST_TRANSLATION=data;LAST_PROVIDER=provider;LAST_MODEL=model;renderExplanation(null);
    }
