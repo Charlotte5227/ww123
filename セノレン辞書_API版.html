@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>セノレン辞書</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+html,body{margin:0}
+[hidden]{display:none!important}
+/* Layout: a working desk. Translator on the left, the word list on the right; stacked on phones. */
+:root{
+  --bg:#eef2ef; --surface:#ffffff; --sunk:#e3e9e5; --ink:#15232a; --muted:#5b6c70; --line:#cfd8d3;
+  --accent:#2c6b5a; --accent-ink:#ffffff; --accent-soft:#d6e8e1; --warn:#a4501f; --warn-soft:#f6e3d7;
+  --display:"Bricolage Grotesque","BIZ UDPGothic",system-ui,sans-serif;
+  --body:"BIZ UDPGothic","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1618; --surface:#162125; --sunk:#1c292e; --ink:#e4ece8; --muted:#93a5a0; --line:#2a383d;
+  --accent:#72c2a7; --accent-ink:#0d1a17; --accent-soft:#1e3a33; --warn:#f0a074; --warn-soft:#3a261c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1618; --surface:#162125; --sunk:#1c292e; --ink:#e4ece8; --muted:#93a5a0; --line:#2a383d;
+  --accent:#72c2a7; --accent-ink:#0d1a17; --accent-soft:#1e3a33; --warn:#f0a074; --warn-soft:#3a261c; color-scheme:dark}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--body);font-size:15px;line-height:1.7}
+.wrap{max-width:1240px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:20px}
+.brand h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,4vw,40px);line-height:1.05;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.brand h1 span{font-family:var(--body);font-weight:700;font-size:.5em;color:var(--muted);margin-left:.5em;letter-spacing:0}
+.brand p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.count{font-family:var(--mono);font-size:13px;color:var(--muted);text-align:right}
+.count b{font-family:var(--display);font-size:22px;color:var(--ink);font-weight:700;margin-right:4px}
+.grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;min-width:0}
+.panel h2{font-family:var(--display);font-size:20px;margin:0 0 12px;font-weight:700}
+.label{font-size:12px;letter-spacing:.04em;color:var(--muted);font-weight:700}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;gap:3px;background:var(--sunk);flex-wrap:wrap}
+.seg button{border:0;background:transparent;color:var(--ink);font:inherit;font-size:13px;padding:6px 12px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:700}
+textarea,select,input[type=search],input[type=number],input[type=text],input[type=password]{width:100%;box-sizing:border-box;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+textarea{min-height:110px;resize:vertical;line-height:1.6}
+textarea.mono,.mono{font-family:var(--mono)}
+textarea:focus,input:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{font:inherit;font-size:14px;border-radius:8px;padding:8px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.btn:disabled{opacity:.5;cursor:default}
+.stack{display:flex;flex-direction:column;gap:12px}
+.out{background:var(--sunk);border-radius:8px;padding:12px 14px;min-height:2.5em;white-space:pre-wrap;word-break:break-word}
+.out.big{font-family:var(--mono);font-size:17px;line-height:1.8}
+.note{font-size:13px;color:var(--muted)}
+.warnbox{background:var(--warn-soft);color:var(--ink);border-radius:8px;padding:10px 12px;font-size:13px}
+.warnbox b{color:var(--warn)}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-size:11px;letter-spacing:.06em;color:var(--muted);font-weight:700;padding:6px 8px;border-bottom:1px solid var(--line)}
+.tbl td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl tr.brk td{border-bottom:2px solid var(--accent-soft)}
+.scroll{overflow-x:auto}
+.tok{font-family:var(--mono);font-weight:600}
+.chip{display:inline-block;font-family:var(--mono);font-size:12px;padding:1px 7px;border-radius:999px;background:var(--accent-soft);color:var(--ink);margin:1px 2px;white-space:nowrap}
+.chip.root{background:transparent;border:1px solid var(--line)}
+.unk{color:var(--warn);font-weight:700}
+details{border-top:1px solid var(--line);padding-top:10px}
+.aiset{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--bg)}
+.aiset summary{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--warn);margin-right:4px}
+.dot.on{background:var(--accent)}
+summary{cursor:pointer;font-weight:700;font-size:14px}
+/* dictionary */
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.filters button{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:3px 10px;cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.list{list-style:none;margin:0;padding:0}
+.entry{display:grid;grid-template-columns:minmax(0,11em) minmax(0,1fr) auto;gap:4px 12px;padding:9px 4px;border-bottom:1px solid var(--line);align-items:baseline}
+.entry .w{font-family:var(--mono);font-weight:600;font-size:15px;word-break:break-all}
+.entry .m{min-width:0}
+.entry .p{display:block;font-size:12px;color:var(--muted)}
+.entry .tag{font-size:11px;color:var(--muted);white-space:nowrap;text-align:right}
+.entry .add{font:inherit;font-size:11px;border:1px solid var(--line);background:transparent;color:var(--accent);border-radius:6px;padding:1px 6px;cursor:pointer;margin-left:6px}
+@media (max-width:520px){.entry{grid-template-columns:minmax(0,1fr) auto}.entry .m{grid-column:1/-1;order:3}}
+.more{margin-top:10px}
+.ref{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:24px;margin-top:24px}
+.numout{font-family:var(--mono);font-size:16px}
+.roman{font-family:var(--display);font-size:22px}
+.d{display:inline-block;min-width:.9em;text-align:center;padding:0 .14em;margin-right:.14em;border-bottom:2px solid var(--accent-soft);line-height:1.2}
+kbd{font-family:var(--mono);font-size:12px;background:var(--sunk);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>senolen<span>セノレン辞書</span></h1>
+      <p>言葉の違う人どうしが話すための共通語。単語を調べて、文を訳す。</p>
+    </div>
+    <div class="count" id="count"></div>
+  </header>
+
+  <div class="grid">
+    <section class="panel stack" aria-labelledby="tr-h">
+      <h2 id="tr-h">翻訳</h2>
+      <details class="aiset" id="ai-set">
+        <summary>AIの設定 <span class="note" id="ai-cur"></span></summary>
+        <div class="stack" style="margin-top:10px">
+          <label class="label" for="prov">使うAI</label>
+          <select id="prov">
+            <option value="claude">Claude（Anthropic）</option>
+            <option value="openai">ChatGPT（OpenAI）</option>
+            <option value="gemini">Gemini（Google）</option>
+            <option value="local">ローカルAI（OpenAI互換）</option>
+          </select>
+          <div class="stack" id="key-wrap"><label class="label" for="key">APIキー</label>
+          <input type="password" id="key" autocomplete="off" spellcheck="false"></div>
+          <label class="label" for="model">モデル名</label>
+          <input type="text" id="model" autocomplete="off" spellcheck="false">
+          <div class="stack" id="ep-wrap" hidden><label class="label" for="ep">アドレス</label>
+          <input type="text" id="ep" autocomplete="off" spellcheck="false" placeholder="http://localhost:11434/v1"></div>
+          <div class="row"><button class="btn primary" id="save">保存</button><button class="btn" id="test">接続を試す</button><button class="btn" id="forget">このAIのキーを消す</button><span class="note" id="set-note"></span></div>
+          <p class="note" id="prov-help"></p>
+          <p class="note">APIキーはこのパソコンのブラウザの中にだけ保存され、このファイルには書き込まれません。訳すたびに、文と辞書が選んだAIのサービスへ送られ、そのサービスの料金がかかります。</p>
+        </div>
+      </details>
+      <div class="seg" role="group" aria-label="翻訳の向き">
+        <button id="m-sj" aria-pressed="true">senolen → 日本語</button>
+        <button id="m-js" aria-pressed="false">日本語 → senolen</button>
+      </div>
+      <label class="label" for="src" id="src-label">senolen の文</label>
+      <textarea id="src" class="mono" spellcheck="false"></textarea>
+      <div class="row">
+        <button class="btn primary" id="go">訳す</button>
+        <button class="btn" id="stop" hidden>止める</button>
+        <button class="btn" id="clear">消す</button>
+        <span class="note" id="ai-state"></span>
+      </div>
+
+      <div class="stack" id="res-ai-wrap" hidden>
+        <span class="label" id="res-ai-label">訳</span>
+        <div class="out" id="res-ai"></div>
+        <div class="row"><button class="btn" id="copy" hidden>senolen をコピー</button><span class="note" id="copy-note"></span></div>
+        <div id="res-extra"></div>
+      </div>
+
+      <div class="stack" id="gloss-wrap">
+        <span class="label">単語ごとの意味</span>
+        <div class="note" id="gloss-sum"></div>
+        <div class="scroll"><table class="tbl" id="gloss"><thead><tr><th>単語</th><th>分解</th><th>意味</th></tr></thead><tbody></tbody></table></div>
+      </div>
+
+      <div class="stack" id="hint-wrap" hidden>
+        <span class="label">使えそうな単語</span>
+        <div class="note">入力した日本語に含まれる意味から、辞書の単語を探しました。クリックで辞書を開きます。</div>
+        <div id="hints"></div>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="dict-h">
+      <h2 id="dict-h">辞書</h2>
+      <label class="label" for="q">senolen か日本語で探す</label>
+      <input type="search" id="q" placeholder="例：mapu、食べる、川" autocomplete="off">
+      <div class="filters" id="kinds" role="group" aria-label="種類"></div>
+      <div class="filters" id="fields" role="group" aria-label="分野"></div>
+      <div class="note" id="hitcount"></div>
+      <ul class="list" id="list"></ul>
+      <button class="btn more" id="more" hidden>さらに表示</button>
+    </section>
+  </div>
+
+  <div class="ref">
+    <section class="panel" aria-labelledby="mk-h">
+      <h2 id="mk-h">マーカー</h2>
+      <div class="scroll"><table class="tbl" id="mk"></table></div>
+      <p class="note">前に付くのは1つまで。後ろは「品詞 → 複数 → 活用」の順。文の終わりは <kbd>_</kbd>、引用は <kbd>:</kbd>。</p>
+    </section>
+    <section class="panel stack" aria-labelledby="num-h">
+      <h2 id="num-h">数字の変換</h2>
+      <label class="label" for="num">10進法の数（0〜1727）</label>
+      <input type="number" id="num" min="0" max="1727" value="175">
+      <div><span class="label">言い方</span><div class="numout" id="num-say"></div></div>
+      <div><span class="label">書き方（12進法）</span><div class="roman" id="num-write"></div></div>
+      <p class="note">12進法。hasa 0、ita 1、polu 2、sami 3、yako 4、hame 5、lusa 6、kolan 12、kolannta 144。-sun は＋6、-kon は＋12、-lan は×12。</p>
+    </section>
+  </div>
+</div>
+
+<script>
+const DATA = {"entries": [{"w": "epo", "m": "一人称（私）", "f": "機能語", "k": "語根", "mo": 2}, {"w": "ilu", "m": "他者（あなた・彼・彼女）", "f": "機能語", "k": "語根", "mo": 2}, {"w": "osa", "m": "それ（これ・あれ・その）", "f": "機能語", "k": "語根", "mo": 2}, {"w": "si", "m": "はい", "f": "機能語", "k": "語根", "mo": 1}, {"w": "na", "m": "いいえ", "f": "機能語", "k": "語根", "mo": 1}, {"w": "semo", "m": "＝（同じ／〜は〜だ）", "f": "機能語", "k": "語根", "mo": 2}, {"w": "kole", "m": "＞（〜より上）", "f": "機能語", "k": "語根", "mo": 2}, {"w": "toya", "m": "ある・いる", "f": "機能語", "k": "語根", "mo": 2}, {"w": "pako", "m": "できる", "f": "機能語", "k": "語根", "mo": 2}, {"w": "meli", "m": "したい・欲しい", "f": "機能語", "k": "語根", "mo": 2}, {"w": "hoku", "m": "しなければならない", "f": "機能語", "k": "語根", "mo": 2}, {"w": "yopeli", "m": "かもしれない・〜そう", "f": "機能語", "k": "語根", "mo": 3}, {"w": "suloma", "m": "させる", "f": "機能語", "k": "語根", "mo": 3}, {"w": "yomun", "m": "全部", "f": "機能語", "k": "語根", "mo": 3}, {"w": "sate", "m": "別・他の", "f": "機能語", "k": "語根", "mo": 2}, {"w": "tomin", "m": "一緒・共に", "f": "機能語", "k": "語根", "mo": 3}, {"w": "muli", "m": "人", "f": "疑問・指示に使う基本名詞", "k": "語根", "mo": 2}, {"w": "tike", "m": "物", "f": "疑問・指示に使う基本名詞", "k": "語根", "mo": 2}, {"w": "leso", "m": "場所", "f": "疑問・指示に使う基本名詞", "k": "語根", "mo": 2}, {"w": "sen", "m": "時", "f": "疑問・指示に使う基本名詞", "k": "語根", "mo": 2}, {"w": "saka", "m": "数・量", "f": "疑問・指示に使う基本名詞", "k": "語根", "mo": 2}, {"w": "ulomi", "m": "理由", "f": "疑問・指示に使う基本名詞", "k": "語根", "mo": 3}, {"w": "etumo", "m": "方法", "f": "疑問・指示に使う基本名詞", "k": "語根", "mo": 3}, {"w": "ewi", "m": "中", "f": "位置・方向", "k": "語根", "mo": 2}, {"w": "heta", "m": "外", "f": "位置・方向", "k": "語根", "mo": 2}, {"w": "oye", "m": "上", "f": "位置・方向", "k": "語根", "mo": 2}, {"w": "ume", "m": "下", "f": "位置・方向", "k": "語根", "mo": 2}, {"w": "seya", "m": "前", "f": "位置・方向", "k": "語根", "mo": 2}, {"w": "ulo", "m": "後ろ", "f": "位置・方向", "k": "語根", "mo": 2}, {"w": "losi", "m": "右", "f": "位置・方向", "k": "語根", "mo": 2}, {"w": "pewo", "m": "左", "f": "位置・方向", "k": "語根", "mo": 2}, {"w": "wapuli", "m": "子ども", "f": "人・家族・体", "k": "語根", "mo": 3}, {"w": "emi", "m": "母", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "opu", "m": "父", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "omuta", "m": "男", "f": "人・家族・体", "k": "語根", "mo": 3}, {"w": "mika", "m": "女", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "kulu", "m": "きょうだい", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "wimo", "m": "友達", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "malupo", "m": "家族", "f": "人・家族・体", "k": "語根", "mo": 3}, {"w": "milu", "m": "体", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "kumi", "m": "頭", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "oli", "m": "目", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "situ", "m": "耳", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "kimo", "m": "口", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "walu", "m": "手", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "yuke", "m": "足", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "tumo", "m": "腹", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "wiso", "m": "声", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "tumewe", "m": "配偶者（夫・妻）", "f": "人・家族・体", "k": "語根", "mo": 3}, {"w": "pulo", "m": "皮・肌", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "towe", "m": "血", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "kipa", "m": "骨", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "pasi", "m": "脂", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "mesu", "m": "角", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "tiwi", "m": "尾", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "kuyele", "m": "羽毛", "f": "人・家族・体", "k": "語根", "mo": 3}, {"w": "lele", "m": "毛・髪", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "suwe", "m": "鼻", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "lino", "m": "歯", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "yawi", "m": "舌", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "ukali", "m": "爪", "f": "人・家族・体", "k": "語根", "mo": 3}, {"w": "tupe", "m": "膝", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "tewale", "m": "翼", "f": "人・家族・体", "k": "語根", "mo": 3}, {"w": "tisa", "m": "首", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "lapu", "m": "背中", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "wapo", "m": "胸", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "tukipo", "m": "肝臓", "f": "人・家族・体", "k": "語根", "mo": 3}, {"w": "mapeli", "m": "親", "f": "人・家族・体", "k": "語根", "mo": 3}, {"w": "yaya", "m": "赤ん坊", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "mukipa", "m": "病気", "f": "人・家族・体", "k": "語根", "mo": 3}, {"w": "mupele", "m": "傷", "f": "人・家族・体", "k": "語根", "mo": 3}, {"w": "utemo", "m": "痛み", "f": "人・家族・体", "k": "語根", "mo": 3}, {"w": "watimi", "m": "大人", "f": "人・家族・体", "k": "語根", "mo": 3}, {"w": "mome", "m": "顔", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "ayuma", "m": "喉", "f": "人・家族・体", "k": "語根", "mo": 3}, {"w": "ketiku", "m": "肩", "f": "人・家族・体", "k": "語根", "mo": 3}, {"w": "lomo", "m": "腕", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "kowo", "m": "指", "f": "人・家族・体", "k": "語根", "mo": 2}, {"w": "palope", "m": "汗", "f": "人・家族・体", "k": "語根", "mo": 3}, {"w": "moputu", "m": "咳", "f": "人・家族・体", "k": "語根", "mo": 3}, {"w": "lopete", "m": "祖先", "f": "人・家族・体", "k": "語根", "mo": 3}, {"w": "mapu", "m": "食べる", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "pomi", "m": "飲む", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "tuli", "m": "行く", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "toma", "m": "来る", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "malin", "m": "戻る・帰る", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "pemo", "m": "出る", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "tepa", "m": "会う", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "lipa", "m": "見る", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "tuni", "m": "聞く", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "pitu", "m": "言う・話す", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "lumi", "m": "知る・分かる", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "tasu", "m": "する", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "silu", "m": "なる", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "patu", "m": "作る", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "aso", "m": "与える・あげる", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "sipu", "m": "取る・もらう", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "kutu", "m": "持つ", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "patan", "m": "置く", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "yusa", "m": "使う", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "sumi", "m": "寝る", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "lati", "m": "起きる", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "heso", "m": "座る", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "yata", "m": "立つ", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "papu", "m": "歩く", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "tuku", "m": "走る", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "yolu", "m": "泳ぐ", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "yupan", "m": "住む", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "puti", "m": "遊ぶ", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "wasu", "m": "買う", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "lupu", "m": "売る", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "lamin", "m": "待つ", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "mawe", "m": "助ける", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "lisu", "m": "学ぶ", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "opin", "m": "教える", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "yosan", "m": "読む", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "sowe", "m": "書く", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "pusa", "m": "開ける", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "tiso", "m": "閉める", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "selu", "m": "切る", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "silen", "m": "洗う", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "hopa", "m": "呼ぶ", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "lekan", "m": "始める", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "posin", "m": "終わる", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "sopo", "m": "着る", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "sitan", "m": "探す", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "lepo", "m": "見つける", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "wiku", "m": "変える・変わる", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "hoyu", "m": "生きる", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "yupo", "m": "死ぬ", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "kipun", "m": "噛む", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "hepu", "m": "吸う", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "luta", "m": "唾を吐く", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "wotun", "m": "吐く（嘔吐）", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "tipu", "m": "吹く", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "tumin", "m": "嗅ぐ", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "yupati", "m": "戦う", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "lisapa", "m": "狩る", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "pesu", "m": "打つ・叩く", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "peyan", "m": "割る", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "yukun", "m": "刺す", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "yeyu", "m": "掻く", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "tulun", "m": "掘る", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "lepun", "m": "飛ぶ", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "salin", "m": "横になる", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "tilun", "m": "回る", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "yatun", "m": "落ちる", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "tekun", "m": "絞る", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "kosu", "m": "こする", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "selin", "m": "拭く", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "tawi", "m": "引く", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "sonu", "m": "押す", "f": "基本の動作", "k": "語根", "mo": 2}, {"w": "sopan", "m": "投げる", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "melun", "m": "結ぶ", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "kesin", "m": "縫う", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "apun", "m": "浮く", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "liyan", "m": "流れる", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "pukan", "m": "膨らむ", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "yapun", "m": "治す", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "yomaku", "m": "触る", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "yawan", "m": "守る", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "yowen", "m": "壊す", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "tepon", "m": "選ぶ", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "sayun", "m": "信じる", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "patuma", "m": "運ぶ", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "yokan", "m": "生まれる", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "tewesa", "m": "捨てる", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "simoli", "m": "休む", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "tetan", "m": "決める・決まる", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "pemin", "m": "止まる", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "hotin", "m": "送る", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "lipon", "m": "答える", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "lakaya", "m": "続ける", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "sukimin", "m": "試す", "f": "基本の動作", "k": "語根", "mo": 4}, {"w": "kimitun", "m": "踊る", "f": "基本の動作", "k": "語根", "mo": 4}, {"w": "sutiyan", "m": "掃く", "f": "基本の動作", "k": "語根", "mo": 4}, {"w": "yukiku", "m": "混ぜる", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "limuyun", "m": "注ぐ", "f": "基本の動作", "k": "語根", "mo": 4}, {"w": "siyasa", "m": "脱ぐ", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "latami", "m": "貸す", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "pimuta", "m": "借りる", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "kumiyu", "m": "盗む", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "imilu", "m": "隠す", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "kisiyan", "m": "育てる", "f": "基本の動作", "k": "語根", "mo": 4}, {"w": "kikayan", "m": "刈る", "f": "基本の動作", "k": "語根", "mo": 4}, {"w": "talupa", "m": "祈る", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "sisama", "m": "祝う", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "kipiman", "m": "測る", "f": "基本の動作", "k": "語根", "mo": 4}, {"w": "akin", "m": "分ける", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "pimiman", "m": "描く", "f": "基本の動作", "k": "語根", "mo": 4}, {"w": "palali", "m": "許す", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "lapitu", "m": "褒める", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "lapasin", "m": "捕まえる", "f": "基本の動作", "k": "語根", "mo": 4}, {"w": "miyali", "m": "跳ぶ", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "sipin", "m": "感じる", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "imiya", "m": "耕す", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "atami", "m": "蒔く", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "atisi", "m": "実る", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "yasapun", "m": "釣る", "f": "基本の動作", "k": "語根", "mo": 4}, {"w": "yukama", "m": "捧げる", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "apipan", "m": "誓う", "f": "基本の動作", "k": "語根", "mo": 4}, {"w": "lutuma", "m": "葬る", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "latakin", "m": "攻める", "f": "基本の動作", "k": "語根", "mo": 4}, {"w": "payayu", "m": "逃げる", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "papuka", "m": "降参する", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "sumisa", "m": "命じる", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "latusi", "m": "裏切る", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "pilima", "m": "見張る", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "pamika", "m": "勝つ", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "sukuta", "m": "負ける", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "tusakin", "m": "競う", "f": "基本の動作", "k": "語根", "mo": 4}, {"w": "masata", "m": "賭ける", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "palimin", "m": "狙う", "f": "基本の動作", "k": "語根", "mo": 4}, {"w": "tulipin", "m": "挑む", "f": "基本の動作", "k": "語根", "mo": 4}, {"w": "mipasan", "m": "応援する", "f": "基本の動作", "k": "語根", "mo": 4}, {"w": "usisan", "m": "占う", "f": "基本の動作", "k": "語根", "mo": 4}, {"w": "mipita", "m": "清める", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "takili", "m": "もてなす", "f": "基本の動作", "k": "語根", "mo": 3}, {"w": "amayan", "m": "受け継ぐ", "f": "基本の動作", "k": "語根", "mo": 4}, {"w": "telewo", "m": "木", "f": "植物", "k": "語根", "mo": 3}, {"w": "towelo", "m": "森", "f": "植物", "k": "語根", "mo": 3}, {"w": "lote", "m": "葉", "f": "植物", "k": "語根", "mo": 2}, {"w": "weseko", "m": "花", "f": "植物", "k": "語根", "mo": 3}, {"w": "tepolo", "m": "草", "f": "植物", "k": "語根", "mo": 3}, {"w": "yesolo", "m": "野菜", "f": "植物", "k": "語根", "mo": 3}, {"w": "losemo", "m": "果物", "f": "植物", "k": "語根", "mo": 3}, {"w": "yeloka", "m": "りんご", "f": "植物", "k": "語根", "mo": 3}, {"w": "toseno", "m": "種", "f": "植物", "k": "語根", "mo": 3}, {"w": "kelo", "m": "根", "f": "植物", "k": "語根", "mo": 2}, {"w": "atewo", "m": "枝", "f": "植物", "k": "語根", "mo": 3}, {"w": "petele", "m": "芋", "f": "植物", "k": "語根", "mo": 3}, {"w": "lotelo", "m": "きのこ", "f": "植物", "k": "語根", "mo": 3}, {"w": "pete", "m": "麦", "f": "植物", "k": "語根", "mo": 2}, {"w": "tale", "m": "芽", "f": "植物", "k": "語根", "mo": 2}, {"w": "pepope", "m": "木の実", "f": "植物", "k": "語根", "mo": 3}, {"w": "seweso", "m": "藁", "f": "植物", "k": "語根", "mo": 3}, {"w": "pewake", "m": "肥やし", "f": "植物", "k": "語根", "mo": 3}, {"w": "melio", "m": "家", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "salepo", "m": "部屋", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "petona", "m": "扉", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "pelesa", "m": "窓", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "lumeso", "m": "寝床", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "sepoli", "m": "椅子", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "tamelo", "m": "机", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "liselo", "m": "町", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "selamo", "m": "道", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "silesa", "m": "店", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "pilemo", "m": "村", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "muselo", "m": "壁", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "tesuna", "m": "屋根", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "selopa", "m": "庭", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "lomepa", "m": "畑", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "pemoso", "m": "橋", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "pomamo", "m": "床", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "nemita", "m": "階段", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "letama", "m": "井戸", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "sanile", "m": "広場", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "masale", "m": "門", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "atopo", "m": "倉", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "ilopo", "m": "柵", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "sanasa", "m": "小屋", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "tinesa", "m": "かまど", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "tisame", "m": "臼", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "somape", "m": "墓", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "nonipe", "m": "砦", "f": "生活空間", "k": "語根", "mo": 3}, {"w": "yokasu", "m": "動物", "f": "動物", "k": "語根", "mo": 3}, {"w": "temeke", "m": "犬", "f": "動物", "k": "語根", "mo": 3}, {"w": "mesi", "m": "猫", "f": "動物", "k": "語根", "mo": 2}, {"w": "yokutu", "m": "鳥", "f": "動物", "k": "語根", "mo": 3}, {"w": "takolu", "m": "魚", "f": "動物", "k": "語根", "mo": 3}, {"w": "solupa", "m": "馬", "f": "動物", "k": "語根", "mo": 3}, {"w": "kepeli", "m": "牛", "f": "動物", "k": "語根", "mo": 3}, {"w": "pesike", "m": "虫", "f": "動物", "k": "語根", "mo": 3}, {"w": "pitike", "m": "シラミ", "f": "動物", "k": "語根", "mo": 3}, {"w": "yolupu", "m": "蛇", "f": "動物", "k": "語根", "mo": 3}, {"w": "kuputu", "m": "ミミズ", "f": "動物", "k": "語根", "mo": 3}, {"w": "eseli", "m": "羊", "f": "動物", "k": "語根", "mo": 3}, {"w": "metite", "m": "豚", "f": "動物", "k": "語根", "mo": 3}, {"w": "lakalu", "m": "鶏", "f": "動物", "k": "語根", "mo": 3}, {"w": "lilete", "m": "鼠", "f": "動物", "k": "語根", "mo": 3}, {"w": "musuya", "m": "熊", "f": "動物", "k": "語根", "mo": 3}, {"w": "suloku", "m": "狼", "f": "動物", "k": "語根", "mo": 3}, {"w": "simite", "m": "鹿", "f": "動物", "k": "語根", "mo": 3}, {"w": "meyemi", "m": "兎", "f": "動物", "k": "語根", "mo": 3}, {"w": "alaso", "m": "蜂", "f": "動物", "k": "語根", "mo": 3}, {"w": "yetike", "m": "山羊", "f": "動物", "k": "語根", "mo": 3}, {"w": "muyasa", "m": "狐", "f": "動物", "k": "語根", "mo": 3}, {"w": "kimeye", "m": "鷲", "f": "動物", "k": "語根", "mo": 3}, {"w": "moyuso", "m": "蛙", "f": "動物", "k": "語根", "mo": 3}, {"w": "tikime", "m": "蟻", "f": "動物", "k": "語根", "mo": 3}, {"w": "kolako", "m": "蝶", "f": "動物", "k": "語根", "mo": 3}, {"w": "kololu", "m": "貝", "f": "動物", "k": "語根", "mo": 3}, {"w": "lama", "m": "巣", "f": "動物", "k": "語根", "mo": 2}, {"w": "akuya", "m": "水", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "tulapa", "m": "火", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "puyaku", "m": "風", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "kuyupa", "m": "土", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "simiku", "m": "石", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "lupaya", "m": "太陽", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "silapa", "m": "月（天体）", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "tikuya", "m": "星", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "haliya", "m": "空", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "tamaku", "m": "雨", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "lasuya", "m": "雪", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "tupuka", "m": "山", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "tayuma", "m": "川", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "lamipa", "m": "海", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "witaya", "m": "湖", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "pukiya", "m": "砂", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "upaya", "m": "埃", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "sumaya", "m": "雲", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "kumuya", "m": "霧", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "pitiya", "m": "氷", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "kusipa", "m": "煙", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "utupa", "m": "灰", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "tilaya", "m": "光", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "kitaku", "m": "島", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "wasiya", "m": "谷", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "ipupa", "m": "野原", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "isipa", "m": "泥", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "simupa", "m": "波", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "saluku", "m": "雷", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "sutipa", "m": "虹", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "tisiku", "m": "天気", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "yapaya", "m": "影", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "lutiya", "m": "世界", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "wasapa", "m": "坂", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "musiku", "m": "崖", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "payapa", "m": "洞窟", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "awiya", "m": "滝", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "kupiku", "m": "泉", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "pikapa", "m": "浜", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "mapipa", "m": "嵐", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "yuwapa", "m": "地震", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "pimipa", "m": "空気", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "yupiya", "m": "潮", "f": "自然・天気・地形", "k": "語根", "mo": 3}, {"w": "piyata", "m": "肉", "f": "食べ物・料理", "k": "語根", "mo": 3}, {"w": "tamali", "m": "米・穀物", "f": "食べ物・料理", "k": "語根", "mo": 3}, {"w": "mutali", "m": "パン", "f": "食べ物・料理", "k": "語根", "mo": 3}, {"w": "papiya", "m": "卵", "f": "食べ物・料理", "k": "語根", "mo": 3}, {"w": "payoli", "m": "乳", "f": "食べ物・料理", "k": "語根", "mo": 3}, {"w": "patisa", "m": "塩", "f": "食べ物・料理", "k": "語根", "mo": 3}, {"w": "malisa", "m": "甘さ", "f": "食べ物・料理", "k": "語根", "mo": 3}, {"w": "tisali", "m": "辛さ", "f": "食べ物・料理", "k": "語根", "mo": 3}, {"w": "pukali", "m": "空腹", "f": "食べ物・料理", "k": "語根", "mo": 3}, {"w": "telo", "m": "焼く", "f": "食べ物・料理", "k": "語根", "mo": 2}, {"w": "yamati", "m": "料理する", "f": "食べ物・料理", "k": "語根", "mo": 3}, {"w": "talimi", "m": "豆", "f": "食べ物・料理", "k": "語根", "mo": 3}, {"w": "pitali", "m": "苦さ", "f": "食べ物・料理", "k": "語根", "mo": 3}, {"w": "kotisa", "m": "酸っぱさ", "f": "食べ物・料理", "k": "語根", "mo": 3}, {"w": "pakami", "m": "煮る", "f": "食べ物・料理", "k": "語根", "mo": 3}, {"w": "yasama", "m": "蜜", "f": "食べ物・料理", "k": "語根", "mo": 3}, {"w": "apasi", "m": "酒", "f": "食べ物・料理", "k": "語根", "mo": 3}, {"w": "yapimi", "m": "粉", "f": "食べ物・料理", "k": "語根", "mo": 3}, {"w": "siyati", "m": "渇き", "f": "食べ物・料理", "k": "語根", "mo": 3}, {"w": "palama", "m": "生（なま）", "f": "食べ物・料理", "k": "語根", "mo": 3}, {"w": "sumoka", "m": "心", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "somule", "m": "考える", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "sotumi", "m": "好む", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "teyomo", "m": "愛", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "yusomo", "m": "嬉しさ", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "hayumi", "m": "楽しさ", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "tosemi", "m": "悲しさ", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "yatomo", "m": "怒り", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "hoyume", "m": "恐れ", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "tomesu", "m": "疲れ", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "opoyu", "m": "笑う", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "momeso", "m": "泣く", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "toyosu", "m": "覚える", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "yuseno", "m": "忘れる", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "kesuli", "m": "注意", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "oyosu", "m": "驚き", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "hasumo", "m": "恥", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "yomisu", "m": "寂しさ", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "iyemi", "m": "夢", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "ukoyu", "m": "心配", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "yotute", "m": "勇気", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "kemeko", "m": "魂", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "sotiso", "m": "霊", "f": "感情・心", "k": "語根", "mo": 3}, {"w": "pon", "m": "今日", "f": "時間・暦", "k": "語根", "mo": 2}, {"w": "lin", "m": "昨日", "f": "時間・暦", "k": "語根", "mo": 2}, {"w": "yun", "m": "明日", "f": "時間・暦", "k": "語根", "mo": 2}, {"w": "toyan", "m": "日", "f": "時間・暦", "k": "語根", "mo": 3}, {"w": "silon", "m": "週", "f": "時間・暦", "k": "語根", "mo": 3}, {"w": "wennpo", "m": "月（暦）", "f": "時間・暦", "k": "語根", "mo": 3}, {"w": "tannmo", "m": "年", "f": "時間・暦", "k": "語根", "mo": 3}, {"w": "lunnka", "m": "時（時間の単位）", "f": "時間・暦", "k": "語根", "mo": 3}, {"w": "lunnsi", "m": "分", "f": "時間・暦", "k": "語根", "mo": 3}, {"w": "lunnpe", "m": "秒", "f": "時間・暦", "k": "語根", "mo": 3}, {"w": "pennsi", "m": "朝", "f": "時間・暦", "k": "語根", "mo": 3}, {"w": "sonnpu", "m": "昼", "f": "時間・暦", "k": "語根", "mo": 3}, {"w": "hennsu", "m": "夜", "f": "時間・暦", "k": "語根", "mo": 3}, {"w": "punnye", "m": "春", "f": "時間・暦", "k": "語根", "mo": 3}, {"w": "mennli", "m": "夏", "f": "時間・暦", "k": "語根", "mo": 3}, {"w": "winnso", "m": "秋", "f": "時間・暦", "k": "語根", "mo": 3}, {"w": "tunnpa", "m": "冬", "f": "時間・暦", "k": "語根", "mo": 3}, {"w": "punntu", "m": "季節", "f": "時間・暦", "k": "語根", "mo": 3}, {"w": "keme", "m": "お金", "f": "道具・物", "k": "語根", "mo": 2}, {"w": "tekesu", "m": "本", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "lepike", "m": "紙", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "lekete", "m": "服", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "sekepo", "m": "かばん", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "tipeke", "m": "箱", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "kepin", "m": "コップ", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "sitepe", "m": "ナイフ", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "kitepo", "m": "道具", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "kepete", "m": "棒", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "tewepe", "m": "縄", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "wotike", "m": "舟", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "lekipo", "m": "車輪", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "tepoke", "m": "鍋", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "telipe", "m": "皿", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "tukete", "m": "布", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "koselo", "m": "匙", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "sisoke", "m": "壺", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "seloko", "m": "籠", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "seke", "m": "糸", "f": "道具・物", "k": "語根", "mo": 2}, {"w": "topiso", "m": "鍵", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "lokilo", "m": "鏡", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "ileke", "m": "薪", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "tikiso", "m": "金属", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "ike", "m": "絵", "f": "道具・物", "k": "語根", "mo": 2}, {"w": "poso", "m": "文字", "f": "道具・物", "k": "語根", "mo": 2}, {"w": "epipe", "m": "弓", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "kite", "m": "矢", "f": "道具・物", "k": "語根", "mo": 2}, {"w": "pipoko", "m": "剣", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "etele", "m": "太鼓", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "leloso", "m": "鋸", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "pipe", "m": "網", "f": "道具・物", "k": "語根", "mo": 2}, {"w": "pisete", "m": "釣り針", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "lesilo", "m": "櫂", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "ete", "m": "帆", "f": "道具・物", "k": "語根", "mo": 2}, {"w": "siko", "m": "板", "f": "道具・物", "k": "語根", "mo": 2}, {"w": "ketoko", "m": "丸太", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "kokiso", "m": "炭", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "toko", "m": "荷", "f": "道具・物", "k": "語根", "mo": 2}, {"w": "kelelo", "m": "盾", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "kepipe", "m": "槍", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "popite", "m": "鎧", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "losipe", "m": "旗", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "sipile", "m": "さいころ", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "poke", "m": "駒", "f": "道具・物", "k": "語根", "mo": 2}, {"w": "kiteke", "m": "盤", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "oko", "m": "的", "f": "道具・物", "k": "語根", "mo": 2}, {"w": "pokete", "m": "仮面", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "lisole", "m": "お守り", "f": "道具・物", "k": "語根", "mo": 3}, {"w": "eku", "m": "良さ", "f": "性質・色・形", "k": "語根", "mo": 2}, {"w": "polapu", "m": "大きさ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "kopa", "m": "強さ", "f": "性質・色・形", "k": "語根", "mo": 2}, {"w": "tiyalu", "m": "長さ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "otalu", "m": "高さ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "mukalu", "m": "重さ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "pasulu", "m": "速さ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "atuku", "m": "近さ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "ulupu", "m": "新しさ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "musulu", "m": "易しさ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "melutu", "m": "正しさ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "simalu", "m": "美しさ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "wipulu", "m": "広さ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "tiyutu", "m": "厚さ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "piyulu", "m": "満ち（いっぱい）", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "kotulu", "m": "腐り", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "tupulu", "m": "汚れ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "yetulu", "m": "まっすぐさ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "mumulu", "m": "丸さ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "kilupu", "m": "鋭さ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "melalu", "m": "滑らかさ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "isalu", "m": "濡れ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "ilaku", "m": "若さ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "utulupu", "m": "老い", "f": "性質・色・形", "k": "語根", "mo": 4}, {"w": "omalu", "m": "静かさ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "atilu", "m": "賢さ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "annpulu", "m": "優しさ", "f": "性質・色・形", "k": "語根", "mo": 4}, {"w": "patuku", "m": "危なさ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "tikupu", "m": "硬さ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "sapa", "m": "味", "f": "性質・色・形", "k": "語根", "mo": 2}, {"w": "kulipa", "m": "寒さ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "tapuli", "m": "熱さ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "wanapu", "m": "色", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "piluku", "m": "赤", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "tumalu", "m": "青", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "lisupu", "m": "緑", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "yutupu", "m": "黄", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "itulu", "m": "白", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "mukupu", "m": "黒", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "tupitu", "m": "深さ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "liputu", "m": "大切さ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "mulitu", "m": "忙しさ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "makapu", "m": "平らさ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "tipatu", "m": "四角さ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "malipu", "m": "聖さ", "f": "性質・色・形", "k": "語根", "mo": 3}, {"w": "olupa", "m": "名前", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "solemi", "m": "言葉", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "hatolo", "m": "仕事", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "talesi", "m": "集まり", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "hoseli", "m": "交換", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "lohata", "m": "国", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "yoteli", "m": "共同体・仲間", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "sapelo", "m": "物語", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "selowi", "m": "歌", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "olimo", "m": "感謝", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "tewami", "m": "謝罪", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "hakoli", "m": "客", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "yohepo", "m": "長（まとめ役）", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "wihole", "m": "敵", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "pesoli", "m": "祭り", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "holilo", "m": "意味", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "sisalo", "m": "問い", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "ahali", "m": "秘密", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "hokolo", "m": "平和", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "selisi", "m": "神", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "simesi", "m": "罰", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "ileli", "m": "恵み", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "likisi", "m": "呪い", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "sokesi", "m": "罪", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "laholi", "m": "儀式", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "kimasi", "m": "しるし", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "lalelo", "m": "戦争", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "kili", "m": "王", "f": "社会・交流", "k": "語根", "mo": 2}, {"w": "sikolo", "m": "境", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "kolosi", "m": "遊戯・ゲーム", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "molo", "m": "点", "f": "社会・交流", "k": "語根", "mo": 2}, {"w": "kikosi", "m": "賞", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "hakasi", "m": "相手", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "salo", "m": "運", "f": "社会・交流", "k": "語根", "mo": 2}, {"w": "hali", "m": "番（順番）", "f": "社会・交流", "k": "語根", "mo": 2}, {"w": "limali", "m": "伝統", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "hetomo", "m": "風習・しきたり", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "litilo", "m": "禁忌（タブー）", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "mosili", "m": "掟", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "lamolo", "m": "名誉", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "asosi", "m": "伝説・神話", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "siteli", "m": "ことわざ・言い伝え", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "kiholo", "m": "一族・氏族", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "hasilo", "m": "世代", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "soli", "m": "喪", "f": "社会・交流", "k": "語根", "mo": 2}, {"w": "telasi", "m": "穢れ", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "solasi", "m": "生贄", "f": "社会・交流", "k": "語根", "mo": 3}, {"w": "hasa", "m": "0", "f": "数字", "k": "数字", "mo": 2}, {"w": "ita", "m": "1", "f": "数字", "k": "数字", "mo": 2}, {"w": "polu", "m": "2", "f": "数字", "k": "数字", "mo": 2}, {"w": "sami", "m": "3", "f": "数字", "k": "数字", "mo": 2}, {"w": "yako", "m": "4", "f": "数字", "k": "数字", "mo": 2}, {"w": "hame", "m": "5", "f": "数字", "k": "数字", "mo": 2}, {"w": "lusa", "m": "6", "f": "数字", "k": "数字", "mo": 2}, {"w": "kolan", "m": "12", "f": "数字", "k": "数字", "mo": 3}, {"w": "kolannta", "m": "144", "f": "数字", "k": "数字", "mo": 4}, {"w": "opinnmuli", "m": "先生", "f": "合成語", "k": "合成語", "p": "opin＋muli"}, {"w": "lisumuli", "m": "生徒", "f": "合成語", "k": "合成語", "p": "lisu＋muli"}, {"w": "yapunnmuli", "m": "医者", "f": "合成語", "k": "合成語", "p": "yapun＋muli"}, {"w": "yamatimuli", "m": "料理人", "f": "合成語", "k": "合成語", "p": "yamati＋muli"}, {"w": "lupumuli", "m": "商人", "f": "合成語", "k": "合成語", "p": "lupu＋muli"}, {"w": "patumuli", "m": "職人", "f": "合成語", "k": "合成語", "p": "patu＋muli"}, {"w": "lomepamuli", "m": "農家", "f": "合成語", "k": "合成語", "p": "lomepa＋muli"}, {"w": "takolumuli", "m": "漁師", "f": "合成語", "k": "合成語", "p": "takolu＋muli"}, {"w": "lisapamuli", "m": "狩人", "f": "合成語", "k": "合成語", "p": "lisapa＋muli"}, {"w": "tulimuli", "m": "旅人", "f": "合成語", "k": "合成語", "p": "tuli＋muli"}, {"w": "atukumuli", "m": "隣人", "f": "合成語", "k": "合成語", "p": "atuku＋muli"}, {"w": "selowimuli", "m": "歌い手", "f": "合成語", "k": "合成語", "p": "selowi＋muli"}, {"w": "ilakumuli", "m": "若者", "f": "合成語", "k": "合成語", "p": "ilaku＋muli"}, {"w": "utulupumuli", "m": "老人", "f": "合成語", "k": "合成語", "p": "utulupu＋muli"}, {"w": "teyomomuli", "m": "恋人", "f": "合成語", "k": "合成語", "p": "teyomo＋muli"}, {"w": "kumiyumuli", "m": "泥棒", "f": "合成語", "k": "合成語", "p": "kumiyu＋muli"}, {"w": "pimimannmuli", "m": "絵描き", "f": "合成語", "k": "合成語", "p": "pimiman＋muli"}, {"w": "eselimuli", "m": "羊飼い", "f": "合成語", "k": "合成語", "p": "eseli＋muli"}, {"w": "selisimuli", "m": "神に仕える人", "f": "合成語", "k": "合成語", "p": "selisi＋muli"}, {"w": "telewomuli", "m": "木こり", "f": "合成語", "k": "合成語", "p": "telewo＋muli"}, {"w": "tisamemuli", "m": "粉屋", "f": "合成語", "k": "合成語", "p": "tisame＋muli"}, {"w": "yasapunnmuli", "m": "釣り人", "f": "合成語", "k": "合成語", "p": "yasapun＋muli"}, {"w": "yupatimuli", "m": "兵士・戦士", "f": "合成語", "k": "合成語", "p": "yupati＋muli"}, {"w": "pilimamuli", "m": "見張り番", "f": "合成語", "k": "合成語", "p": "pilima＋muli"}, {"w": "tusakinnmuli", "m": "選手", "f": "合成語", "k": "合成語", "p": "tusakin＋muli"}, {"w": "tetannmuli", "m": "審判", "f": "合成語", "k": "合成語", "p": "tetan＋muli"}, {"w": "pamikamuli", "m": "勝者", "f": "合成語", "k": "合成語", "p": "pamika＋muli"}, {"w": "sukutamuli", "m": "敗者", "f": "合成語", "k": "合成語", "p": "sukuta＋muli"}, {"w": "sotisomuli", "m": "巫女・霊媒", "f": "合成語", "k": "合成語", "p": "sotiso＋muli"}, {"w": "usisannmuli", "m": "占い師", "f": "合成語", "k": "合成語", "p": "usisan＋muli"}, {"w": "asosimuli", "m": "語り部", "f": "合成語", "k": "合成語", "p": "asosi＋muli"}, {"w": "pilemuli", "m": "村民", "f": "合成語", "k": "合成語", "p": "pile＋muli"}, {"w": "lisuleso", "m": "学校", "f": "合成語", "k": "合成語", "p": "lisu＋leso"}, {"w": "teloleso", "m": "台所", "f": "合成語", "k": "合成語", "p": "telo＋leso"}, {"w": "hatololeso", "m": "仕事場", "f": "合成語", "k": "合成語", "p": "hatolo＋leso"}, {"w": "patannleso", "m": "棚", "f": "合成語", "k": "合成語", "p": "patan＋leso"}, {"w": "yapunnleso", "m": "病院", "f": "合成語", "k": "合成語", "p": "yapun＋leso"}, {"w": "sumileso", "m": "寝室", "f": "合成語", "k": "合成語", "p": "sumi＋leso"}, {"w": "talesileso", "m": "集会所", "f": "合成語", "k": "合成語", "p": "talesi＋leso"}, {"w": "wotikeleso", "m": "港", "f": "合成語", "k": "合成語", "p": "wotike＋leso"}, {"w": "talupaleso", "m": "神殿・祈りの場", "f": "合成語", "k": "合成語", "p": "talupa＋leso"}, {"w": "sumileso", "m": "宿", "f": "合成語", "k": "合成語", "p": "sumi＋leso"}, {"w": "yokasuleso", "m": "家畜小屋", "f": "合成語", "k": "合成語", "p": "yokasu＋leso"}, {"w": "tamalileso", "m": "穀物倉", "f": "合成語", "k": "合成語", "p": "tamali＋leso"}, {"w": "yupatileso", "m": "戦場", "f": "合成語", "k": "合成語", "p": "yupati＋leso"}, {"w": "somapeleso", "m": "墓地", "f": "合成語", "k": "合成語", "p": "somape＋leso"}, {"w": "tusakinnleso", "m": "競技場", "f": "合成語", "k": "合成語", "p": "tusakin＋leso"}, {"w": "yapunntike", "m": "薬", "f": "合成語", "k": "合成語", "p": "yapun＋tike"}, {"w": "lepunntike", "m": "飛ぶ物", "f": "合成語", "k": "合成語", "p": "lepun＋tike"}, {"w": "putitike", "m": "おもちゃ", "f": "合成語", "k": "合成語", "p": "puti＋tike"}, {"w": "kesinnkitepo", "m": "針", "f": "合成語", "k": "合成語", "p": "kesin＋kitepo"}, {"w": "peyannkitepo", "m": "斧", "f": "合成語", "k": "合成語", "p": "peyan＋kitepo"}, {"w": "tilayakitepo", "m": "灯り", "f": "合成語", "k": "合成語", "p": "tilaya＋kitepo"}, {"w": "tulunnkitepo", "m": "鍬", "f": "合成語", "k": "合成語", "p": "tulun＋kitepo"}, {"w": "selinnkitepo", "m": "布巾", "f": "合成語", "k": "合成語", "p": "selin＋kitepo"}, {"w": "imiyakitepo", "m": "犂（すき）", "f": "合成語", "k": "合成語", "p": "imiya＋kitepo"}, {"w": "yasapunnkitepo", "m": "釣り竿", "f": "合成語", "k": "合成語", "p": "yasapun＋kitepo"}, {"w": "yupatikitepo", "m": "武器", "f": "合成語", "k": "合成語", "p": "yupati＋kitepo"}, {"w": "kulipatipeke", "m": "冷やす箱", "f": "合成語", "k": "合成語", "p": "kulipa＋tipeke"}, {"w": "kemetipeke", "m": "財布", "f": "合成語", "k": "合成語", "p": "keme＋tipeke"}, {"w": "lekipotipeke", "m": "荷車", "f": "合成語", "k": "合成語", "p": "lekipo＋tipeke"}, {"w": "yukelekete", "m": "靴", "f": "合成語", "k": "合成語", "p": "yuke＋lekete"}, {"w": "kumilekete", "m": "帽子", "f": "合成語", "k": "合成語", "p": "kumi＋lekete"}, {"w": "walulekete", "m": "手袋", "f": "合成語", "k": "合成語", "p": "walu＋lekete"}, {"w": "pesolilekete", "m": "祭りの衣装", "f": "合成語", "k": "合成語", "p": "pesoli＋lekete"}, {"w": "momesoakuya", "m": "涙", "f": "合成語", "k": "合成語", "p": "momeso＋akuya"}, {"w": "tapuliakuya", "m": "湯", "f": "合成語", "k": "合成語", "p": "tapuli＋akuya"}, {"w": "losemoakuya", "m": "果汁", "f": "合成語", "k": "合成語", "p": "losemo＋akuya"}, {"w": "yokanntoyan", "m": "誕生日", "f": "合成語", "k": "合成語", "p": "yokan＋toyan"}, {"w": "pesolitoyan", "m": "祭りの日", "f": "合成語", "k": "合成語", "p": "pesoli＋toyan"}, {"w": "simolitoyan", "m": "休みの日", "f": "合成語", "k": "合成語", "p": "simoli＋toyan"}, {"w": "mapelimapeli", "m": "祖父母（親の親）", "f": "合成語", "k": "合成語", "p": "mapeli＋mapeli"}, {"w": "wapuliwapuli", "m": "孫（子の子）", "f": "合成語", "k": "合成語", "p": "wapuli＋wapuli"}, {"w": "tannmosaka", "m": "年齢（年の数）", "f": "合成語", "k": "合成語", "p": "tannmo＋saka"}, {"w": "tominntetan", "m": "約束（共に決める）", "f": "合成語", "k": "合成語", "p": "tomin＋tetan"}, {"w": "seyatetan", "m": "予約（前に決める）", "f": "合成語", "k": "合成語", "p": "seya＋tetan"}, {"w": "pitutalesi", "m": "話し合い", "f": "合成語", "k": "合成語", "p": "pitu＋talesi"}, {"w": "wasulepike", "m": "レシート・受け取り", "f": "合成語", "k": "合成語", "p": "wasu＋lepike"}, {"w": "etumolepike", "m": "説明書", "f": "合成語", "k": "合成語", "p": "etumo＋lepike"}, {"w": "silesatalesi", "m": "市場", "f": "合成語", "k": "合成語", "p": "silesa＋talesi"}, {"w": "sowelepike", "m": "手紙", "f": "合成語", "k": "合成語", "p": "sowe＋lepike"}, {"w": "yukekowo", "m": "足の指", "f": "合成語", "k": "合成語", "p": "yuke＋kowo"}, {"w": "eselilele", "m": "羊毛", "f": "合成語", "k": "合成語", "p": "eseli＋lele"}, {"w": "yapunntepolo", "m": "薬草", "f": "合成語", "k": "合成語", "p": "yapun＋tepolo"}, {"w": "akuyaselamo", "m": "水路", "f": "合成語", "k": "合成語", "p": "akuya＋selamo"}, {"w": "tupukaselamo", "m": "山道", "f": "合成語", "k": "合成語", "p": "tupuka＋selamo"}, {"w": "akuyalomepa", "m": "水田", "f": "合成語", "k": "合成語", "p": "akuya＋lomepa"}, {"w": "losemotelewo", "m": "果樹", "f": "合成語", "k": "合成語", "p": "losemo＋telewo"}, {"w": "tupukaoye", "m": "山頂", "f": "合成語", "k": "合成語", "p": "tupuka＋oye"}, {"w": "tupukaume", "m": "麓", "f": "合成語", "k": "合成語", "p": "tupuka＋ume"}, {"w": "kikayannpesoli", "m": "収穫祭", "f": "合成語", "k": "合成語", "p": "kikayan＋pesoli"}, {"w": "telewosiko", "m": "木の板", "f": "合成語", "k": "合成語", "p": "telewo＋siko"}, {"w": "lamipapikapa", "m": "海辺", "f": "合成語", "k": "合成語", "p": "lamipa＋pikapa"}, {"w": "selisitekesu", "m": "聖典", "f": "合成語", "k": "合成語", "p": "selisi＋tekesu"}, {"w": "talupasolemi", "m": "祈りの言葉", "f": "合成語", "k": "合成語", "p": "talupa＋solemi"}, {"w": "yupolohata", "m": "死者の国", "f": "合成語", "k": "合成語", "p": "yupo＋lohata"}, {"w": "kililohata", "m": "王国", "f": "合成語", "k": "合成語", "p": "kili＋lohata"}, {"w": "selisitoyan", "m": "聖なる日", "f": "合成語", "k": "合成語", "p": "selisi＋toyan"}, {"w": "masatakeme", "m": "賭け金", "f": "合成語", "k": "合成語", "p": "masata＋keme"}, {"w": "kolosikiteke", "m": "遊戯盤", "f": "合成語", "k": "合成語", "p": "kolosi＋kiteke"}, {"w": "utulupuyohepo", "m": "長老", "f": "合成語", "k": "合成語", "p": "utulupu＋yohepo"}, {"w": "lutumatalesi", "m": "葬式", "f": "合成語", "k": "合成語", "p": "lutuma＋talesi"}, {"w": "tumewepesoli", "m": "婚礼", "f": "合成語", "k": "合成語", "p": "tumewe＋pesoli"}, {"w": "watimilaholi", "m": "成人の儀", "f": "合成語", "k": "合成語", "p": "watimi＋laholi"}, {"w": "limaliselowi", "m": "伝統の歌", "f": "合成語", "k": "合成語", "p": "limali＋selowi"}, {"w": "lopetesomape", "m": "先祖の墓", "f": "合成語", "k": "合成語", "p": "lopete＋somape"}, {"w": "pileyohepo", "m": "村長", "f": "合成語", "k": "合成語", "p": "pile＋yohepo"}, {"w": "hetalutiya", "m": "外界（村の外の世界）", "f": "合成語", "k": "合成語", "p": "heta＋lutiya"}, {"w": "mapu-mu", "m": "食べ物", "f": "表現", "k": "表現", "p": "食べる＋名詞化"}, {"w": "pomi-mu", "m": "飲み物", "f": "表現", "k": "表現", "p": "飲む＋名詞化"}, {"w": "aso-mu", "m": "贈り物", "f": "表現", "k": "表現", "p": "与える＋名詞化"}, {"w": "hatolo-ki", "m": "働く", "f": "表現", "k": "表現", "p": "仕事＋動詞化"}, {"w": "selowi-ki", "m": "歌う", "f": "表現", "k": "表現", "p": "歌＋動詞化"}, {"w": "tamaku-ki", "m": "雨が降る", "f": "表現", "k": "表現", "p": "雨＋動詞化"}, {"w": "opin-pi", "m": "尋ねる", "f": "表現", "k": "表現", "p": "教える＋依頼（教えてほしい）"}, {"w": "eku-ne／na-eku-ne", "m": "良い／悪い", "f": "表現", "k": "表現", "p": "良さ＋形容"}, {"w": "polapu-ne／na-polapu-ne", "m": "大きい／小さい", "f": "表現", "k": "表現", "p": "大きさ＋形容"}, {"w": "ulupu-ne／na-ulupu-ne", "m": "新しい／古い", "f": "表現", "k": "表現", "p": "新しさ＋形容"}, {"w": "pasulu-ne／na-pasulu-ne", "m": "速い／遅い", "f": "表現", "k": "表現", "p": "速さ＋形容"}, {"w": "atuku-ne／na-atuku-ne", "m": "近い／遠い", "f": "表現", "k": "表現", "p": "近さ＋形容"}, {"w": "sapa-ne", "m": "美味しい", "f": "表現", "k": "表現", "p": "味＋形容"}, {"w": "kopa-ne／na-kopa-ne", "m": "とても／少し", "f": "表現", "k": "表現", "p": "強さ＋形容"}, {"w": "saka-ne／na-saka-ne", "m": "たくさん／少ない", "f": "表現", "k": "表現", "p": "数＋形容"}, {"w": "telopiyata", "m": "焼肉", "f": "表現", "k": "表現", "p": "焼く＋肉（合成語）"}, {"w": "ka-muli／ka-tike／ka-leso／ka-sen", "m": "誰か／何か／どこか／いつか", "f": "表現", "k": "表現", "p": "疑問マーカー"}, {"w": "osa leso", "m": "ここ・そこ", "f": "表現", "k": "表現", "p": "それ 場所"}, {"w": "polu-ne lunnka", "m": "2時（時刻）", "f": "表現", "k": "表現", "p": "2番目の 時"}, {"w": "ita-ne lunnka polulan lusa lunnsi", "m": "1時30分", "f": "表現", "k": "表現", "p": "1番目の 時 30 分"}, {"w": "polu toyan seya", "m": "一昨日", "f": "表現", "k": "表現", "p": "2 日 前"}, {"w": "yomun sen", "m": "いつも", "f": "表現", "k": "表現", "p": "全部の 時"}, {"w": "sate itamon", "m": "もう一度", "f": "表現", "k": "表現", "p": "別の 1回"}, {"w": "lusa", "m": "半分", "f": "表現", "k": "表現", "p": "6（12の半分）"}, {"w": "hamesun", "m": "ほとんど", "f": "表現", "k": "表現", "p": "11（12のうち11）"}, {"w": "osa-wa", "m": "それぞれ", "f": "表現", "k": "表現", "p": "それら"}, {"w": "yusa", "m": "乗る", "f": "表現", "k": "表現", "p": "使う"}, {"w": "tuni-mu／tumin-mu", "m": "音／匂い", "f": "表現", "k": "表現", "p": "聞く／嗅ぐ＋名詞化"}, {"w": "tetan-mu", "m": "決まり", "f": "表現", "k": "表現", "p": "決める＋名詞化"}, {"w": "yupati-mu／mawe-mu／meli-mu", "m": "争い／助け／希望", "f": "表現", "k": "表現", "p": "戦う／助ける／したい＋名詞化"}, {"w": "tilaya-ne／na-tilaya-ne", "m": "明るい／暗い", "f": "表現", "k": "表現", "p": "光＋形容"}, {"w": "tikupu-ne／na-tikupu-ne", "m": "硬い／柔らかい", "f": "表現", "k": "表現", "p": "硬さ＋形容"}, {"w": "omalu-ne／na-omalu-ne", "m": "静か／うるさい", "f": "表現", "k": "表現", "p": "静かさ＋形容"}, {"w": "na-patuku-ne", "m": "安全", "f": "表現", "k": "表現", "p": "危なさ＋形容の否定"}, {"w": "eku-ne milu", "m": "健康", "f": "表現", "k": "表現", "p": "良い 体"}, {"w": "keme saka-ne muli", "m": "金持ち", "f": "表現", "k": "表現", "p": "お金 多い 人"}, {"w": "kole silu／na-kole silu", "m": "勝つ／負ける（言い換え）", "f": "表現", "k": "表現", "p": "上に なる（単語は pamika／sukuta）"}, {"w": "na-toya silu／suloma na-toya", "m": "なくなる／なくす", "f": "表現", "k": "表現", "p": "ない なる／ないようにさせる"}, {"w": "polapu-ne silu", "m": "育つ", "f": "表現", "k": "表現", "p": "大きく なる"}, {"w": "toseno patan", "m": "植える", "f": "表現", "k": "表現", "p": "種 置く"}, {"w": "na-melutu-ne pitu", "m": "嘘をつく", "f": "表現", "k": "表現", "p": "正しくない 言う"}, {"w": "tewami-ki／olimo-ki／yatomo-ki／oyosu-ki", "m": "謝る／感謝する／怒る／驚く", "f": "表現", "k": "表現", "p": "名詞＋動詞化"}, {"w": "lipon-mu／kimitun-mu／sisalo", "m": "答え／踊り／問いかけ", "f": "表現", "k": "表現", "p": "答える／踊る＋名詞化"}, {"w": "na-ukoyu-ki", "m": "安心する", "f": "表現", "k": "表現", "p": "心配の否定＋動詞化"}, {"w": "na-mukalu-ne／na-tupitu-ne／na-mulitu-ne／na-tupulu-ne", "m": "軽い／浅い／暇／清潔", "f": "表現", "k": "表現", "p": "重さ・深さ・忙しさ・汚れ＋形容の否定"}, {"w": "na-musulu-ne", "m": "難しい", "f": "表現", "k": "表現", "p": "易しさ＋形容の否定"}, {"w": "na-sotumi", "m": "嫌う", "f": "表現", "k": "表現", "p": "好むの否定"}, {"w": "kole saka", "m": "もっと", "f": "表現", "k": "表現", "p": "＞ 数"}, {"w": "pasulu-ne／na-pasulu-ne", "m": "すぐ／ゆっくり", "f": "表現", "k": "表現", "p": "速さ＋形容"}, {"w": "saka-ne sen", "m": "よく（何度も）", "f": "表現", "k": "表現", "p": "多い 時"}, {"w": "yomun muli／yomun tike", "m": "みんな／何でも", "f": "表現", "k": "表現", "p": "全部 人／全部 物"}, {"w": "ewi tuli／oye tuli／ume tuli", "m": "入る／登る／降りる", "f": "表現", "k": "表現", "p": "中・上・下 行く"}, {"w": "malin aso", "m": "返す", "f": "表現", "k": "表現", "p": "戻る あげる"}, {"w": "suloma talesi-ki／suloma lati／suloma yatun／suloma tulapa-ki", "m": "集める／起こす／落とす／燃やす", "f": "表現", "k": "表現", "p": "させる＋動詞"}, {"w": "tumewe silu", "m": "結婚する", "f": "表現", "k": "表現", "p": "配偶者 なる"}, {"w": "lipa pako／tuni pako", "m": "見える／聞こえる", "f": "表現", "k": "表現", "p": "見る・聞く できる"}, {"w": "kikayan-mu", "m": "収穫", "f": "表現", "k": "表現", "p": "刈る＋名詞化"}, {"w": "akuya aso", "m": "水をやる", "f": "表現", "k": "表現", "p": "水 あげる"}, {"w": "telewo selu _ suloma yatun", "m": "木を切り倒す", "f": "表現", "k": "表現", "p": "木 切る。落ちさせる"}, {"w": "na-eku-ne tepolo", "m": "雑草", "f": "表現", "k": "表現", "p": "良くない 草"}, {"w": "ilaku-ne telewo", "m": "苗木", "f": "表現", "k": "表現", "p": "若い 木"}, {"w": "na-polapu-ne tayuma", "m": "小川", "f": "表現", "k": "表現", "p": "小さい 川"}, {"w": "payoli tekun", "m": "乳をしぼる", "f": "表現", "k": "表現", "p": "乳 絞る"}, {"w": "lupaya tilaya", "m": "日の光", "f": "表現", "k": "表現", "p": "太陽 光"}, {"w": "sayun-mu", "m": "信仰", "f": "表現", "k": "表現", "p": "信じる＋名詞化"}, {"w": "ileli aso", "m": "祝福する", "f": "表現", "k": "表現", "p": "恵み あげる"}, {"w": "likisi-ki", "m": "呪う", "f": "表現", "k": "表現", "p": "呪い＋動詞化"}, {"w": "na-eku-ne sotiso", "m": "悪霊", "f": "表現", "k": "表現", "p": "良くない 霊"}, {"w": "haliya", "m": "天", "f": "表現", "k": "表現", "p": "空"}, {"w": "pamika-mu／sukuta-mu", "m": "勝利／敗北", "f": "表現", "k": "表現", "p": "勝つ／負ける＋名詞化"}, {"w": "yupatimuli-wa", "m": "軍・軍勢", "f": "表現", "k": "表現", "p": "兵士＋複数"}, {"w": "yoteli", "m": "味方", "f": "表現", "k": "表現", "p": "仲間"}, {"w": "hokolo melun", "m": "和平を結ぶ", "f": "表現", "k": "表現", "p": "平和 結ぶ"}, {"w": "tusakin-mu", "m": "試合・勝負", "f": "表現", "k": "表現", "p": "競う＋名詞化"}, {"w": "semo silu", "m": "引き分け", "f": "表現", "k": "表現", "p": "同じに なる"}, {"w": "ita-ne・polu-ne", "m": "一番・二番", "f": "表現", "k": "表現", "p": "数字＋順番"}, {"w": "molo sipu", "m": "点を取る", "f": "表現", "k": "表現", "p": "点 取る"}, {"w": "hali wiku", "m": "順番を代わる", "f": "表現", "k": "表現", "p": "番 変える"}, {"w": "na-melutu-ne", "m": "ずる・不正", "f": "表現", "k": "表現", "p": "正しくない"}, {"w": "salo eku-ne", "m": "運がいい", "f": "表現", "k": "表現", "p": "運 良い"}, {"w": "yukama-mu", "m": "供物", "f": "表現", "k": "表現", "p": "捧げる＋名詞化"}, {"w": "na-eku-ne hetomo", "m": "因習", "f": "表現", "k": "表現", "p": "良くない 風習"}, {"w": "mosili yowen", "m": "掟を破る", "f": "表現", "k": "表現", "p": "掟 壊す"}, {"w": "mosili yawan", "m": "掟を守る", "f": "表現", "k": "表現", "p": "掟 守る"}, {"w": "soli toya", "m": "喪に服す", "f": "表現", "k": "表現", "p": "喪 ある"}, {"w": "telasi mipita", "m": "穢れを払う", "f": "表現", "k": "表現", "p": "穢れ 清める"}, {"w": "limali amayan", "m": "伝統を受け継ぐ", "f": "表現", "k": "表現", "p": "伝統 受け継ぐ"}, {"w": "pileyohepo-wa talesi", "m": "村長会議", "f": "表現", "k": "表現", "p": "村長たち 集まり"}, {"w": "tepa-yo", "m": "こんにちは", "f": "挨拶", "k": "挨拶", "p": "会う＋感動詞"}, {"w": "pennsi-yo", "m": "おはよう", "f": "挨拶", "k": "挨拶", "p": "朝＋感動詞"}, {"w": "sumi-yo", "m": "おやすみ", "f": "挨拶", "k": "挨拶", "p": "寝る＋感動詞"}, {"w": "tuli-yo", "m": "さようなら", "f": "挨拶", "k": "挨拶", "p": "行く＋感動詞"}, {"w": "olimo-yo", "m": "ありがとう", "f": "挨拶", "k": "挨拶", "p": "感謝＋感動詞"}, {"w": "tewami-yo", "m": "ごめんなさい", "f": "挨拶", "k": "挨拶", "p": "謝罪＋感動詞"}, {"w": "eku-yo", "m": "いいね・大丈夫", "f": "挨拶", "k": "挨拶", "p": "良さ＋感動詞"}, {"w": "mapu-yo", "m": "いただきます", "f": "挨拶", "k": "挨拶", "p": "食べる＋感動詞"}], "fields": ["機能語", "疑問・指示に使う基本名詞", "位置・方向", "人・家族・体", "基本の動作", "植物", "生活空間", "動物", "自然・天気・地形", "食べ物・料理", "感情・心", "時間・暦", "道具・物", "性質・色・形", "社会・交流"]};
+const RULES = `senolen の文法（要点）
+- 語順は自由で、基本は SOV。「が」「を」はない。形容（-ne）は名詞の直前。長い文は短い文に分ける。「〜する人」のような関係節は作らず、文を分ける。
+- 前マーカー（1つまで）：na- 否定、ka- 分からないもの（ka-名詞 ＝ 誰か・何か。尋ねる文では動詞にも ka- を付ける）、nu- 否定の疑問。
+- 後ろマーカーの順：品詞（-ne 形容・副詞、-mu 名詞化、-ki 動詞化、-yo 感動詞）→ 複数（-wa）→ 活用（-se 仮定・これから、-to 命令、-pi 依頼、-la 進行）。na-…-la ＝ まだ〜していない。-se は名詞にも付く（osa-se ＝ それなら）。
+- 時制はない。時は時の単語で示す（lin 昨日、pon 今日、yun 明日）。時の前後は seya（前）・ulo（後）。
+- pako できる、meli したい・欲しい、hoku しなければ、yopeli かもしれない、suloma させる、は動詞と並べる。場所・道具・方向も動詞を並べて表す（sitepe yusa selu ＝ ナイフで切る）。
+- 比較：A semo B（A は B だ／同じ）、A kole B＋基準の名詞（A は B より〜）。na-kole は「超えない」。
+- 所有：持ち主を前（epo melio ＝ 私の家）。
+- 性質の名詞＋-ne で「多い・強い・良い」側。反対は na-（na-polapu-ne ＝ 小さい）。とても kopa-ne、少し na-kopa-ne。
+- 代名詞：epo 私、ilu 他者（あなた・彼・彼女）、osa それ。人名はそのまま、大文字で始める。
+- はい si、いいえ na。質問を認めるなら si、打ち消すなら na。
+- つなぎ：na-osa しかし、osa-se それなら、osa ulo その後、osa sen そのとき、osa leso そこで。
+- 数字は名詞の前。12進法：hasa 0、ita 1、polu 2、sami 3、yako 4、hame 5、lusa 6、kolan 12、kolannta 144。-sun＋6、-kon＋12、-lan×12。sun の後に接尾辞が続くと sunn（itasunnkon ＝ 19）。大きい部分から（polulan ita ＝ 25）。順番・時刻は -ne（polu-ne lunnka ＝ 2時）。曜日 -ten、回数 -mon。
+- 新しい物は合成語（X＋基礎語彙）で作る。後ろが中心（opinnmuli ＝ 教える＋人 ＝ 先生）。
+- 書き方：マーカーはハイフンでつなぐ。文の終わりは「 _ 」。引用は「:」。「?」は使わない。単語の途中の「ん」は nn（合成語でも）、語末は n。`;
+
+const PRE = new Set(["na","ka","nu"]);
+const SUF = {ne:"形容・副詞",mu:"名詞化",ki:"動詞化",yo:"感動詞",wa:"複数",se:"仮定・これから",to:"命令",pi:"依頼",la:"進行"};
+const PREM = {na:"否定",ka:"分からないもの・疑問",nu:"否定の疑問"};
+const MARKERS = [["前","na-","否定","na-mapu ＝ 食べない"],["前","ka-","分からないもの・疑問","ka-mapu ＝ 食べる？"],["前","nu-","否定の疑問","nu-mapu ＝ 食べないの？"],["品詞","-ne","形容・副詞","polapu-ne ＝ 大きい"],["品詞","-mu","名詞化","mapu-mu ＝ 食べ物"],["品詞","-ki","動詞化","selowi-ki ＝ 歌う"],["品詞","-yo","感動詞","olimo-yo ＝ ありがとう"],["複数","-wa","複数","epo-wa ＝ 私たち"],["活用","-se","仮定・これから","mapu-se ＝ 食べれば"],["活用","-to","命令","mapu-to ＝ 食べなさい"],["活用","-pi","依頼","mapu-pi ＝ 食べてほしい"],["活用","-la","進行","mapu-la ＝ 食べている"]];
+
+const E = DATA.entries;
+const byWord = new Map();
+for (const e of E) { if (!byWord.has(e.w)) byWord.set(e.w, e); }
+const roots = new Map(E.filter(e=>e.k==="語根"||e.k==="数字"||e.k==="合成語").map(e=>[e.w,e]));
+const DIG = {hasa:0,ita:1,polu:2,sami:3,yako:4,hame:5,lusa:6};
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------- numbers ---------- */
+const ROMAN = ["0","Ⅰ","Ⅱ","Ⅲ","Ⅳ","Ⅴ","Ⅵ","Ⅶ","Ⅷ","Ⅸ","Ⅹ","Ⅺ"];
+const BASEW = ["hasa","ita","polu","sami","yako","hame","lusa"];
+function small(k, suffixed){ // 1..11
+  if (k<=6) return BASEW[k];
+  return BASEW[k-6] + (suffixed ? "sunn" : "sun");
+}
+function toSenolen(n){
+  if (n===0) return "hasa";
+  const a=Math.floor(n/144), b=Math.floor((n%144)/12), c=n%12, out=[];
+  if (a===1) out.push("kolannta"); else if (a>1) out.push(small(a,false)+" kolannta");
+  if (b===1) out.push(c ? small(c,true)+"kon" : "kolan");
+  else { if (b>1) out.push(small(b,true)+"lan"); if (c) out.push(small(c,false)); }
+  return out.join(" ");
+}
+function toRoman(n){ if(n===0) return "0"; let s=""; while(n>0){ s=ROMAN[n%12]+s; n=Math.floor(n/12);} return s; }
+function romanHTML(n){ return [...toRoman(n)].map(c=>`<span class="d">${c}</span>`).join(""); }
+function parseNum(w){
+  if (w==="kolan") return {v:12}; if (w==="kolannta") return {v:144};
+  const m = w.match(/^(hasa|ita|polu|sami|yako|hame|lusa)(sunn?)?(kon|lan)?(ten|mon)?$/);
+  if (!m) return null;
+  let v = DIG[m[1]] + (m[2]?6:0);
+  if (m[3]==="kon") v += 12; else if (m[3]==="lan") v *= 12;
+  return {v, unit: m[4]==="ten" ? "曜日" : m[4]==="mon" ? "回" : ""};
+}
+function renderNum(){
+  let n = Math.max(0, Math.min(1727, Math.floor(Number($("num").value)||0)));
+  $("num-say").textContent = toSenolen(n);
+  $("num-write").innerHTML = romanHTML(n);
+}
+
+/* ---------- analysis (senolen -> parts) ---------- */
+function rootMeaning(r){
+  if (roots.has(r)) return {m: roots.get(r).m, ok:true};
+  const num = parseNum(r); if (num) return {m: String(num.v) + (num.unit ? num.unit : ""), ok:true};
+  for (let i=2;i<=r.length-2;i++){
+    let L=r.slice(0,i), R=r.slice(i);
+    if (L.endsWith("nn")) L=L.slice(0,-1);
+    if (roots.has(L)){
+      if (roots.has(R)) return {m: roots.get(L).m+"＋"+roots.get(R).m+"（合成語）", ok:true};
+      for (let j=2;j<=R.length-2;j++){
+        let A=R.slice(0,j), B=R.slice(j); if (A.endsWith("nn")) A=A.slice(0,-1);
+        if (roots.has(A)&&roots.has(B)) return {m: roots.get(L).m+"＋"+roots.get(A).m+"＋"+roots.get(B).m+"（合成語）", ok:true};
+      }
+    }
+  }
+  return {m:"（辞書にない）", ok:false};
+}
+function analyzeToken(raw){
+  let quote=false, t=raw;
+  if (t.endsWith(":")){ quote=true; t=t.slice(0,-1); }
+  if (!t) return null;
+  if (/^[A-Z]/.test(t)) return {raw, root:t, pre:[], suf:[], m:"人名・地名", ok:true, quote};
+  t=t.toLowerCase();
+  if (t==="si"||t==="na") return {raw, root:t, pre:[], suf:[], m: t==="si"?"はい":"いいえ", ok:true, quote};
+  const parts=t.split("-").filter(Boolean);
+  const pre=[], suf=[];
+  while (parts.length>1 && PRE.has(parts[0]) && pre.length<1) pre.push(parts.shift());
+  while (parts.length>1 && SUF[parts[parts.length-1]]) suf.unshift(parts.pop());
+  const root=parts.join("-");
+  const rm=rootMeaning(root);
+  return {raw, root, pre, suf, m:rm.m, ok:rm.ok, quote};
+}
+function analyze(text){
+  const rows=[];
+  const toks=text.replace(/[。．.]/g," _ ").replace(/[、,]/g," ").replace(/[？?！!]/g," ").split(/\s+/).filter(Boolean);
+  for (const tk of toks){
+    if (tk==="_"){ if(rows.length) rows[rows.length-1].brk=true; continue; }
+    const a=analyzeToken(tk); if(a) rows.push(a);
+  }
+  return rows;
+}
+function glossLine(a){
+  let s=a.m.replace(/（合成語）/,"");
+  if (a.pre.includes("na")) s="〜でない："+s;
+  if (a.pre.includes("ka")) s="？"+s;
+  if (a.pre.includes("nu")) s="〜ないの？："+s;
+  const sm=a.suf.map(x=>SUF[x]); if (sm.length) s+="〔"+sm.join("・")+"〕";
+  return s;
+}
+function renderGloss(text){
+  const rows=analyze(text), tb=$("gloss").tBodies[0];
+  tb.innerHTML="";
+  let unk=0;
+  for (const a of rows){
+    if(!a.ok) unk++;
+    const tr=document.createElement("tr"); if(a.brk) tr.className="brk";
+    const parts=[...a.pre.map(p=>`<span class="chip" title="${esc(PREM[p])}">${p}-</span>`),`<span class="chip root">${esc(a.root)}</span>`,...a.suf.map(s=>`<span class="chip" title="${esc(SUF[s])}">-${s}</span>`)].join("");
+    const extra=[...a.pre.map(p=>PREM[p]),...a.suf.map(s=>SUF[s])];
+    tr.innerHTML=`<td class="tok">${esc(a.raw)}</td><td>${parts}</td><td class="${a.ok?"":"unk"}">${esc(a.m)}${extra.length?`<span class="note">　${esc(extra.join("・"))}</span>`:""}${a.quote?`<span class="note">　（この後に引用）</span>`:""}</td>`;
+    tb.appendChild(tr);
+  }
+  const sents=[]; let cur=[];
+  for (const a of rows){ cur.push(glossLine(a)); if(a.brk){ sents.push(cur.join(" ")); cur=[]; } }
+  if(cur.length) sents.push(cur.join(" "));
+  $("gloss-sum").innerHTML = rows.length ? `直訳：${esc(sents.join("。 "))}${unk?`<br><span class="unk">辞書にない単語が ${unk} 個あります。</span>`:""}` : "文を入れると、単語ごとの意味が出ます。";
+  $("gloss-wrap").hidden = false;
+  return {rows, unk};
+}
+
+/* ---------- hints (ja -> dictionary) ---------- */
+function hintsFor(ja){
+  const found=[];
+  for (const e of E){
+    const segs=e.m.split(/[・／、（）()\s＝]+/).map(s=>s.replace(/^〜/,"").replace(/[ーすいるうくぐむぶつ]$/,"")).filter(s=>s.length>=1);
+    let best=0;
+    for (const s of segs){ if (s.length>=1 && ja.includes(s)) best=Math.max(best,s.length); }
+    if (best>=1 && !(best===1 && !/[一-鿿]/.test(e.m))) found.push([best,e]);
+  }
+  found.sort((a,b)=>b[0]-a[0]);
+  const seen=new Set(), out=[];
+  for (const [,e] of found){ if(seen.has(e.w)) continue; seen.add(e.w); out.push(e); if(out.length>=40) break; }
+  return out;
+}
+function renderHints(ja){
+  const h=hintsFor(ja);
+  $("hints").innerHTML = h.length ? h.map(e=>`<button class="btn" data-w="${esc(e.w)}" style="margin:3px"><span class="tok">${esc(e.w)}</span>　${esc(e.m)}</button>`).join("") : `<span class="note">見つかりませんでした。</span>`;
+  $("hint-wrap").hidden=false;
+}
+
+/* ---------- AI providers ---------- */
+const PROVIDERS={
+  claude:{needKey:true, model:"claude-sonnet-5-5", modelPh:"例：claude-sonnet-5-5", help:"console.anthropic.com で作ったAPIキー（sk-ant- で始まる）を入れてください。モデル名の例：claude-sonnet-5-5、claude-haiku-5-5、claude-opus-5-5。"},
+  openai:{needKey:true, model:"", modelPh:"OpenAI のモデル名", help:"platform.openai.com で作ったAPIキー（sk- で始まる）を入れてください。モデル名は、OpenAI のモデル一覧にある名前をそのまま入れてください。"},
+  gemini:{needKey:true, model:"", modelPh:"Gemini のモデル名", help:"aistudio.google.com で作ったAPIキーを入れてください。モデル名は、Gemini のモデル一覧にある名前をそのまま入れてください。"},
+  local:{needKey:false, model:"", modelPh:"例：ollama list で出る名前", help:"Ollama や LM Studio など、OpenAI 互換のAPIを持つローカルAIにつなぎます。Ollama は環境変数 OLLAMA_ORIGINS=* を設定して起動しないと、このファイルからはつながりません。辞書をまるごと送るので、長い入力（3万トークン程度）を扱えるモデルが必要です。APIキーは、必要な場合だけ入れてください。"}
+};
+const CFG_KEY="senolen-ai-settings";
+let cfg={provider:"claude",keys:{},models:{},endpoint:""};
+try{ const c=JSON.parse(localStorage.getItem(CFG_KEY)||"null"); if(c&&c.provider) cfg=Object.assign(cfg,c); }catch(_){}
+function saveCfg(){ try{ localStorage.setItem(CFG_KEY,JSON.stringify(cfg)); return true; }catch(_){ return false; } }
+function aiReady(){ const p=cfg.provider; const model=(cfg.models[p]||PROVIDERS[p].model||"").trim(); return !!model && (!PROVIDERS[p].needKey || !!(cfg.keys[p]||"").trim()); }
+const PNAME={claude:"Claude",openai:"ChatGPT",gemini:"Gemini",local:"ローカルAI"};
+async function callAI(prompt, signal){
+  const p=cfg.provider, key=(cfg.keys[p]||"").trim(), model=(cfg.models[p]||PROVIDERS[p].model||"").trim();
+  if (PROVIDERS[p].needKey && !key) throw {code:"no_key"};
+  if (!model) throw {code:"no_model"};
+  let res, data;
+  try{
+    if (p==="claude"){
+      res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",signal,headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model,max_tokens:4000,messages:[{role:"user",content:prompt}]})});
+      data=await res.json().catch(()=>null);
+      if(!res.ok) throw {code:"http",status:res.status,detail:data&&data.error&&data.error.message};
+      return (data.content||[]).filter(c=>c.type==="text").map(c=>c.text).join("");
+    }
+    if (p==="openai"||p==="local"){
+      const base=(p==="openai"?"https://api.openai.com/v1":(cfg.endpoint||"http://localhost:11434/v1")).replace(/\/+$/,"");
+      const headers={"content-type":"application/json"}; if(key) headers.authorization="Bearer "+key;
+      res=await fetch(base+"/chat/completions",{method:"POST",signal,headers,body:JSON.stringify({model,messages:[{role:"user",content:prompt}]})});
+      data=await res.json().catch(()=>null);
+      if(!res.ok) throw {code:"http",status:res.status,detail:data&&(data.error&&(data.error.message||data.error))};
+      return (data&&data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||"";
+    }
+    if (p==="gemini"){
+      res=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent",{method:"POST",signal,headers:{"content-type":"application/json","x-goog-api-key":key},body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt}]}]})});
+      data=await res.json().catch(()=>null);
+      if(!res.ok) throw {code:"http",status:res.status,detail:data&&data.error&&data.error.message};
+      const parts=(data&&data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts)||[];
+      return parts.map(x=>x.text||"").join("");
+    }
+  }catch(e){
+    if (e&&e.name==="AbortError") throw {code:"cancelled"};
+    if (e instanceof TypeError) throw {code:"network"};
+    throw e;
+  }
+}
+function parseJSON(t){
+  try{ return JSON.parse(t); }catch(_){}
+  const m=t.match(/```(?:json)?\s*([\s\S]*?)```/); if(m){ try{ return JSON.parse(m[1]); }catch(_){} }
+  const i=t.indexOf("{"), j=t.lastIndexOf("}"); if(i>=0&&j>i){ try{ return JSON.parse(t.slice(i,j+1)); }catch(_){} }
+  throw {code:"invalid_json", text:t};
+}
+function renderSettings(){
+  const p=cfg.provider, P=PROVIDERS[p];
+  $("prov").value=p;
+  $("key").value=cfg.keys[p]||""; $("key").placeholder=P.needKey?"APIキー":"（必要な場合だけ）";
+  $("model").value=cfg.models[p]||P.model||""; $("model").placeholder=P.modelPh;
+  $("ep-wrap").hidden = p!=="local"; $("ep").value=cfg.endpoint||"";
+  $("prov-help").textContent=P.help;
+  $("ai-cur").innerHTML = aiReady() ? `<span class="dot on"></span>${PNAME[p]}・${esc(cfg.models[p]||P.model)}` : `<span class="dot"></span>未設定（開いて設定してください）`;
+}
+function readSettings(){
+  const p=$("prov").value; cfg.provider=p;
+  cfg.keys[p]=$("key").value.trim(); cfg.models[p]=$("model").value.trim();
+  if (p==="local") cfg.endpoint=$("ep").value.trim();
+}
+
+/* ---------- translator ---------- */
+let mode="sj", ctl=null;
+const SAMPLE_SJ="ka-toyan _ ilu tayuma ewi polapu-ne takolu lepo _ ilu takolu lapasin _ osa kutu melio malin _ emi kopa-ne yusomo-ne _";
+const SAMPLE_JS="ある日、彼は川で大きな魚を見つけた。彼は魚を捕まえて、家に持って帰った。母はとても喜んだ。";
+let drafts={sj:SAMPLE_SJ, js:SAMPLE_JS};
+function setMode(m){
+  drafts[mode]=$("src").value; mode=m;
+  $("m-sj").setAttribute("aria-pressed", m==="sj"); $("m-js").setAttribute("aria-pressed", m==="js");
+  $("src").value=drafts[m];
+  $("src").classList.toggle("mono", m==="sj");
+  $("src-label").textContent = m==="sj" ? "senolen の文" : "日本語の文";
+  $("res-ai-wrap").hidden=true; $("hint-wrap").hidden=true;
+  if (m==="sj") renderGloss($("src").value); else { $("gloss-wrap").hidden=true; renderHints($("src").value); }
+  updateAiNote();
+}
+function updateAiNote(){
+  if (!aiReady()) $("ai-state").textContent = mode==="sj" ? "単語ごとの意味を表示します（AIを設定すると自然な訳も出ます）" : "AIが未設定のため、使えそうな単語だけを表示します";
+  else $("ai-state").textContent = mode==="sj" ? PNAME[cfg.provider]+" が自然な日本語に訳します" : PNAME[cfg.provider]+" が辞書の単語だけで訳します";
+}
+function dictText(){
+  return E.filter(e=>e.k!=="表現"||true).map(e=>`${e.w}=${e.m}${e.p&&e.k!=="合成語"?"（"+e.p+"）":""}`).join("\n");
+}
+const DICT_TEXT = dictText();
+function errMsg(e){
+  const c=e&&e.code;
+  if (c==="no_key") return "APIキーが入っていません。「AIの設定」で入れてください。";
+  if (c==="no_model") return "モデル名が入っていません。「AIの設定」で入れてください。";
+  if (c==="network") return cfg.provider==="local" ? "ローカルAIにつながりませんでした。アドレスと、AIが起動しているかを確かめてください（Ollama は OLLAMA_ORIGINS=* が必要です）。" : "AIのサービスにつながりませんでした。インターネットの接続を確かめてください。";
+  if (c==="http"){
+    const d=e.detail?`（${e.detail}）`:"";
+    if (e.status===401||e.status===403) return "APIキーが正しくないか、使う権限がありません。"+d;
+    if (e.status===404) return "モデル名が見つかりません。モデル名を確かめてください。"+d;
+    if (e.status===429) return "利用の上限に達しました。少し時間をおくか、料金プランを確かめてください。"+d;
+    if (e.status===400) return "AIに送った内容が受け付けられませんでした。モデル名や文の長さを確かめてください。"+d;
+    return "AIのサービスでエラーが起きました（"+e.status+"）。"+d;
+  }
+  if (c==="not_granted"||c==="sampling_disabled"||c==="not_declared"||c==="capability_disabled"||c==="capability_removed"){ aiOK=false; updateAiNote(); return "この表示では Claude を使えません。単語ごとの意味と単語のヒントは使えます。"; }
+  if (c==="rate_limited") return "続けて使いすぎました。少し時間をおいてから、もう一度押してください。";
+  if (c==="session_expired") return "サインインし直してください。";
+  if (c==="invalid_json") return "訳の形が崩れました。もう一度押してください。";
+  if (c==="refused") return "この文は訳せませんでした。言い方を変えてみてください。";
+  if (c==="prompt_too_large") return "文が長すぎます。分けて訳してください。";
+  return "うまく訳せませんでした。もう一度押してください。";
+}
+async function translate(){
+  const text=$("src").value.trim();
+  if (!text) return;
+  $("copy").hidden=true; $("copy-note").textContent=""; $("res-extra").innerHTML="";
+  if (mode==="sj"){
+    const g=renderGloss(text);
+    if (!aiReady()) return;
+    $("res-ai-wrap").hidden=false; $("res-ai-label").textContent="自然な日本語訳"; $("res-ai").classList.remove("big");
+    $("res-ai").textContent="訳しています…";
+    const gl=g.rows.map(a=>`${a.raw} → ${a.m}${a.pre.length?"［前:"+a.pre.join(",")+"］":""}${a.suf.length?"［後:"+a.suf.join(",")+"］":""}${a.brk?" ／":""}`).join("\n");
+    const prompt=`あなたは人工言語 senolen の翻訳者です。次の senolen の文を、自然な日本語に訳してください。\n\n${RULES}\n\n# 単語の分解（ページが辞書で調べた結果）\n${gl}\n\n# 訳す文\n${text}\n\n訳文だけを日本語で書いてください。「辞書にない」単語があれば、訳文のあとに1行で「※ 不明な単語：…」と書いてください。`;
+    await run(async(sig)=>{
+      const t=await callAI(prompt,sig);
+      $("res-ai").textContent=t||"（返事が空でした）";
+    });
+  } else {
+    renderHints(text);
+    if (!aiReady()){ $("res-ai-wrap").hidden=true; return; }
+    $("res-ai-wrap").hidden=false; $("res-ai-label").textContent="senolen 訳"; $("res-ai").classList.add("big");
+    $("res-ai").textContent="訳しています…";
+    const prompt=`あなたは人工言語 senolen の翻訳者です。次の日本語を senolen に訳してください。意訳してよく、同じような意味が伝わることを優先します。\n\n${RULES}\n\n# 守ること\n- 下の辞書にある単語（語根・合成語・表現・挨拶）と、合成語の規則で作れる語だけを使う。\n- どうしても辞書にない語は、日本語のまま「」で囲んで文に入れ、missing に入れる。\n- 長い文は短い文に分け、各文の終わりに「 _ 」を書く。\n\n# 辞書（senolen=意味）\n${DICT_TEXT}\n\n# 訳す日本語\n${text}\n\n# 返す形\n次の JSON だけを返す：{"senolen":"全文","lines":[{"senolen":"1文","literal":"日本語の直訳"}],"missing":["辞書になかった語"],"note":"訳で工夫した点を1〜2文（なければ空文字）"}`;
+    await run(async(sig)=>{
+      const r=parseJSON(await callAI(prompt,sig));
+      if (!r || typeof r.senolen!=="string") throw {code:"invalid_json"};
+      $("res-ai").textContent=r.senolen;
+      $("copy").hidden=false;
+      let html="";
+      if (Array.isArray(r.lines)&&r.lines.length){
+        html+=`<div class="scroll"><table class="tbl"><thead><tr><th>senolen</th><th>直訳</th></tr></thead><tbody>${r.lines.map(l=>`<tr><td class="tok">${esc(l.senolen||"")}</td><td>${esc(l.literal||"")}</td></tr>`).join("")}</tbody></table></div>`;
+      }
+      if (Array.isArray(r.missing)&&r.missing.length) html+=`<div class="warnbox" style="margin-top:10px"><b>辞書になかった語：</b>${esc(r.missing.join("、"))}</div>`;
+      if (r.note) html+=`<p class="note">${esc(r.note)}</p>`;
+      $("res-extra").innerHTML=html;
+      const g=renderGloss(r.senolen.replace(/「[^」]*」/g," "));
+      if (g.unk) $("res-extra").insertAdjacentHTML("beforeend",`<div class="warnbox" style="margin-top:10px"><b>確認：</b>訳に辞書で確かめられない単語が ${g.unk} 個あります。下の表の赤字を見てください。</div>`);
+    });
+  }
+}
+async function run(fn){
+  ctl=new AbortController();
+  $("go").disabled=true; $("stop").hidden=false;
+  try { await fn(ctl.signal); }
+  catch(e){ if(e&&(e.code==="cancelled"||e.name==="AbortError")){ if(!e.text) $("res-ai").textContent="止めました。"; } else { $("res-ai").textContent=(e&&e.text)||""; $("res-extra").innerHTML=`<div class="warnbox">${esc(errMsg(e))}</div>`; } }
+  finally { $("go").disabled=false; $("stop").hidden=true; ctl=null; }
+}
+
+/* ---------- dictionary ---------- */
+const KINDS=["すべて","語根","合成語","表現","挨拶","数字"];
+let kind="すべて", field="すべて", shown=60;
+function renderFilters(){
+  $("kinds").innerHTML=KINDS.map(k=>`<button data-k="${k}" aria-pressed="${k===kind}">${k}</button>`).join("");
+  const fs=["すべて",...DATA.fields];
+  $("fields").innerHTML = (kind==="語根"||kind==="すべて") ? fs.map(f=>`<button data-f="${esc(f)}" aria-pressed="${f===field}">${esc(f)}</button>`).join("") : "";
+}
+function search(){
+  const q=$("q").value.trim().toLowerCase();
+  let list=E.filter(e=>(kind==="すべて"||e.k===kind)&&(field==="すべて"||e.f===field));
+  if (q){
+    const sc=e=>{ const w=e.w.toLowerCase(); if(w===q) return 0; if(w.startsWith(q)) return 1; if(e.m.split(/[・／、（）]/).includes($("q").value.trim())) return 2; if(w.includes(q)) return 3; if(e.m.includes($("q").value.trim())) return 4; if(e.p&&e.p.includes($("q").value.trim())) return 5; return 9; };
+    list=list.map(e=>[sc(e),e]).filter(x=>x[0]<9).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+  }
+  return list;
+}
+function renderList(){
+  const list=search();
+  $("hitcount").textContent=`${list.length} 件`;
+  $("list").innerHTML=list.slice(0,shown).map(e=>`<li class="entry"><span class="w">${esc(e.w)}</span><span class="m">${esc(e.m)}${e.p?`<span class="p">${esc(e.p)}</span>`:""}</span><span class="tag">${esc(e.k==="語根"?e.f:e.k)}${e.mo?" · "+e.mo+"モーラ":""}<button class="add" data-w="${esc(e.w)}" aria-label="${esc(e.w)} を翻訳欄に入れる">＋翻訳欄</button></span></li>`).join("");
+  $("more").hidden = list.length<=shown;
+}
+
+/* ---------- wiring ---------- */
+function init(){
+  const nRoot=E.filter(e=>e.k==="語根"||e.k==="数字").length;
+  $("count").innerHTML=`<b>${romanHTML(nRoot)}</b>語<br>（10進法で ${nRoot} 語・合成語と表現を含め ${E.length} 項目）`;
+  $("mk").innerHTML=`<thead><tr><th>位置</th><th>形</th><th>意味</th><th>例</th></tr></thead><tbody>${MARKERS.map(r=>`<tr><td>${r[0]}</td><td class="tok">${r[1]}</td><td>${r[2]}</td><td class="mono" style="font-size:13px">${r[3]}</td></tr>`).join("")}</tbody>`;
+  $("src").value=drafts.sj;
+  renderGloss(drafts.sj);
+  renderFilters(); renderList(); renderNum(); updateAiNote();
+  $("m-sj").onclick=()=>setMode("sj"); $("m-js").onclick=()=>setMode("js");
+  $("go").onclick=translate; $("stop").onclick=()=>ctl&&ctl.abort();
+  $("clear").onclick=()=>{ $("src").value=""; $("res-ai-wrap").hidden=true; if(mode==="sj") renderGloss(""); else $("hint-wrap").hidden=true; $("src").focus(); };
+  $("src").addEventListener("input",()=>{ if(mode==="sj") renderGloss($("src").value); });
+  $("copy").onclick=async()=>{ const t=$("res-ai").textContent; try{ await navigator.clipboard.writeText(t); $("copy-note").textContent="コピーしました"; }catch(_){ const r=document.createRange(); r.selectNodeContents($("res-ai")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); $("copy-note").textContent="選択しました。コピーしてください"; } };
+  $("q").addEventListener("input",()=>{ shown=60; renderList(); });
+  $("kinds").onclick=ev=>{ const b=ev.target.closest("button"); if(!b) return; kind=b.dataset.k; if(kind!=="語根"&&kind!=="すべて") field="すべて"; shown=60; renderFilters(); renderList(); };
+  $("fields").onclick=ev=>{ const b=ev.target.closest("button"); if(!b) return; field=b.dataset.f; shown=60; renderFilters(); renderList(); };
+  $("more").onclick=()=>{ shown+=120; renderList(); };
+  $("list").onclick=ev=>{ const b=ev.target.closest("button.add"); if(!b) return; if(mode!=="sj") setMode("sj"); const s=$("src"); s.value=(s.value.trim()?s.value.trim()+" ":"")+b.dataset.w+" "; renderGloss(s.value); s.focus(); };
+  $("hints").onclick=ev=>{ const b=ev.target.closest("button"); if(!b) return; $("q").value=b.dataset.w; kind="すべて"; field="すべて"; renderFilters(); renderList(); $("q").scrollIntoView({block:"center",behavior:"smooth"}); };
+  $("num").addEventListener("input",renderNum);
+  renderSettings(); if(!aiReady()) $("ai-set").open=true; updateAiNote();
+  $("prov").onchange=()=>{ readSettingsOnly(); };
+  function readSettingsOnly(){ const p=$("prov").value; cfg.provider=p; renderSettings(); updateAiNote(); $("set-note").textContent=""; }
+  $("save").onclick=()=>{ readSettings(); const ok=saveCfg(); renderSettings(); updateAiNote(); $("set-note").textContent= ok ? "保存しました" : "このブラウザでは保存できませんでした（開いている間だけ使えます）"; };
+  $("forget").onclick=()=>{ cfg.keys[cfg.provider]=""; saveCfg(); renderSettings(); updateAiNote(); $("set-note").textContent="キーを消しました"; };
+  $("test").onclick=async()=>{ readSettings(); renderSettings(); updateAiNote(); $("set-note").textContent="試しています…"; $("test").disabled=true;
+    try{ const t=await callAI("「OK」とだけ返してください。", undefined); $("set-note").textContent="つながりました："+String(t).slice(0,40); }
+    catch(e){ $("set-note").textContent=errMsg(e); }
+    finally{ $("test").disabled=false; } };
+}
+init();
+</script>
+
+</body>
+</html>
